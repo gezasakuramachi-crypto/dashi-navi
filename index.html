@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>鹿島神宮 神幸祭 交通規制（歩行者専用・時間帯対応）</title>
+<style>
+  html,body,#map{height:100%;margin:0}
+  .ctrl{position:absolute;top:10px;right:10px;z-index:2}
+  .panel{background:#fff;border:1px solid #e3e3e3;border-radius:10px;
+         box-shadow:0 6px 18px rgba(0,0,0,.12);padding:10px;min-width:260px;font-size:14px}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .title{font-weight:700;letter-spacing:.05em}
+  .btn{border:2px solid #333;border-radius:6px;background:#fff;padding:6px 10px;cursor:pointer}
+  .tabs{display:flex;gap:6px;margin-top:8px}
+  .tabs button{flex:1;padding:6px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;cursor:pointer}
+  .tabs button.active{background:#e9f2ff;border-color:#99c5ff}
+  .hint{font-size:12px;color:#666}
+  .grp{display:grid;gap:6px;margin-top:8px}
+  .tag{background:#fff5e6;border:1px solid #f0d9b5;border-radius:6px;padding:6px 8px;cursor:pointer}
+  .tag.active{background:#ffe3bd;border-color:#f2c78a}
+  .legend{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #ddd;border-radius:999px;padding:4px 10px}
+  .sw{width:14px;height:14px;border-radius:3px;border:1px solid #888;background:#6bc06b}
+  .toggle{display:flex;gap:6px;margin-top:8px}
+  .toggle button{flex:1;padding:6px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;cursor:pointer}
+  .toggle button.active{background:#e9f2ff;border-color:#99c5ff}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="ctrl">
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div class="title">交通規制</div>
+      <button id="openBtn" class="btn">表示</button>
+    </div>
+    <div id="drawer" style="display:none">
+      <div class="tabs" id="dayTabs"></div>
+
+      <div class="toggle">
+        <button id="tabAuto" class="active">自動（現在時刻）</button>
+        <button id="tabManual">時間別レイヤー</button>
+      </div>
+
+      <div id="autoPane" class="grp">
+        <div class="row" style="justify-content:space-between">
+          <label style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="useNow" checked> 端末の現在時刻を使う
+          </label>
+          <button id="refresh" class="btn" style="padding:4px 8px">更新</button>
+        </div>
+        <input type="datetime-local" id="when" disabled>
+        <div class="hint" id="status"></div>
+      </div>
+
+      <div id="manualPane" class="grp" style="display:none">
+        <div id="slotList" class="grp"></div>
+        <div class="hint">複数チェックで重ねて表示できます（比較・確認用）。</div>
+      </div>
+
+      <div class="legend"><span class="chip"><span class="sw"></span>歩行者専用</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"days": [{"id": "d1", "label": "9/1（日）", "slots": [{"id": "s1", "name": "9/1 10:30–15:00", "start": "2025-09-01T10:30:00+09:00", "end": "2025-09-01T15:00:00+09:00", "features": [{"path": [[35.967319, 140.6273865], [35.9673538, 140.6275421], [35.9674319, 140.6277084], [35.9675795, 140.6280249], [35.9677793, 140.6283307], [35.9679095, 140.6285506], [35.9680267, 140.6288296], [35.9681309, 140.6290602], [35.9682438, 140.6293124], [35.9683089, 140.6294787], [35.9677315, 140.6298488]], "note": "9/1 10:30-15:00"}, {"path": [[35.966251, 140.627703], [35.9665505, 140.628674], [35.966772, 140.6293338]], "note": "9/1 10:30-15:00"}, {"path": [[35.9668349, 140.6293821], [35.967484, 140.6290897], [35.9678466, 140.628902], [35.968018, 140.6288081]], "note": "9/1 10:30-15:00"}]}, {"id": "s2", "name": "9/1 15:00–16:00", "start": "2025-09-01T15:00:00+09:00", "end": "2025-09-01T16:00:00+09:00", "features": [{"path": [[35.967319, 140.6273865], [35.9673538, 140.6275421], [35.9674319, 140.6277084], [35.9675795, 140.6280249], [35.9677793, 140.6283307], [35.9679095, 140.6285506], [35.9680267, 140.6288296], [35.9681309, 140.6290602], [35.9682438, 140.6293124], [35.9683089, 140.6294787], [35.9677315, 140.6298488]], "note": "9/1 10:30-15:00"}, {"path": [[35.966251, 140.627703], [35.9665505, 140.628674], [35.966772, 140.6293338]], "note": "9/1 10:30-15:00"}, {"path": [[35.9668349, 140.6293821], [35.967484, 140.6290897], [35.9678466, 140.628902], [35.968018, 140.6288081]], "note": "9/1 10:30-15:00"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/1 15:00--16:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/1 15:00--16:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/1 15:00--16:00"}, {"path": [[35.96758, 140.62723], [35.9673, 140.627345], [35.967087, 140.625964]], "note": "9/1 15:00--16:00"}, {"path": [[35.967288, 140.627346], [35.967168, 140.627393], [35.966241, 140.627603]], "note": "9/1 15:00--16:00"}]}, {"id": "s3", "name": "9/1 16:00–19:30", "start": "2025-09-01T16:00:00+09:00", "end": "2025-09-01T19:30:00+09:00", "features": [{"path": [[35.967319, 140.6273865], [35.9673538, 140.6275421], [35.9674319, 140.6277084], [35.9675795, 140.6280249], [35.9677793, 140.6283307], [35.9679095, 140.6285506], [35.9680267, 140.6288296], [35.9681309, 140.6290602], [35.9682438, 140.6293124], [35.9683089, 140.6294787], [35.9677315, 140.6298488]], "note": "9/1 10:30-15:00"}, {"path": [[35.966251, 140.627703], [35.9665505, 140.628674], [35.966772, 140.6293338]], "note": "9/1 10:30-15:00"}, {"path": [[35.9668349, 140.6293821], [35.967484, 140.6290897], [35.9678466, 140.628902], [35.968018, 140.6288081]], "note": "9/1 10:30-15:00"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/1 15:00--16:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/1 15:00--16:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/1 15:00--16:00"}, {"path": [[35.96758, 140.62723], [35.9673, 140.627345], [35.967087, 140.625964]], "note": "9/1 15:00--16:00"}, {"path": [[35.967288, 140.627346], [35.967168, 140.627393], [35.966241, 140.627603]], "note": "9/1 15:00--16:00"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/1 16:00-19:30"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/1 16:00-19:30"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/1 16:00-19:30"}, {"path": [[35.965983, 140.629748], [35.966795, 140.629402], [35.967046, 140.630175], [35.967689, 140.629877], [35.967854, 140.63029], [35.967826, 140.630346], [35.967179, 140.630655], [35.967044, 140.63018], [35.967179, 140.630655], [35.966378, 140.630985], [35.966604, 140.63092], [35.966792, 140.631524], [35.966538, 140.631653]], "note": "9/1 16:00-19:30"}, {"path": [[35.96758, 140.62723], [35.9673, 140.627345], [35.967087, 140.625964]], "note": "9/1 16:00-19:30"}]}, {"id": "s4", "name": "9/1 19:30–20:45", "start": "2025-09-01T19:30:00+09:00", "end": "2025-09-01T20:45:00+09:00", "features": [{"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/1 19:30-20:45"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/1 19:30-20:45"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/1 19:30-20:45"}, {"path": [[35.96758, 140.62723], [35.9673, 140.627345], [35.967087, 140.625964]], "note": "9/1 19:30-20:45"}, {"path": [[35.967288, 140.627346], [35.967168, 140.627393], [35.966241, 140.627603]], "note": "9/1 19:30-20:45"}]}, {"id": "s5", "name": "9/1 20:45–22:00", "start": "2025-09-01T20:45:00+09:00", "end": "2025-09-01T22:00:00+09:00", "features": [{"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/1 20:45-22:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/1 20:45-22:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/1 20:45-22:00"}]}]}, {"id": "d2", "label": "9/2（月）", "slots": [{"id": "s1", "name": "9/2 11:00–12:30", "start": "2025-09-02T11:00:00+09:00", "end": "2025-09-02T12:30:00+09:00", "features": [{"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 11:00-12:30"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 11:00-12:30"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 11:00-12:30"}]}, {"id": "s2", "name": "9/2 12:30–14:00", "start": "2025-09-02T12:30:00+09:00", "end": "2025-09-02T14:00:00+09:00", "features": [{"path": [[35.965983, 140.629748], [35.966023, 140.629743], [35.966795, 140.629402], [35.967189, 140.630631], [35.967046, 140.630175], [35.967732, 140.629849], [35.967697, 140.629896], [35.96786, 140.630263], [35.967826, 140.630346], [35.967182, 140.630636], [35.96634, 140.631006], [35.966603, 140.630891], [35.966792, 140.631524], [35.966538, 140.631653], [35.966792, 140.631524], [35.9666, 140.630894], [35.96634, 140.631006], [35.965964, 140.62981], [35.966342, 140.631009], [35.965695, 140.631296]], "note": "9/2 12:30-14:00"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 12:30-14:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 12:30-14:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 12:30-14:00"}]}, {"id": "s3", "name": "9/2 14:00–16:30", "start": "2025-09-02T14:00:00+09:00", "end": "2025-09-02T16:30:00+09:00", "features": [{"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 14:00-16:30"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 14:00-16:30"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 14:00-16:30"}]}, {"id": "s4", "name": "9/2 16:30–19:00", "start": "2025-09-02T16:30:00+09:00", "end": "2025-09-02T19:00:00+09:00", "features": [{"path": [[35.964662, 140.625611], [35.9655, 140.625289], [35.965361, 140.624785], [35.965626, 140.625723], [35.964792, 140.626115], [35.965626, 140.625729], [35.965669, 140.625874], [35.966203, 140.625691], [35.966959, 140.625509], [35.966194, 140.625686], [35.965665, 140.625884], [35.965843, 140.626544], [35.96593, 140.626941], [35.966008, 140.627274], [35.966056, 140.627563]], "note": "9/2 16:30-19:30"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 16:30-19:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 16:30-19:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 16:30-19:00"}]}, {"id": "s5", "name": "9/2 19:00–19:30", "start": "2025-09-02T19:00:00+09:00", "end": "2025-09-02T19:30:00+09:00", "features": [{"path": [[35.964662, 140.625611], [35.9655, 140.625289], [35.965361, 140.624785], [35.965626, 140.625723], [35.964792, 140.626115], [35.965626, 140.625729], [35.965669, 140.625874], [35.966203, 140.625691], [35.966959, 140.625509], [35.966194, 140.625686], [35.965665, 140.625884], [35.965843, 140.626544], [35.96593, 140.626941], [35.966008, 140.627274], [35.966056, 140.627563]], "note": "9/2 19:00-19:30"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 19:00-19:30"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 19:00-19:30"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 19:00-19:30"}, {"path": [[35.965392, 140.6278], [35.965691, 140.627741], [35.96601, 140.627658], [35.966232, 140.627599], [35.966482, 140.627556], [35.966686, 140.627499], [35.966994, 140.627438], [35.967163, 140.627389], [35.967274, 140.627346]], "note": "9/2 19:00-19:30"}]}, {"id": "s6", "name": "9/2 19:30–22:00", "start": "2025-09-02T19:30:00+09:00", "end": "2025-09-02T22:00:00+09:00", "features": [{"path": [[35.965392, 140.6278], [35.965691, 140.627741], [35.96601, 140.627658], [35.966232, 140.627599], [35.966482, 140.627556], [35.966686, 140.627499], [35.966994, 140.627438], [35.967163, 140.627389], [35.967274, 140.627346]], "note": "9/2 19:30-22:00"}, {"path": [[35.967319, 140.627386], [35.967354, 140.627542], [35.967432, 140.627708], [35.96758, 140.628025], [35.967779, 140.628331], [35.96791, 140.628551], [35.968027, 140.62883], [35.968131, 140.62906], [35.968244, 140.629312], [35.968309, 140.629479], [35.967732, 140.629849]], "note": "9/2 19:30-22:00"}, {"path": [[35.966251, 140.627703], [35.96655, 140.628674], [35.966772, 140.629334]], "note": "9/2 19:30-22:00"}, {"path": [[35.966835, 140.629382], [35.967484, 140.62909], [35.967847, 140.628902], [35.968018, 140.628808]], "note": "9/2 19:30-22:00"}]}]}]};
+
+// 地図設定
+const MAP_CENTER = {lat:35.9689, lng:140.6417};
+const MAP_ZOOM   = 16;
+const MAP_STYLE = [
+  {featureType:"poi", stylers:[{visibility:"off"}]},
+  {featureType:"transit", stylers:[{visibility:"off"}]},
+  {featureType:"road", elementType:"labels.icon", stylers:[{visibility:"off"}]},
+];
+
+// 線のスタイル
+const STROKE = {
+  casing:   { strokeColor:"#ffffff", strokeOpacity:1,   strokeWeight:10, zIndex: 1001 },
+  main:     { strokeColor:"#6bc06b", strokeOpacity:0.95, strokeWeight:6,  zIndex: 1002 },
+  glow:     { strokeColor:"#6bc06b", strokeOpacity:0.25, strokeWeight:14, zIndex: 1000 },
+};
+
+let map;
+let currentDay = DATA.days[0].id;
+let layers = {}; // slotId -> polylines[]
+
+function initMap(){
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: MAP_CENTER, zoom: MAP_ZOOM, styles: MAP_STYLE,
+    mapTypeControl:false, streetViewControl:false, fullscreenControl:true
+  });
+
+  setupUI();
+  autoShow(new Date());
+}
+
+function setupUI(){
+  const btn = document.getElementById('openBtn');
+  const drawer = document.getElementById('drawer');
+  btn.addEventListener('click', ()=> drawer.style.display = (drawer.style.display==='none') ? 'block':'none');
+
+  // 日付タブ
+  const tabs = document.getElementById('dayTabs');
+  DATA.days.forEach(d => {
+    const b = document.createElement('button');
+    b.textContent = d.label;
+    b.className = 'btn';
+    b.style.flex='1';
+    if(d.id===currentDay) b.classList.add('active');
+    b.addEventListener('click', ()=> selectDay(d.id));
+    tabs.appendChild(b);
+  });
+
+  // 自動/手動
+  const tabAuto = document.getElementById('tabAuto');
+  const tabManual = document.getElementById('tabManual');
+  const autoPane = document.getElementById('autoPane');
+  const manualPane = document.getElementById('manualPane');
+
+  tabAuto.addEventListener('click', ()=>{ 
+    tabAuto.classList.add('active'); tabManual.classList.remove('active');
+    autoPane.style.display='grid'; manualPane.style.display='none'; autoShow(new Date());
+  });
+  tabManual.addEventListener('click', ()=>{ 
+    tabManual.classList.add('active'); tabAuto.classList.remove('active');
+    manualPane.style.display='grid'; autoPane.style.display='none'; buildSlotList();
+  });
+
+  // 自動モードUI
+  const useNow = document.getElementById('useNow');
+  const when   = document.getElementById('when');
+  const refresh= document.getElementById('refresh');
+  const d = new Date(); when.value = toLocalInputValue(d);
+  useNow.addEventListener('change', ()=>{ when.disabled = useNow.checked; });
+  refresh.addEventListener('click', ()=>{ 
+    const t = useNow.checked ? new Date() : new Date(when.value);
+    autoShow(t);
+  });
+  when.disabled = true;
+}
+
+function selectDay(dayId){
+  currentDay = dayId;
+  // 更新タブの見た目
+  const tabs = document.getElementById('dayTabs').children;
+  [...tabs].forEach((b,i)=>{ 
+    const id = DATA.days[i].id; 
+    if(id===dayId) b.classList.add('active'); else b.classList.remove('active'); 
+  });
+  // 表示更新
+  const mPane = document.getElementById('manualPane');
+  if(mPane.style.display!=='none') buildSlotList();
+  autoShow(new Date());
+}
+
+function buildSlotList(){
+  const box = document.getElementById('slotList'); box.innerHTML='';
+  const day = DATA.days.find(d=>d.id===currentDay);
+  day.slots.forEach((s, idx)=>{
+    const id = `chk_{day.id}_{idx}`;
+    const div = document.createElement('div');
+    div.innerHTML = `<label class="tag"><input type="checkbox" id="${id}" style="margin-right:6px">${s.name}</label>`;
+    box.appendChild(div);
+    const chk = div.querySelector('input'); const tag = div.querySelector('.tag');
+    chk.addEventListener('change', e=>{
+      if(e.target.checked) { showSlot(s); tag.classList.add('active'); }
+      else { hideSlot(s); tag.classList.remove('active'); }
+      updateStatus();
+    });
+  });
+}
+
+function autoShow(now){
+  const status = document.getElementById('status');
+  hideAll();
+  const day = DATA.days.find(d=>d.id===currentDay);
+  const actives = [];
+  day.slots.forEach(s=>{
+    const st = new Date(s.start), en = new Date(s.end);
+    if(now >= st && now <= en) { showSlot(s); actives.push(s.name);}
+  });
+  status.textContent = '表示時刻：' + new Intl.DateTimeFormat('ja-JP',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Tokyo'}).format(now) + ' ／ 表示中：' + actives.length + '件';
+  // 手動チェックの同期は簡略化（自動モードでは未同期）
+}
+
+function showSlot(slot){
+  if(layers[slot.start]) return;
+  const polys = [];
+  (slot.features||[]).forEach(f=>{
+    const path = f.path.map(p=>({lat:p[0], lng:p[1]}));
+    const glow = new google.maps.Polyline({ path, ...STROKE.glow, map });
+    const casing = new google.maps.Polyline({ path, ...STROKE.casing, map });
+    const main = new google.maps.Polyline({ path, ...STROKE.main, map });
+    polys.push(glow,casing,main);
+  });
+  layers[slot.start] = polys;
+}
+
+function hideSlot(slot){
+  const polys = layers[slot.start];
+  if(!polys) return;
+  polys.forEach(pl=>pl.setMap(null));
+  delete layers[slot.start];
+}
+
+function hideAll(){
+  Object.values(layers).forEach(arr=>arr.forEach(pl=>pl.setMap(null)));
+  layers = {};
+}
+
+function updateStatus(){
+  const status = document.getElementById('status');
+  status.textContent = '表示中スロット：' + Object.keys(layers).length + '件';
+}
+
+function toLocalInputValue(d){
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+window.initMap = initMap;
+</script>
+
+<!-- ★Google Maps API キーを差し替え -->
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8"></script>
+</body>
+</html>
