@@ -18,28 +18,30 @@
     .app-header img{ display:block; height:auto; max-width:560px; width:90vw; }
     .header-spacer{ height:70px; }
 
-    /* 右上：交通規制UI（できるだけ細く） */
+    /* 右上：交通規制UI（スマホで邪魔にならない極小幅） */
     .ctrl{ position:absolute; top:84px; right:10px; z-index:11; }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 6px 18px rgba(0,0,0,.12);
-      padding:8px; min-width:180px; max-width:220px; font-size:13px
+      padding:6px; width:140px; /* ←約1/3の細さ */
+      font-size:12px;
     }
     .row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap }
     .title{ font-weight:700; letter-spacing:.02em }
-    .btn{ border:1.5px solid #333; border-radius:6px; background:#fff; padding:5px 8px; cursor:pointer; font-size:13px }
-    .btn.small{ padding:4px 6px; font-size:12px }
-    .stack{ display:grid; gap:6px; margin-top:6px }
-    .legend{ display:flex; align-items:center; gap:6px; font-size:12px; color:#333 }
-    .sw{ width:12px; height:12px; border-radius:3px; border:1px solid #888; background:#6bc06b }
+    .btn{ border:1.5px solid #333; border-radius:6px; background:#fff; padding:4px 6px; cursor:pointer; font-size:12px }
+    .vlist{ display:grid; gap:6px; margin-top:6px } /* 縦並びタブ */
+    .tab{ padding:6px 0; text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:6px; cursor:pointer }
+    .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700 }
+    .legend{ display:flex; align-items:center; gap:6px; font-size:11px; color:#333 }
+    .sw{ width:11px; height:11px; border-radius:3px; border:1px solid #888; background:#6bc06b }
     .hint{ font-size:11px; color:#444; line-height:1.35 }
 
-    .tabbar{ display:flex; gap:6px; }
-    .tabbar .tab{ flex:1; padding:5px 0; text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:6px; cursor:pointer; font-size:13px }
-    .tabbar .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700 }
-
     .slotlist{ display:grid; gap:6px; margin-top:6px }
-    .slotbtn{ padding:6px; border:1px solid #ccc; border-radius:6px; background:#fff; text-align:center; cursor:pointer; font-size:13px }
+    .slotbtn{
+      padding:5px; border:1px solid #ccc; border-radius:6px; background:#fff;
+      text-align:center; cursor:pointer; font-size:12px;
+    }
+    .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
     /* InfoWindow 調整 */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -69,30 +71,26 @@
   </div>
   <div class="header-spacer"></div>
 
-  <!-- 交通規制UI（最小構成） -->
+  <!-- 交通規制UI：表示→自動/9/1/9/2（縦）→時間ボタン（時間のみ） -->
   <div class="ctrl">
     <div class="panel">
       <div class="row" style="justify-content:space-between">
         <div class="title">交通規制</div>
-        <button id="openBtn" class="btn small">表示</button>
+        <button id="openBtn" class="btn">表示</button>
       </div>
 
       <div id="drawer" style="display:none">
-        <div class="stack">
-          <!-- タブ：自動 / 9/1 / 9/2 -->
-          <div class="tabbar">
-            <div id="tabAuto" class="tab active">自動</div>
-            <div id="tabD1" class="tab">9/1(月)</div>
-            <div id="tabD2" class="tab">9/2(火)</div>
-          </div>
-
-          <!-- 凡例＆説明（超コンパクト） -->
-          <div class="legend"><span class="sw"></span><span>歩行者専用</span></div>
-          <div class="hint">該当時間帯に表示が変わります。</div>
-
-          <!-- スロット（時間）ボタン置き場：タブ選択時のみ描画） -->
-          <div id="slotList" class="slotlist"></div>
+        <div class="vlist">
+          <div id="tabAuto" class="tab active">自動</div>
+          <div id="tabD1" class="tab">9/1(月)</div>
+          <div id="tabD2" class="tab">9/2(火)</div>
         </div>
+
+        <div class="legend" style="margin-top:6px"><span class="sw"></span><span>歩行者専用</span></div>
+        <div class="hint">該当時間帯に表示が変わります。</div>
+
+        <!-- 日付タップ時に時間ボタンを表示（時間だけ、チェックなし、選択中の色変更） -->
+        <div id="slotList" class="slotlist"></div>
       </div>
     </div>
   </div>
