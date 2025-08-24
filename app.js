@@ -25,22 +25,20 @@ const MAP_STYLE = [
   { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
 ];
 
-// 歩行者専用の強調（道路色が変わったように見せる三層）
+// 歩行者専用の強調（三層）
 const STROKE = {
   casing: { strokeColor: "#ffffff", strokeOpacity: 1, strokeWeight: 10, zIndex: 3001 },
   main:   { strokeColor: "#6bc06b", strokeOpacity: 0.95, strokeWeight: 6,  zIndex: 3002 },
   glow:   { strokeColor: "#6bc06b", strokeOpacity: 0.25, strokeWeight: 14, zIndex: 3000 },
 };
 
-/* ========== 共有 InfoWindow 参照 ========== */
+/* ========== 共有 InfoWindow ========== */
 let activeInfoWindow = null;
 
-/* ================== イベント系マーカー定義（ラベル文字なし） ================== */
-// 先頭に丸数字・記号があっても落とす（データ保険）
+/* ================== イベント系マーカー（ラベル無し） ================== */
 const cleanTitle = (s) =>
   String(s || "").replace(/^[\s\u2460-\u2473\u3251-\u325F\u32B1-\u32BF\u3000・\-()\d\.]+/, "");
 
-// ■インフォメーション
 const INFO_POINTS = [
   {
     title: "年番引継ぎ会場",
@@ -97,7 +95,6 @@ const INFO_POINTS = [
   },
 ];
 
-// ■トイレ
 const WC_POINTS = [
   { title: "鹿島神宮公衆トイレ",          lat: 35.9679444, lng: 140.6305833 },
   { title: "にぎわい広場 トイレ",          lat: 35.9664167, lng: 140.6278611 },
@@ -106,35 +103,35 @@ const WC_POINTS = [
   { title: "観光案内所 公衆トイレ",        lat: 35.9672778, lng: 140.6266944 },
 ];
 
-// ■駐車場
 const PARK_POINTS = [
   { title: "鹿嶋市宮中地区駐車場",         lat: 35.9665833, lng: 140.6320000 },
   { title: "鹿嶋市営鹿島神宮駅西駐車場",   lat: 35.9700000, lng: 140.6238333 },
 ];
 
 /* ================= 交通規制スロット ================= */
+/* 時間ボタンは「時間だけ」を表示するため、各スロットに shortLabel を用意 */
 const DAYS = [
   {
     id: "d1",
     label: "9/1(月)",
     slots: [
-      { name: "9/1 10:30-", key: "91-1030-1500", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
-      { name: "9/1 15:00-", key: "91-1500-1600", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
-      { name: "9/1 16:00-", key: "91-1600-1930", start: "2025-09-01T16:00:00+09:00", end: "2025-09-01T19:30:00+09:00", src: "data/91-1600-1930.geojson" },
-      { name: "9/1 19:30-", key: "91-1930-2045", start: "2025-09-01T19:30:00+09:00", end: "2025-09-01T20:45:00+09:00", src: "data/91-1930-2045.geojson" },
-      { name: "9/1 20:45-", key: "91-2045-2200", start: "2025-09-01T20:45:00+09:00", end: "2025-09-01T22:00:00+09:00", src: "data/91-2045-2200.geojson" },
+      { name: "9/1 10:30-", shortLabel:"10:30-", key: "91-1030-1500", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
+      { name: "9/1 15:00-", shortLabel:"15:00-", key: "91-1500-1600", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
+      { name: "9/1 16:00-", shortLabel:"16:00-", key: "91-1600-1930", start: "2025-09-01T16:00:00+09:00", end: "2025-09-01T19:30:00+09:00", src: "data/91-1600-1930.geojson" },
+      { name: "9/1 19:30-", shortLabel:"19:30-", key: "91-1930-2045", start: "2025-09-01T19:30:00+09:00", end: "2025-09-01T20:45:00+09:00", src: "data/91-1930-2045.geojson" },
+      { name: "9/1 20:45-", shortLabel:"20:45-", key: "91-2045-2200", start: "2025-09-01T20:45:00+09:00", end: "2025-09-01T22:00:00+09:00", src: "data/91-2045-2200.geojson" },
     ],
   },
   {
     id: "d2",
     label: "9/2(火)",
     slots: [
-      { name: "9/2 11:00-", key: "92-1100-1230", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
-      { name: "9/2 12:30-", key: "92-1230-1400", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
-      { name: "9/2 14:00-", key: "92-1400-1630", start: "2025-09-02T14:00:00+09:00", end: "2025-09-02T16:30:00+09:00", src: "data/92-1400-1630.geojson" },
-      { name: "9/2 16:30-", key: "92-1630-1900", start: "2025-09-02T16:30:00+09:00", end: "2025-09-02T19:00:00+09:00", src: "data/92-1630-1900.geojson" },
-      { name: "9/2 19:00-", key: "92-1900-1930", start: "2025-09-02T19:00:00+09:00", end: "2025-09-02T19:30:00+09:00", src: "data/92-1900-1930.geojson" },
-      { name: "9/2 19:30-", key: "92-1930-2200", start: "2025-09-02T19:30:00+09:00", end: "2025-09-02T22:00:00+09:00", src: "data/92-1930-2200.geojson" },
+      { name: "9/2 11:00-", shortLabel:"11:00-", key: "92-1100-1230", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
+      { name: "9/2 12:30-", shortLabel:"12:30-", key: "92-1230-1400", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
+      { name: "9/2 14:00-", shortLabel:"14:00-", key: "92-1400-1630", start: "2025-09-02T14:00:00+09:00", end: "2025-09-02T16:30:00+09:00", src: "data/92-1400-1630.geojson" },
+      { name: "9/2 16:30-", shortLabel:"16:30-", key: "92-1630-1900", start: "2025-09-02T16:30:00+09:00", end: "2025-09-02T19:00:00+09:00", src: "data/92-1630-1900.geojson" },
+      { name: "9/2 19:00-", shortLabel:"19:00-", key: "92-1900-1930", start: "2025-09-02T19:00:00+09:00", end: "2025-09-02T19:30:00+09:00", src: "data/92-1900-1930.geojson" },
+      { name: "9/2 19:30-", shortLabel:"19:30-", key: "92-1930-2200", start: "2025-09-02T19:30:00+09:00", end: "2025-09-02T22:00:00+09:00", src: "data/92-1930-2200.geojson" },
     ],
   },
 ];
@@ -142,16 +139,18 @@ const DAYS = [
 /* ================= メイン ================= */
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null;
-let firstFitDone = false; // 初回300mフィット用
+let firstFitDone = false; // 初回300mフィット
 
-// 規制描画用
+// 規制描画
 const layers = new Map();      // key: slot.key → [Polyline...]
-const loadedCache = new Map(); // src -> [{path:[lat,lng], note?}...]
+const loadedCache = new Map(); // src → [{path:[lat,lng], note?}...]
 
-// UI要素参照（後で取得）
+// UI参照と状態
 let drawer, tabAutoEl, tabD1El, tabD2El, slotListEl;
+let currentDayId = null;       // "d1" or "d2"
+let selectedSlotKey = null;    // 色強調用
 
-// Google Maps APIのcallback
+// Google Maps API callback
 window.initMap = function () {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
@@ -186,31 +185,31 @@ window.initMap = function () {
     setInfoBar(dashInfo, formatLastFixBar());
   });
 
-  // 地図余白クリックで：InfoWindowを閉じる + 規制UIを自動に戻して閉じる
+  // 地図余白クリック → すべて閉じる + 自動に戻してパネルを閉じる
   map.addListener("click", () => {
     if (activeInfoWindow) { activeInfoWindow.close(); activeInfoWindow = null; }
-    switchToAuto(true); // 自動に戻してUIを閉じる
+    switchToAuto(true);
   });
 
-  /* 現在地ポーリング */
+  // 現在地ポーリング
   startPolling();
 
-  /* 規制UI構築（超コンパクト） */
+  // 規制UI
   setupRegulationUI();
 
-  /* カテゴリーマーカー設置（ラベルなし） */
+  // マーカー（ラベル無し）
   addCategoryMarkers(INFO_POINTS, CONFIG.ICONS.info, 2500);
   addCategoryMarkers(WC_POINTS,   CONFIG.ICONS.wc,   2200);
   addCategoryMarkers(PARK_POINTS, CONFIG.ICONS.park, 2100);
 
-  /* 位置情報ボタン */
+  // 現在地ボタン
   addMyLocationControls();
 
-  // 初期：自動モードで表示
+  // 初期は自動表示
   autoShow(new Date());
 };
 
-/* ========== 山車の位置ポーリング ========== */
+/* ========== 山車位置ポーリング ========== */
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(fetchPosition, CONFIG.POLL_MS);
@@ -230,13 +229,13 @@ async function fetchPosition() {
 
     dashMarker.setPosition(pos);
 
-    // 初回だけ半径300mにフィット
+    // 初回 300m フィット
     if (!firstFitDone) {
       fitRadius(pos, 300);
       firstFitDone = true;
     }
 
-    // 簡易軌跡
+    // 軌跡
     if (!routePolyline) {
       routePolyline = new google.maps.Polyline({ map, strokeColor: "#1a73e8", strokeOpacity: 0.85, strokeWeight: 3, zIndex: 3500 });
     }
@@ -298,7 +297,7 @@ function setInfoBar(iw, text) {
   });
 }
 
-/* ========== 交通規制UI（自動／日付→時間ボタン・重ね表示なし） ========== */
+/* ========== 交通規制UI（縦タブ & 時間のみボタン、重ね表示なし） ========== */
 function setupRegulationUI(){
   const openBtn = document.getElementById("openBtn");
   drawer   = document.getElementById("drawer");
@@ -309,7 +308,6 @@ function setupRegulationUI(){
 
   openBtn.addEventListener("click", () => {
     drawer.style.display = drawer.style.display === "none" ? "block" : "none";
-    // 開いた直後は自動タブ（最初に選択）
     if (drawer.style.display === "block") switchToAuto(false);
   });
 
@@ -325,36 +323,42 @@ function setActiveTabs({auto=false, d1=false, d2=false}){
 }
 
 function switchToAuto(closeDrawerAfter){
-  // タブ状態
+  currentDayId = null;
+  selectedSlotKey = null;
   setActiveTabs({auto:true, d1:false, d2:false});
-  // 時間ボタンは消す
   slotListEl.innerHTML = "";
-  // 自動表示に切替（現在時刻）
   autoShow(new Date());
   if (closeDrawerAfter) drawer.style.display = "none";
 }
 
 function switchToDay(dayId){
+  currentDayId = dayId;
+  selectedSlotKey = null;
   setActiveTabs({auto:false, d1: dayId==="d1", d2: dayId==="d2"});
-  // 重ね表示なし：一旦全部消す
-  hideAll();
+  hideAll(); // 重ね表示なし
 
-  // スロットボタンを並べる（チェックボックスなし）
+  // 時間ボタン（時間のみ表示）
   const day = DAYS.find(d=>d.id===dayId);
   slotListEl.innerHTML = "";
   day.slots.forEach((s) => {
     const b = document.createElement("button");
     b.className = "slotbtn";
-    b.textContent = s.name;
+    b.textContent = s.shortLabel;   // ←日付なし、時間だけ
+    b.dataset.key = s.key;
     b.addEventListener("click", async () => {
-      hideAll();         // 重ねず単体表示
+      // 選択色の切替
+      [...slotListEl.children].forEach(ch => ch.classList.remove("active"));
+      b.classList.add("active");
+      selectedSlotKey = s.key;
+
+      hideAll();
       await showSlot(s);
     });
     slotListEl.appendChild(b);
   });
 }
 
-/* 自動表示：現在時刻に該当するスロットを表示（重ね表示はせず、最初に合致した1件のみ表示） */
+/* 自動表示：該当時間帯の1本だけ表示（重ねなし）＆時間ボタン強調はしない */
 async function autoShow(now){
   hideAll();
   const allSlots = [...DAYS[0].slots, ...DAYS[1].slots];
@@ -364,7 +368,7 @@ async function autoShow(now){
 
 /* ========== GeoJSON → 線三層描画（歩行者専用） ========== */
 async function showSlot(slot){
-  if(layers.has(slot.key)) return; // 既に表示中なら何もしない
+  if(layers.has(slot.key)) return; // 既に表示中
   const feats = await loadGeojsonPaths(slot.src);
   const polys=[];
   for(const f of feats){
@@ -404,7 +408,7 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ========== 汎用マーカー（Info/WC/駐車場：ラベルなし） ========== */
+/* ========== 汎用マーカー（Info/WC/駐車場：ラベル無し） ========== */
 function addCategoryMarkers(list, iconUrl, zIndex = 1000) {
   const iw = new google.maps.InfoWindow();
   const baseIcon = {
