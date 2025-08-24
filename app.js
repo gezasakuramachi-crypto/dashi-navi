@@ -1,6 +1,6 @@
 /* ================= 設定 ================= */
 const CONFIG = {
-  API_KEY: "YOUR_API_KEY_HERE", // 参照のみ。読み込みは index.html の<script>で行います
+  API_KEY: "AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8", // 参照のみ。読み込みは index.html の<script>で行います
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
   PUBLIC_BEARER:
