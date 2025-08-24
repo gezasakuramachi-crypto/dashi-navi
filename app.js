@@ -12,6 +12,7 @@ const CONFIG = {
     wc: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
     park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
+  POI_ICON_PX: 24, // ← スマホで小さめに
 };
 
 // ===== 地図スタイル =====
@@ -26,47 +27,42 @@ const MAP_STYLE_SIMPLE = [
 // 初期は標準
 let CURRENT_STYLE = MAP_STYLE_STANDARD;
 
-// 規制の強調（三層）→ 赤・40%透過（= 不透明度0.6）
+// 規制の強調（三層）→ 赤・**より薄く**（主線20%）
 const STROKE = {
-  casing: { strokeColor: "#ffffff", strokeOpacity: 1.0, strokeWeight: 10, zIndex: 3001 },
-  main:   { strokeColor: "#ff0000", strokeOpacity: 0.6, strokeWeight: 6,  zIndex: 3002 },
-  glow:   { strokeColor: "#ff0000", strokeOpacity: 0.25, strokeWeight: 14, zIndex: 3000 },
+  casing: { strokeColor: "#ffffff", strokeOpacity: 0.9, strokeWeight: 6,  zIndex: 3001 },
+  main:   { strokeColor: "#ff0000", strokeOpacity: 0.20, strokeWeight: 4, zIndex: 3002 }, // ここが「20%」
+  glow:   { strokeColor: "#ff0000", strokeOpacity: 0.10, strokeWeight: 10, zIndex: 3000 },
 };
 
-// ===== POIデータ =====
+/* ===== POIデータ ===== */
 const INFO_POINTS = [
   {
     title: "年番引継ぎ会場",
-    lat: 35.9658889,
-    lng: 140.6268333,
+    lat: 35.9658889, lng: 140.6268333,
     photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nen-hiki.png",
     desc: "9月2日18:15～\n山車の運行を執り仕切るのが「山車年番」です。\n今年の年番が、次年度年番町内に\nお伺いをたて引継ぐことを「年番引継」といいます。",
   },
   {
     title: "にぎわい広場",
-    lat: 35.9664167,
-    lng: 140.6277778,
+    lat: 35.9664167, lng: 140.6277778,
     photo: "",
     desc: "飲食販売屋台あり。\nトイレ・休憩スペースもあります。",
   },
   {
     title: "総踊りのの字廻し会場",
-    lat: 35.9679444,
-    lng: 140.6300278,
+    lat: 35.9679444, lng: 140.6300278,
     photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/souodori2.png",
     desc: "9月1日18:00～\n町内の山車が勢ぞろいして、\n全町内が年番区の演奏にあわせて\n総踊りをします。\nその後は各町内による、\nのの字廻しが披露されます。",
   },
   {
     title: "一斉踊り会場",
-    lat: 35.9670556,
-    lng: 140.6306944,
+    lat: 35.9670556, lng: 140.6306944,
     photo: "",
     desc: "9月2日13:30～\n五ケ町が終結し、各町内が\n順番に踊りを踊っていきます。\nその後年番区を先頭に\n役曳きをして全町内を曳きまわします。",
   },
   {
     title: "大町通り山車集合",
-    lat: 35.9679722,
-    lng: 140.6286944,
+    lat: 35.9679722, lng: 140.6286944,
     photo: "",
     desc: "9/1 15:10-16:00\n9/2 15:00-15:30\n五ヶ町の山車が大町通り\nに並びます",
   },
@@ -86,8 +82,7 @@ const PARK_POINTS = [
 // 交通規制スロット
 const DAYS = [
   {
-    id: "d1",
-    label: "9/1(月)",
+    id: "d1", label: "9/1(月)",
     slots: [
       { shortLabel: "10:30-", key: "91-1030-1500", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
       { shortLabel: "15:00-", key: "91-1500-1600", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
@@ -97,8 +92,7 @@ const DAYS = [
     ],
   },
   {
-    id: "d2",
-    label: "9/2(火)",
+    id: "d2", label: "9/2(火)",
     slots: [
       { shortLabel: "11:00-", key: "92-1100-1230", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
       { shortLabel: "12:30-", key: "92-1230-1400", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
@@ -110,23 +104,34 @@ const DAYS = [
   },
 ];
 
-// ====== 状態/UI参照 ======
+/* ====== 状態/UI参照 ====== */
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM = 15;
 
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null, firstFitDone = false;
 
-const layers = new Map();       // key -> [Polyline...]
-const loadedCache = new Map();  // src -> parsed
+const layers = new Map();       // 規制線 key -> [Polyline...]
+const loadedCache = new Map();  // GeoJSONキャッシュ
 
+// UI参照
 let openBtn, collapsedHint, collapsedBtn, drawer, tabAutoEl, tabD1El, tabD2El, slotList;
 let currentMode = "auto"; // "auto" | "manual"
 let currentDayId = null;  // "d1" | "d2"
 let selectedSlotKey = null;
 
+// POI表示ON/OFF
+let chkInfoEl, chkWCEl, chkParkEl;
+
 // 共有 InfoWindow（POI用）
 let poiInfo = null;
+
+// カテゴリ別マーカー管理
+const LayerGroups = {
+  info: { list: INFO_POINTS, icon: CONFIG.ICONS.info, markers: [] },
+  wc:   { list: WC_POINTS,   icon: CONFIG.ICONS.wc,   markers: [] },
+  park: { list: PARK_POINTS, icon: CONFIG.ICONS.park, markers: [] },
+};
 
 /* ============ 初期化 ============ */
 window.initMap = function () {
@@ -152,7 +157,7 @@ window.initMap = function () {
   };
   btnLocate.onclick = locateOnce;
 
-  // 山車マーカー（画像なし InfoWindow）
+  // 山車マーカー
   dashMarker = new google.maps.Marker({
     map, position: MAP_CENTER,
     icon:{
@@ -170,7 +175,7 @@ window.initMap = function () {
     setInfoBar(dashInfo, formatLastFixBar());
   });
 
-  // 地図クリック：各 InfoWindow/パネルを閉じる（規制表示は維持）
+  // 地図クリックで InfoWindow/パネルだけ閉じる（規制表示は維持）
   map.addListener("click", () => {
     dashInfo.close();
     if (poiInfo) poiInfo.close();
@@ -179,17 +184,33 @@ window.initMap = function () {
     collapsedBtn.textContent = (currentMode === "auto") ? "自動更新" : "日付選択中";
   });
 
+  // 実寸に合わせて各パネルの top を自動調整
+  layoutAdjust();
+  window.addEventListener("resize", layoutAdjust);
+
   // 位置更新
   startPolling();
 
   // 交通規制 UI 構築
   setupRegulationUI();
 
-  // POIマーカー（40px・全部InfoWindow対応）
-  addCategoryMarkers(INFO_POINTS, CONFIG.ICONS.info, 40, 2500, true);
-  addCategoryMarkers(WC_POINTS,   CONFIG.ICONS.wc,   40, 2200, true);
-  addCategoryMarkers(PARK_POINTS, CONFIG.ICONS.park, 40, 2100, true);
+  // POIマーカー作成（初期表示ON）＆チェック連動
+  setupCategoryToggles();
+
+  // 共有 InfoWindow
+  if (!poiInfo) poiInfo = new google.maps.InfoWindow();
 };
+
+/* ====== レイアウト：ヘッダー高さに合わせて各パネルの top を自動調整 ====== */
+function layoutAdjust(){
+  const headerEl = document.getElementById("appHeader");
+  const spacerEl = document.getElementById("headerSpacer");
+  const topPx = Math.round(headerEl.getBoundingClientRect().height) + 8; // ヘッダー実寸 + 余白8px
+  document.getElementById("ltControls").style.top = topPx + "px";
+  document.getElementById("layerCtrl").style.top   = (topPx + 54) + "px"; // 左上ボタンの少し下
+  document.getElementById("regCtrl").style.top     = topPx + "px";
+  spacerEl.style.height = Math.round(headerEl.getBoundingClientRect().height) + "px";
+}
 
 /* ===== 山車 InfoWindow 本文 ===== */
 function makeDashiBody(status){
@@ -323,7 +344,7 @@ function selectDay(dayId){
   selectedSlotKey = null;
   setActiveTabs({auto:false,d1:dayId==="d1",d2:dayId==="d2"});
 
-  // 時間ボタンを即表示
+  // 時間ボタンを表示
   buildTimeButtons(dayId);
   slotList.style.display = "grid";
 
@@ -395,38 +416,66 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ============ POIマーカー（40px・クリックでInfoWindow） ============ */
-function addCategoryMarkers(list, iconUrl, px = 40, zIndex = 1000, withInfo = true){
+/* ============ カテゴリ表示/非表示とマーカー作成 ============ */
+function setupCategoryToggles(){
+  chkInfoEl = document.getElementById("chkInfo");
+  chkWCEl   = document.getElementById("chkWC");
+  chkParkEl = document.getElementById("chkPark");
+
+  // 作成
+  buildCategoryMarkers("info", true);
+  buildCategoryMarkers("wc",   true);
+  buildCategoryMarkers("park", true);
+
+  // 連動
+  chkInfoEl.addEventListener("change", ()=>toggleCategory("info", chkInfoEl.checked));
+  chkWCEl.addEventListener("change",   ()=>toggleCategory("wc",   chkWCEl.checked));
+  chkParkEl.addEventListener("change", ()=>toggleCategory("park", chkParkEl.checked));
+}
+function buildCategoryMarkers(key, show){
+  const group = LayerGroups[key];
+  // 既にあれば一旦消す
+  if (group.markers.length){
+    group.markers.forEach(m=>m.setMap(null));
+    group.markers = [];
+  }
+  const px = CONFIG.POI_ICON_PX;
   const baseIcon = {
-    url: iconUrl,
+    url: group.icon,
     size: new google.maps.Size(px,px),
     scaledSize: new google.maps.Size(px,px),
     anchor: new google.maps.Point(px/2, Math.round(px*0.8)),
   };
   if (!poiInfo) poiInfo = new google.maps.InfoWindow();
 
-  list.forEach((p) => {
-    const m=new google.maps.Marker({
-      map, position:{lat:p.lat,lng:p.lng}, icon:baseIcon, zIndex, title:p.title, optimized:true
+  group.list.forEach(p=>{
+    const m = new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, icon:baseIcon, title:p.title, zIndex: key==="info"?2500 : key==="wc"?2200:2100
     });
-    if(withInfo){
-      m.addListener("click", ()=>{
-        const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px; height:auto"></div>` : "";
-        const desc  = escapeHtml(String(p.desc||"")).replace(/\n/g,"<br>");
-        poiInfo.setContent(`
-          <div class="iw">
-            <div class="title">${escapeHtml(p.title)}</div>
-            ${photo}
-            ${desc ? `<div>${desc}</div>` : ""}
-          </div>
-        `);
-        poiInfo.open({ map, anchor:m, shouldFocus:false });
-      });
-    }
+    // クリックでInfoWindow
+    m.addListener("click", ()=>{
+      const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px; height:auto"></div>` : "";
+      const desc  = escapeHtml(String(p.desc||"")).replace(/\n/g,"<br>");
+      poiInfo.setContent(`
+        <div class="iw">
+          <div class="title">${escapeHtml(p.title)}</div>
+          ${photo}
+          ${desc ? `<div>${desc}</div>` : ""}
+        </div>
+      `);
+      poiInfo.open({ map, anchor:m, shouldFocus:false });
+    });
+
+    if (show) m.setMap(map);
+    group.markers.push(m);
   });
 }
+function toggleCategory(key, show){
+  const group = LayerGroups[key];
+  group.markers.forEach(m=>m.setMap(show?map:null));
+}
 
-/* ============ 現在地（追尾はなし） ============ */
+/* ============ 現在地（追尾なし） ============ */
 let myMarker=null, myAccCircle=null;
 function locateOnce(){
   if(!navigator.geolocation){ alert("このブラウザは位置情報に対応していません。"); return; }
