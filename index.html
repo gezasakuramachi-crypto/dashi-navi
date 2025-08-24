@@ -18,60 +18,71 @@
     .app-header img{ display:block; height:auto; max-width:560px; width:90vw; }
     .header-spacer{ height:70px; }
 
-    /* 右上：交通規制UI（スマホで邪魔にならない極小幅） */
+    /* 交通規制UI（極細パネル） */
     .ctrl{ position:absolute; top:84px; right:10px; z-index:11; }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 6px 18px rgba(0,0,0,.12);
-      padding:6px; width:140px; /* ←約1/3の細さ */
-      font-size:12px;
+      padding:6px; width:150px; font-size:12px;
     }
     .row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap }
     .title{ font-weight:700; letter-spacing:.02em }
     .btn{ border:1.5px solid #333; border-radius:6px; background:#fff; padding:4px 6px; cursor:pointer; font-size:12px }
-    .vlist{ display:grid; gap:6px; margin-top:6px } /* 縦並びタブ */
+    .vlist{ display:grid; gap:6px; margin-top:6px }
     .tab{ padding:6px 0; text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:6px; cursor:pointer }
     .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700 }
-    .legend{ display:flex; align-items:center; gap:6px; font-size:11px; color:#333 }
+
+    .legend{ display:flex; align-items:center; gap:6px; font-size:11px; color:#333; margin-top:6px }
     .sw{ width:11px; height:11px; border-radius:3px; border:1px solid #888; background:#6bc06b }
     .hint{ font-size:11px; color:#444; line-height:1.35 }
 
-    .slotlist{ display:grid; gap:6px; margin-top:6px }
+    .slotHeader{ margin-top:6px; }
+    .slotToggle{
+      width:100%; padding:6px; text-align:center; border:1px solid #ccc; border-radius:6px; background:#fff;
+      cursor:pointer; font-size:12px;
+    }
+    .slotlist{ display:grid; gap:6px; margin-top:6px; }
     .slotbtn{
       padding:5px; border:1px solid #ccc; border-radius:6px; background:#fff;
       text-align:center; cursor:pointer; font-size:12px;
     }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
-    /* InfoWindow 調整 */
-    .gm-style .gm-style-iw-c{ padding:6px !important; }
-    .iw { font:14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; color:#555; }
-    .iw .title{ font-weight:700; font-size:15px; color:#202124; margin:0 0 6px; }
-    .iw .btn{
-      appearance:none; border:1px solid #dadce0; background:#fff; border-radius:8px;
-      padding:6px 10px; font-size:13px; cursor:pointer; margin-top:8px;
-      box-shadow:0 1px 3px rgba(0,0,0,.18);
+    /* モーダル（山車情報） */
+    .backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:20; display:none;
     }
-    .iw .btn:hover{ filter:brightness(.97); }
-    .iw-bar{
-      position:absolute; top:0; left:0; right:28px;
-      display:flex; align-items:center; padding:6px 8px 4px;
-      font-weight:700; font-size:14px; color:#202124; pointer-events:none;
-      background:transparent; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    .modal{
+      position:fixed; inset:auto 12px 12vh 12px; /* 低い位置に出す（親指届きやすく）*/
+      left:50%; transform:translateX(-50%);
+      max-width:520px; background:#fff; border-radius:12px; box-shadow:0 20px 40px rgba(0,0,0,.35);
+      z-index:21; display:none; padding:12px;
     }
-    .iw-with-bar{ padding-top:28px !important; }
-    .iw .photo{ display:block; max-width:260px; width:90%; height:auto; border-radius:6px; margin:8px 0; }
+    .modal .title{ font-weight:800; font-size:16px; color:#202124; margin-bottom:6px }
+    .modal .meta{ color:#555; margin-bottom:8px; font-size:13px }
+    .modal img{ display:block; width:100%; height:auto; border-radius:8px; margin:6px 0 8px }
+    .modal .btn{ width:100%; padding:10px; font-size:14px; border-radius:8px; border:1px solid #dadce0; background:#fff; cursor:pointer }
+    .modal .btn:hover{ filter:brightness(.98) }
+    .modal .closeX{
+      position:absolute; top:8px; right:10px; border:none; background:transparent; font-size:20px; cursor:pointer;
+    }
+
+    /* 右下コントロール（現在地/追尾） */
+    .ctlbar button{
+      background:#fff; border:1px solid #999; border-radius:6px; padding:6px 10px; font-size:13px; cursor:pointer;
+      box-shadow:0 1px 3px rgba(0,0,0,.2);
+    }
+    .ctlbar{ display:flex; gap:8px; margin:8px; }
   </style>
 </head>
 <body>
-  <!-- タイトル画像（mark フォルダ） -->
+  <!-- タイトル画像 -->
   <div class="app-header">
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif"
-         alt="令和7年 鹿島神宮神幸祭 山車祭">
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif" alt="令和7年 鹿島神宮神幸祭 山車祭">
   </div>
   <div class="header-spacer"></div>
 
-  <!-- 交通規制UI：表示→自動/9/1/9/2（縦）→時間ボタン（時間のみ） -->
+  <!-- 交通規制パネル -->
   <div class="ctrl">
     <div class="panel">
       <div class="row" style="justify-content:space-between">
@@ -79,23 +90,41 @@
         <button id="openBtn" class="btn">表示</button>
       </div>
 
+      <!-- 折りたたみ時のサマリー（クリックで再オープン） -->
+      <div id="collapsedHint" class="row" style="margin-top:6px; display:none">
+        <button id="collapsedBtn" class="btn" style="flex:1">自動更新</button>
+      </div>
+
       <div id="drawer" style="display:none">
         <div class="vlist">
-          <div id="tabAuto" class="tab active">自動</div>
+          <div id="tabAuto" class="tab active">自動更新</div>
           <div id="tabD1" class="tab">9/1(月)</div>
           <div id="tabD2" class="tab">9/2(火)</div>
         </div>
 
-        <div class="legend" style="margin-top:6px"><span class="sw"></span><span>歩行者専用</span></div>
+        <div class="legend"><span class="sw"></span><span>歩行者専用</span></div>
         <div class="hint">該当時間帯に表示が変わります。</div>
 
-        <!-- 日付タップ時に時間ボタンを表示（時間だけ、チェックなし、選択中の色変更） -->
-        <div id="slotList" class="slotlist"></div>
+        <!-- 日付タップ後：時間帯の折りたたみ -->
+        <div id="slotArea" style="display:none">
+          <div class="slotHeader">
+            <button id="slotToggle" class="slotToggle">時間帯選択</button>
+          </div>
+          <div id="slotList" class="slotlist" style="display:none"></div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- 地図 -->
   <div id="map"></div>
+
+  <!-- モーダル（山車情報） -->
+  <div id="backdrop" class="backdrop"></div>
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-label="山車情報">
+    <button class="closeX" id="modalClose" aria-label="閉じる">×</button>
+    <div id="modalContent"></div>
+  </div>
 
   <!-- アプリ本体 -->
   <script src="app.js"></script>
