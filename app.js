@@ -61,7 +61,7 @@ const INFO_POINTS = [
   {
     title: "総踊りのの字廻し会場",
     lat: 35.9679444, lng: 140.6300278,
-    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/souodori2.png",
+    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nonoji.png",
     desc: [
       "9月1日18:00～",
       "町内の山車が勢ぞろいして、",
