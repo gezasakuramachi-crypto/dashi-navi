@@ -7,11 +7,11 @@ const CONFIG = {
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
 
-  // 山車アイコン
+  // 山車アイコン（地図上のマーカー & 左のフォーカスボタンと同一）
   DASHI_ICON:
     "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
 
-  // カテゴリアイコン（左のON/OFFボタンとは別。地図上のマーカー画像）
+  // カテゴリアイコン（地図上のマーカー画像）
   ICONS: {
     info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
@@ -26,8 +26,7 @@ const CONFIG = {
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* ================= 規制線スタイル（赤・薄め） =================
-   - 下の地図ラベルが読めるように主線20%透過にしています。 */
+/* ================= 規制線スタイル（赤・薄め） ================= */
 const STROKE = {
   casing: { strokeColor: "#ffffff", strokeOpacity: 0.0, strokeWeight: 0,  zIndex: 3001 },
   main:   { strokeColor: "#ff0000", strokeOpacity: 0.20, strokeWeight: 6, zIndex: 3002 },
@@ -106,7 +105,7 @@ const DAYS = [
   },
 ];
 
-/* ================= 地図と状態 ================= */
+/* ================= 地図・状態 ================= */
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null, firstFitDone = false;
 
@@ -114,9 +113,12 @@ let lastFixMs = 0, pollTimer = null, firstFitDone = false;
 const layers = new Map();       // key -> [Polyline...]
 const loadedCache = new Map();  // src -> parsed cache
 
-// POIマーカー管理とInfoWindow
+// POIマーカーとInfoWindow
 const markers = { info:[], wc:[], park:[] };
 let poiInfo = null;
+
+// 現在地（単発）表示用
+let myLocMarker = null, myLocCircle = null;
 
 /* ================= 初期化 ================= */
 window.initMap = function(){
@@ -151,14 +153,17 @@ window.initMap = function(){
     if(drawer) drawer.style.display="none";
   });
 
+  // 現在地ボタン（左下・Map Control）
+  addMyLocationControl();
+
   // 現在位置ポーリング
   startPolling();
 
   // 交通規制UI
   setupRegulationUI();
 
-  // カテゴリアイコン（左側）ON/OFF
-  setupCategoryToggles();
+  // 左パネル：山車フォーカス＋カテゴリトグル
+  setupLeftPanel();
 
   // 初期：現在時刻に合う規制を1本表示
   autoShow(new Date());
@@ -209,10 +214,15 @@ function currentStatusText(){
 }
 
 function makeDashiBody(status){
+  const pos = dashMarker.getPosition();
+  const lat = pos ? pos.lat() : MAP_CENTER.lat;
+  const lng = pos ? pos.lng() : MAP_CENTER.lng;
+  const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   return `
     <div class="iw">
       <div class="title">桜町区山車</div>
       <div>ステータス：${status}</div>
+      <button class="btn" onclick="window.open('${routeUrl}','_blank')">Googleマップで経路案内</button>
     </div>
   `;
 }
@@ -253,7 +263,6 @@ function setupRegulationUI(){
     buildTimeButtons("d2");
   });
 
-  // 初期はdrawer閉
   drawer.style.display = "none";
 }
 
@@ -292,7 +301,7 @@ async function showSlot(slot){
   const polys=[];
   for(const f of feats){
     const path=f.path.map(([lat,lng])=>({lat,lng}));
-    // 透明感を優先して主線のみ使用（必要ならcasing/glowも追加可）
+    // 透明感優先：主線のみ（必要に応じてcasing/glowを追加可）
     const main   = new google.maps.Polyline({ path, ...STROKE.main, map });
     polys.push(main);
   }
@@ -326,20 +335,29 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ================= カテゴリアイコン（左）ON/OFF ================= */
-function setupCategoryToggles(){
-  // まず全カテゴリを作って表示ON
+/* ================= 左パネル：山車フォーカス & カテゴリON/OFF ================= */
+function setupLeftPanel(){
+  // 山車へフォーカス
+  const btnFocus = document.getElementById("btnFocusDashi");
+  btnFocus.addEventListener("click", ()=>{
+    if(!dashMarker) return;
+    const pos = dashMarker.getPosition();
+    if(!pos) return;
+    fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
+  });
+
+  // カテゴリトグル生成
   createCategoryMarkers("info", INFO_POINTS, CONFIG.ICONS.info, true);
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
 
-  // アイコン（左）をクリックでON/OFF（OFFは白黒＝CSSでgrayscale）
+  // クリックでON/OFF（OFFは白黒＝CSS .inactive）
   const btnInfo = document.getElementById("btnInfo");
   const btnWC   = document.getElementById("btnWC");
   const btnPark = document.getElementById("btnPark");
 
   btnInfo.addEventListener("click", ()=>{
-    const inactive = btnInfo.classList.toggle("inactive"); // inactive=OFF
+    const inactive = btnInfo.classList.toggle("inactive");
     toggleCategory("info", !inactive);
   });
   btnWC.addEventListener("click", ()=>{
@@ -376,7 +394,6 @@ function createCategoryMarkers(key, list, iconUrl, show){
       zIndex: key==="info" ? 2500 : key==="wc" ? 2200 : 2100
     });
     m.addListener("click", ()=>{
-      // 画像は任意（なければ出さない）
       const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px;height:auto"></div>` : "";
       const desc  = p.desc ? `<div>${escapeHtml(p.desc).replace(/\n/g,"<br>")}</div>` : "";
       poiInfo.setContent(`
@@ -396,9 +413,73 @@ function toggleCategory(key, on){
   (markers[key] || []).forEach(m=>m.setMap(on?map:null));
 }
 
+/* ================= 現在地ボタン（単発） ================= */
+function addMyLocationControl(){
+  const div = document.createElement("div");
+  div.className = "loc-btn";
+  // シンプルな現在地アイコン（SVG）
+  div.innerHTML = `
+    <svg class="loc-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" fill="#4285f4"></circle>
+      <circle cx="12" cy="12" r="8" fill="none" stroke="#4285f4" stroke-width="2"></circle>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285f4" stroke-width="2" stroke-linecap="round"></path>
+    </svg>`;
+  div.title = "現在地へ移動";
+
+  div.addEventListener("click", ()=>{
+    if(!navigator.geolocation){
+      alert("お使いのブラウザは現在地取得に対応していません。");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const {latitude, longitude, accuracy} = pos.coords;
+      const ll = {lat: latitude, lng: longitude};
+
+      // マーカーと精度円を作成/更新
+      if(!myLocMarker){
+        myLocMarker = new google.maps.Marker({
+          position: ll, map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 6, fillColor: "#4285f4", fillOpacity: 1,
+            strokeColor: "#fff", strokeWeight: 2
+          },
+          zIndex: 4500, title: "現在地"
+        });
+      } else {
+        myLocMarker.setPosition(ll);
+        myLocMarker.setMap(map);
+      }
+
+      if(!myLocCircle){
+        myLocCircle = new google.maps.Circle({
+          center: ll, map,
+          radius: Math.max(accuracy, 60), // ざっくり60m以上
+          fillColor: "#4285f4", fillOpacity: 0.15,
+          strokeColor: "#4285f4", strokeOpacity: 0.5, strokeWeight: 1,
+          zIndex: 4400
+        });
+      } else {
+        myLocCircle.setCenter(ll);
+        myLocCircle.setRadius(Math.max(accuracy, 60));
+        myLocCircle.setMap(map);
+      }
+
+      // 表示調整：半径300mでフィット（または精度円でfitBoundsでもOK）
+      fitRadius(ll, 300);
+    }, (err)=>{
+      console.warn(err);
+      alert("現在地を取得できませんでした。位置情報の許可設定をご確認ください。");
+    }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
+  });
+
+  // Map Control として左下へ（GoogleマップのUIと同じ挙動で配置）
+  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(div);
+}
+
 /* ================= Util ================= */
 function escapeHtml(s){
-  return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 }
 
 // 半径（m）でフィット
