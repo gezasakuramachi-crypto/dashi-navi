@@ -18,10 +18,12 @@
     .app-header img{ display:block; height:auto; max-width:560px; width:90vw; }
     .header-spacer{ height:70px; }
 
-    /* 右上：交通規制UI */
+    /* 右上：交通規制UI（背景色を #DAE9F8 に） */
     .ctrl{ position:absolute; top:84px; right:10px; z-index:11; }
-    .panel{ background:#fff; border:1px solid #e3e3e3; border-radius:10px;
-            box-shadow:0 6px 18px rgba(0,0,0,.12); padding:10px; min-width:260px; font-size:14px}
+    .panel{
+      background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.12); padding:10px; min-width:260px; font-size:14px
+    }
     .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
     .title{ font-weight:700; letter-spacing:.05em }
     .btn{ border:2px solid #333; border-radius:6px; background:#fff; padding:6px 10px; cursor:pointer }
@@ -56,10 +58,11 @@
       background:transparent; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .iw-with-bar{ padding-top:28px !important; }
+    .iw .photo{ display:block; max-width:260px; width:90%; height:auto; border-radius:6px; margin:8px 0; }
   </style>
 </head>
 <body>
-  <!-- タイトル画像 -->
+  <!-- タイトル画像（mark フォルダに変更） -->
   <div class="app-header">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif"
          alt="令和7年 鹿島神宮神幸祭 山車祭">
@@ -105,7 +108,7 @@
   <!-- アプリ本体 -->
   <script src="app.js"></script>
 
-  <!-- Google Maps API -->
+  <!-- Google Maps API（APIキーを差し替え） -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
 </body>
 </html>
