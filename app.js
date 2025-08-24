@@ -43,7 +43,7 @@ const INFO_POINTS = [
   {
     title: "年番引継ぎ会場",
     lat: 35.9658889, lng: 140.6268333,
-    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nen-hiki.png",
+    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nan-hiki.png",
     desc: [
       "9月2日18:15～",
       "山車の運行を執り仕切るのが「山車年番」です。",
