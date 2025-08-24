@@ -1,48 +1,34 @@
 /* ================= 基本設定 ================= */
 const CONFIG = {
-  // Traccar（読み取り専用トークン）
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
   PUBLIC_BEARER:
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
 
-  // 山車アイコン（地図上のマーカー & 左のフォーカスボタンと同一）
   DASHI_ICON:
     "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
 
-  // カテゴリアイコン（地図上のマーカー画像）
   ICONS: {
     info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
     park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
 
-  // 地図上に置くPOIマーカーのサイズ（px）
-  POI_ICON_PX: 24
+  // マーカーサイズ（少し小さめ）
+  POI_ICON_PX: 18
 };
-
-/* ================= ライブ配信スケジュール（JST） =================
-   8/31 18:00–22:00, 9/1 10:00–22:00, 9/2 11:30–22:00
-================================================================== */
-const LIVE_SCHEDULE = [
-  { start: "2025-08-31T18:00:00+09:00", end: "2025-08-31T22:00:00+09:00" },
-  { start: "2025-09-01T10:00:00+09:00", end: "2025-09-01T22:00:00+09:00" },
-  { start: "2025-09-02T11:30:00+09:00", end: "2025-09-02T22:00:00+09:00" },
-];
 
 /* ================= 地図の初期中心 ================= */
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* ================= 規制線スタイル（赤・薄め） ================= */
+/* ================= 規制線スタイル（赤・透過） ================= */
 const STROKE = {
-  casing: { strokeColor: "#ffffff", strokeOpacity: 0.0, strokeWeight: 0,  zIndex: 3001 },
   main:   { strokeColor: "#ff0000", strokeOpacity: 0.20, strokeWeight: 6, zIndex: 3002 },
-  glow:   { strokeColor: "#ff0000", strokeOpacity: 0.10, strokeWeight: 12, zIndex: 3000 },
 };
 
-/* ================= POI（インフォ／WC／駐車場） ================= */
+/* ================= POIデータ ================= */
 const INFO_POINTS = [
   {
     title: "年番引継ぎ会場",
@@ -50,12 +36,7 @@ const INFO_POINTS = [
     photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nen-hiki.png",
     desc: "9月2日18:15～\n山車の運行を執り仕切るのが「山車年番」です。\n今年の年番が、次年度年番町内に\nお伺いをたて引継ぐことを「年番引継」といいます。"
   },
-  {
-    title: "にぎわい広場",
-    lat: 35.9664167, lng: 140.6277778,
-    photo: "",
-    desc: "飲食販売屋台あり。\nトイレ・休憩スペースもあります。"
-  },
+  { title: "にぎわい広場", lat: 35.9664167, lng: 140.6277778, photo: "", desc: "飲食販売屋台あり。\nトイレ・休憩スペースもあります。" },
   {
     title: "総踊りのの字廻し会場",
     lat: 35.9679444, lng: 140.6300278,
@@ -64,14 +45,12 @@ const INFO_POINTS = [
   },
   {
     title: "一斉踊り会場",
-    lat: 35.9670556, lng: 140.6306944,
-    photo: "",
+    lat: 35.9670556, lng: 140.6306944, photo: "",
     desc: "9月2日13:30～\n五ケ町が終結し、各町内が\n順番に踊りを踊っていきます。\nその後年番区を先頭に\n役曳きをして全町内を曳きまわします。"
   },
   {
     title: "大町通り山車集合",
-    lat: 35.9679722, lng: 140.6286944,
-    photo: "",
+    lat: 35.9679722, lng: 140.6286944, photo: "",
     desc: "9/1 15:10-16:00\n9/2 15:00-15:30\n五ヶ町の山車が大町通り\nに並びます"
   },
 ];
@@ -117,7 +96,6 @@ const DAYS = [
 /* ================= 地図・状態 ================= */
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null, firstFitDone = false;
-let liveTimer = null, pollingEnabled = false;
 
 // 交通規制レイヤー
 const layers = new Map();       // key -> [Polyline...]
@@ -149,13 +127,13 @@ window.initMap = function(){
     },
     zIndex:4000, title:"桜町区山車"
   });
-  dashInfo = new google.maps.InfoWindow({ content: makeDashiBody("判定中") });
+  dashInfo = new google.maps.InfoWindow({ content: makeDashiBody("更新待機中") });
   dashMarker.addListener("click", ()=>{
     dashInfo.setContent(makeDashiBody(currentStatusText()));
     dashInfo.open(map, dashMarker);
   });
 
-  // 地図クリック：情報パネル＆InfoWindowを閉じる（規制表示は維持）
+  // 地図クリック：InfoWindow & 規制UIを閉じる（表示中の規制は維持）
   map.addListener("click", ()=>{
     dashInfo.close();
     if(poiInfo) poiInfo.close();
@@ -163,66 +141,28 @@ window.initMap = function(){
     if(drawer) drawer.style.display="none";
   });
 
-  // 左パネル：山車フォーカス＋カテゴリトグル＋現在地
+  // 左パネル
   setupLeftPanel();
 
   // 交通規制UI
   setupRegulationUI();
 
-  // ライブ状態（配信中/休止中）の管理
-  updateLiveStatus();                    // 初回判定
-  liveTimer = setInterval(updateLiveStatus, 30 * 1000); // 30秒おきに再判定
+  // 常時ポーリング開始
+  startPolling();
 
   // 初期：現在時刻に合う規制を1本表示
   autoShow(new Date());
 };
 
-/* ================= ライブ状態（配信スケジュール管理） ================= */
-function isInSchedule(d){
-  return LIVE_SCHEDULE.some(w => d >= new Date(w.start) && d <= new Date(w.end));
-}
-
-function setLivePill(live){
-  const dot = document.getElementById("liveDot");
-  const text= document.getElementById("liveText");
-  if(live){
-    dot.classList.remove("pause"); dot.classList.add("live");
-    text.textContent = "配信中";
-  }else{
-    dot.classList.remove("live"); dot.classList.add("pause");
-    text.textContent = "休止中";
-  }
-}
-
-function updateLiveStatus(){
-  const live = isInSchedule(new Date());
-  setLivePill(live);
-
-  if(live && !pollingEnabled){
-    startPolling();
-  }else if(!live && pollingEnabled){
-    stopPolling();
-  }
-}
-
 /* ================= 山車位置のポーリング ================= */
 function startPolling(){
   if(pollTimer) clearInterval(pollTimer);
   pollTimer=setInterval(fetchPosition, CONFIG.POLL_MS);
-  pollingEnabled = true;
   fetchPosition();
-}
-function stopPolling(){
-  if(pollTimer) clearInterval(pollTimer);
-  pollTimer = null;
-  pollingEnabled = false;
 }
 
 async function fetchPosition(){
   try{
-    // スケジュール外なら更新しない（保険）
-    if(!isInSchedule(new Date())) return;
-
     const url=`${CONFIG.SERVER_BASE}/api/positions?deviceId=${CONFIG.DEVICE_ID}&latest=true`;
     const res=await fetch(url,{cache:"no-store", headers:{Authorization:`Bearer ${CONFIG.PUBLIC_BEARER}`}});
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -254,10 +194,8 @@ async function fetchPosition(){
 }
 
 function currentStatusText(){
-  // スケジュール外なら「休止中」
-  if(!isInSchedule(new Date())) return "休止中";
   const now=Date.now();
-  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"一時停止中":"配信中";
+  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"一時停止中":"更新中";
 }
 
 function makeDashiBody(status){
@@ -283,12 +221,10 @@ function setupRegulationUI(){
   const tabD2=document.getElementById("tabD2");
   const slotList=document.getElementById("slotList");
 
-  // パネル開閉
   openBtn.addEventListener("click", ()=>{
     drawer.style.display = drawer.style.display==='none' ? 'block':'none';
   });
 
-  // 自動
   tabAuto.addEventListener("click", ()=>{
     [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
     tabAuto.classList.add("active");
@@ -296,14 +232,12 @@ function setupRegulationUI(){
     autoShow(new Date());
   });
 
-  // 9/1
   tabD1.addEventListener("click", ()=>{
     [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
     tabD1.classList.add("active");
     buildTimeButtons("d1");
   });
 
-  // 9/2
   tabD2.addEventListener("click", ()=>{
     [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
     tabD2.classList.add("active");
@@ -322,10 +256,8 @@ function buildTimeButtons(dayId){
     b.className="slotbtn";
     b.textContent=s.shortLabel;
     b.addEventListener("click", async ()=>{
-      // 選択表示の更新
       [...slotList.children].forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
-      // 規制レイヤを差し替え
       hideAll();
       await showSlot(s);
     });
@@ -333,7 +265,6 @@ function buildTimeButtons(dayId){
   });
 }
 
-// 現在時刻に一致するスロットだけ表示
 async function autoShow(now){
   hideAll();
   const all=[...DAYS[0].slots, ...DAYS[1].slots];
@@ -341,7 +272,7 @@ async function autoShow(now){
   if(hit) await showSlot(hit);
 }
 
-/* ================= 規制 GeoJSON 読み込み＆描画 ================= */
+/* ================= 規制 GeoJSON ================= */
 async function showSlot(slot){
   if(layers.has(slot.key)) return;
   const feats = await loadGeojsonPaths(slot.src);
@@ -353,12 +284,10 @@ async function showSlot(slot){
   }
   layers.set(slot.key, polys);
 }
-
 function hideAll(){
   for(const arr of layers.values()) arr.forEach(pl=>pl.setMap(null));
   layers.clear();
 }
-
 async function loadGeojsonPaths(src){
   if(loadedCache.has(src)) return loadedCache.get(src);
   const res = await fetch(src, {cache:'no-store'});
@@ -392,12 +321,11 @@ function setupLeftPanel(){
     fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
   });
 
-  // カテゴリトグル生成
+  // カテゴリトグル
   createCategoryMarkers("info", INFO_POINTS, CONFIG.ICONS.info, true);
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
 
-  // ON/OFF（OFF=白黒＝CSS .inactive）
   const btnInfo = document.getElementById("btnInfo");
   const btnWC   = document.getElementById("btnWC");
   const btnPark = document.getElementById("btnPark");
@@ -405,7 +333,7 @@ function setupLeftPanel(){
   btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
   btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
 
-  // 現在地へ移動（Pの下）
+  // 現在地へ移動
   const btnMyLoc = document.getElementById("btnMyLoc");
   btnMyLoc.addEventListener("click", ()=>{
     if(!navigator.geolocation){
@@ -492,8 +420,6 @@ function toggleCategory(key, on){
 function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 }
-
-// 半径（m）でフィット
 function fitRadius(center, meters){
   const dLat = meters / 111320;
   const dLng = meters / (111320 * Math.cos(center.lat * Math.PI/180));
