@@ -6,7 +6,6 @@ const CONFIG = {
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
   DASHI_ICON: "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
-  DASHI_PHOTO: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png",
   ICONS: {
     info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
@@ -75,7 +74,7 @@ const PARK_POINTS = [
   { title: "鹿嶋市営鹿島神宮駅西駐車場",   lat: 35.9700000, lng: 140.6238333 },
 ];
 
-/* 交通規制スロット（時間ボタンは時間のみ表示） */
+/* 交通規制スロット（時間は「時間だけ」表示） */
 const DAYS = [
   {
     id: "d1", label: "9/1(月)",
@@ -101,34 +100,16 @@ const DAYS = [
 ];
 
 /* ================= 状態/UI参照 ================= */
-let map, dashMarker, routePolyline;
+let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer=null, firstFitDone=false;
 
-const layers      = new Map();      // key -> [Polyline...]
-const loadedCache = new Map();      // src -> parsed
+const layers      = new Map(); // key -> [Polyline...]
+const loadedCache = new Map(); // src -> parsed
 
-let openBtn, collapsedHint, collapsedBtn, drawer, tabAutoEl, tabD1El, tabD2El, slotArea, slotToggle, slotList;
+let openBtn, collapsedHint, collapsedBtn, drawer, tabAutoEl, tabD1El, tabD2El, slotList;
 let currentMode = "auto";           // "auto" | "manual"
 let currentDayId = null;            // "d1" | "d2"
 let selectedSlotKey = null;
-
-/* ============ モーダル（山車情報） ============ */
-const backdropEl = document.getElementById("backdrop");
-const modalEl    = document.getElementById("modal");
-const modalClose = document.getElementById("modalClose");
-const modalBody  = document.getElementById("modalContent");
-
-function openModal(html){
-  modalBody.innerHTML = html;
-  backdropEl.style.display = "block";
-  modalEl.style.display = "block";
-}
-function closeModal(){
-  modalEl.style.display = "none";
-  backdropEl.style.display = "none";
-}
-modalClose.addEventListener("click", closeModal);
-backdropEl.addEventListener("click", closeModal);
 
 /* ============ 初期化 ============ */
 window.initMap = function () {
@@ -139,7 +120,7 @@ window.initMap = function () {
     gestureHandling:"greedy",
   });
 
-  // 山車マーカー
+  // 山車マーカー（InfoWindowに戻す・画像なし）
   dashMarker = new google.maps.Marker({
     map, position: MAP_CENTER,
     icon:{
@@ -150,16 +131,19 @@ window.initMap = function () {
     },
     zIndex:4000, title:"桜町区山車"
   });
-  dashMarker.addListener("click", () => {
-    const html = makeDashiModalBody(currentStatusText());
-    openModal(html);
+  dashInfo = new google.maps.InfoWindow({ content: makeDashiBody("判定中") });
+  dashMarker.addListener("click", ()=>{
+    dashInfo.setContent(makeDashiBody(currentStatusText()));
+    dashInfo.open(map, dashMarker);
+    setInfoBar(dashInfo, formatLastFixBar());
   });
 
-  // 地図クリック：モーダルや Info は閉じるが、表示中の規制は維持
+  // 地図クリック：InfoWindow/パネルだけ閉じる（規制表示は維持）
   map.addListener("click", () => {
-    closeModal();
+    dashInfo.close();
     drawer.style.display = "none";
-    collapsedHint.style.display = "block"; // サマリー見せる
+    collapsedHint.style.display = "block";
+    collapsedBtn.textContent = (currentMode === "auto") ? "自動更新" : "日付選択中";
   });
 
   // 位置更新
@@ -168,10 +152,10 @@ window.initMap = function () {
   // UI構築
   setupRegulationUI();
 
-  // POIマーカー
-  addCategoryMarkers(INFO_POINTS, CONFIG.ICONS.info, 2500);
-  addCategoryMarkers(WC_POINTS,   CONFIG.ICONS.wc,   2200);
-  addCategoryMarkers(PARK_POINTS, CONFIG.ICONS.park, 2100);
+  // POIマーカー（アイコン半分サイズ）
+  addCategoryMarkers(INFO_POINTS, CONFIG.ICONS.info, 20, 2500);
+  addCategoryMarkers(WC_POINTS,   CONFIG.ICONS.wc,   20, 2200);
+  addCategoryMarkers(PARK_POINTS, CONFIG.ICONS.park, 20, 2100);
 
   // 現在地ボタン
   addMyLocationControls();
@@ -180,18 +164,47 @@ window.initMap = function () {
   autoShow(new Date());
 };
 
-/* ============ 山車モーダル本文 ============ */
-function makeDashiModalBody(status){
-  const s = formatLastFixText() || "—";
-  const pos = dashMarker.getPosition();
-  const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${pos.lat()},${pos.lng()}`;
+/* ===== 山車 InfoWindow 本文 ===== */
+function makeDashiBody(status){
+  const pos=dashMarker.getPosition();
+  const routeUrl=`https://www.google.com/maps/dir/?api=1&destination=${pos.lat()},${pos.lng()}`;
   return `
-    <div class="title">桜町区山車</div>
-    <div class="meta">最終更新：${s}</div>
-    <img src="${CONFIG.DASHI_PHOTO}" alt="桜町区山車">
-    <div class="meta">ステータス：${status}</div>
-    <button class="btn" onclick="window.open('${routeUrl}','_blank')">山車までのルート案内</button>
+    <div class="iw">
+      <div class="title">桜町区山車</div>
+      <div>ステータス：${status}</div>
+      <button class="btn" onclick="window.open('${routeUrl}','_blank')">山車までのルート案内</button>
+    </div>
   `;
+}
+function setInfoBar(iw, text){
+  google.maps.event.addListenerOnce(iw, "domready", () => {
+    const root = document.querySelector(".gm-style-iw");
+    if (!root) return;
+    const scroll = root.querySelector(".gm-style-iw-d");
+    if (!scroll) return;
+    let barEl = root.querySelector(".iw-bar");
+    if (text && text.trim()){
+      if (!barEl){
+        barEl = document.createElement("div");
+        barEl.className = "iw-bar";
+        root.appendChild(barEl);
+      }
+      barEl.textContent = text.trim();
+      scroll.classList.add("iw-with-bar");
+    } else {
+      if (barEl) barEl.remove();
+      scroll.classList.remove("iw-with-bar");
+    }
+  });
+}
+function currentStatusText(){
+  const now=Date.now();
+  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"停止中":"更新中";
+}
+function formatLastFixBar(){
+  if(!lastFixMs) return "";
+  const dt = new Date(lastFixMs);
+  return `最終更新: ${dt.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
 }
 
 /* ============ 位置ポーリング ============ */
@@ -224,16 +237,13 @@ async function fetchPosition(){
     const path=routePolyline.getPath();
     const last=path.getLength()?path.getAt(path.getLength()-1):null;
     if(!last||last.lat()!==pos.lat||last.lng()!==pos.lng) path.push(pos);
+
+    // 山車InfoWindow表示中ならバー更新
+    if(dashInfo && dashInfo.getMap()){
+      dashInfo.setContent(makeDashiBody(currentStatusText()));
+      setInfoBar(dashInfo, formatLastFixBar());
+    }
   }catch(e){ console.warn(e); }
-}
-function currentStatusText(){
-  const now=Date.now();
-  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"停止中":"更新中";
-}
-function formatLastFixText(){
-  if(!lastFixMs) return "";
-  const dt = new Date(lastFixMs);
-  return dt.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
 }
 
 /* ============ 交通規制 UI ============ */
@@ -245,21 +255,13 @@ function setupRegulationUI(){
   tabAutoEl     = document.getElementById("tabAuto");
   tabD1El       = document.getElementById("tabD1");
   tabD2El       = document.getElementById("tabD2");
-  slotArea      = document.getElementById("slotArea");
-  slotToggle    = document.getElementById("slotToggle");
   slotList      = document.getElementById("slotList");
 
-  // 開く
-  const openDrawer = () => {
-    drawer.style.display = "block";
-    collapsedHint.style.display = "none";
-  };
-  // 閉じる（規制表示は維持）
+  const openDrawer = () => { drawer.style.display = "block"; collapsedHint.style.display = "none"; };
   const closeDrawer = () => {
     drawer.style.display = "none";
     collapsedHint.style.display = "block";
-    // サマリー表記
-    collapsedBtn.textContent = (currentMode === "auto") ? "自動更新" : "日時指定";
+    collapsedBtn.textContent = (currentMode === "auto") ? "自動更新" : "日付選択中";
   };
 
   openBtn.addEventListener("click", () => {
@@ -267,66 +269,54 @@ function setupRegulationUI(){
   });
   collapsedBtn.addEventListener("click", openDrawer);
 
-  // タブ：自動
+  // 自動
   tabAutoEl.addEventListener("click", ()=>{
     currentMode="auto"; currentDayId=null; selectedSlotKey=null;
     setActiveTabs({auto:true,d1:false,d2:false});
-    slotArea.style.display = "none";
+    slotList.style.display = "none";
     hideAll();
     autoShow(new Date());
   });
 
-  // タブ：日付（時間帯選択を出せるように）
+  // 日付
   tabD1El.addEventListener("click", ()=>selectDay("d1"));
   tabD2El.addEventListener("click", ()=>selectDay("d2"));
-
-  // 時間帯選択の折りたたみ
-  slotToggle.addEventListener("click", ()=>{
-    slotList.style.display = (slotList.style.display==="none") ? "grid" : "none";
-  });
 }
-
 function setActiveTabs({auto=false,d1=false,d2=false}){
   tabAutoEl.classList.toggle("active", auto);
   tabD1El.classList.toggle("active", d1);
   tabD2El.classList.toggle("active", d2);
 }
-
 function selectDay(dayId){
   currentMode="manual";
   currentDayId = dayId;
   selectedSlotKey = null;
   setActiveTabs({auto:false,d1:dayId==="d1",d2:dayId==="d2"});
 
-  // 折りたたみエリア出す
-  slotArea.style.display = "block";
-  slotList.style.display = "none"; // 初回は閉じた状態
-  // ボタン作り直し
+  // 時間ボタンを即表示
   buildTimeButtons(dayId);
-  // いったん消して、手動は時間選択待ち
+  slotList.style.display = "grid";
+
+  // いったん消して、選択待ち
   hideAll();
 }
-
 function buildTimeButtons(dayId){
   const day = DAYS.find(d=>d.id===dayId);
   slotList.innerHTML = "";
   day.slots.forEach(s=>{
     const b=document.createElement("button");
     b.className="slotbtn";
-    b.textContent=s.shortLabel; // 時間だけ
+    b.textContent=s.shortLabel;
     b.addEventListener("click", async ()=>{
-      // 強調
       [...slotList.children].forEach(ch=>ch.classList.remove("active"));
       b.classList.add("active");
       selectedSlotKey = s.key;
-
       hideAll();
       await showSlot(s);
     });
     slotList.appendChild(b);
   });
 }
-
 // 自動表示（該当1本のみ）
 async function autoShow(now){
   hideAll();
@@ -375,26 +365,17 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ============ POIマーカー（クリックでモーダル） ============ */
-function addCategoryMarkers(list, iconUrl, zIndex=1000){
+/* ============ POIマーカー ============ */
+function addCategoryMarkers(list, iconUrl, px=20, zIndex=1000){
   const baseIcon = {
     url: iconUrl,
-    size: new google.maps.Size(36,36),
-    scaledSize: new google.maps.Size(36,36),
-    anchor: new google.maps.Point(18,30),
+    size: new google.maps.Size(px,px),
+    scaledSize: new google.maps.Size(px,px),
+    anchor: new google.maps.Point(px/2, Math.round(px*0.8)),
   };
   list.forEach(p=>{
-    const m=new google.maps.Marker({
+    new google.maps.Marker({
       map, position:{lat:p.lat,lng:p.lng}, icon:baseIcon, zIndex, title:p.title, optimized:true
-    });
-    m.addListener("click", ()=>{
-      const photo = p.photo ? `<img src="${p.photo}" alt="${p.title}">` : "";
-      const desc  = escapeHtml(String(p.desc||"")).replace(/\n/g,"<br>");
-      openModal(`
-        <div class="title">${escapeHtml(p.title)}</div>
-        ${photo}
-        <div class="meta">${desc}</div>
-      `);
     });
   });
 }
@@ -402,8 +383,10 @@ function addCategoryMarkers(list, iconUrl, zIndex=1000){
 /* ============ 現在地 / 追尾 ============ */
 let myMarker=null, myAccCircle=null, watchId=null;
 function addMyLocationControls(){
-  const wrap=document.createElement("div"); wrap.className="ctlbar";
-  const mk=(label)=>{ const b=document.createElement("button"); b.textContent=label; return b; };
+  const wrap=document.createElement("div"); wrap.style.display="flex"; wrap.style.gap="8px"; wrap.style.margin="8px";
+  const mk=(label)=>{ const b=document.createElement("button"); b.textContent=label;
+    b.style.background="#fff"; b.style.border="1px solid #999"; b.style.borderRadius="6px"; b.style.padding="6px 10px";
+    b.style.fontSize="13px"; b.style.cursor="pointer"; b.style.boxShadow="0 1px 3px rgba(0,0,0,.2)"; return b; };
   const btnLocate=mk("現在地"), btnFollow=mk("追尾ON");
   btnLocate.onclick=locateOnce;
   btnFollow.onclick=()=>toggleFollow(btnFollow);
@@ -445,9 +428,6 @@ function showMyLocation(ll,acc=30){
 }
 
 /* ============ Util ============ */
-function escapeHtml(s){
-  return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
-}
 function fitRadius(center, meters){
   const dLat = meters / 111320;
   const dLng = meters / (111320 * Math.cos(center.lat * Math.PI/180));
