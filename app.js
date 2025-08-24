@@ -1,6 +1,5 @@
 /* ================= 設定 ================= */
 const CONFIG = {
-  // ※APIキーの読み込みは index.html 側の <script src="...maps..."> が担当
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
   PUBLIC_BEARER:
@@ -9,7 +8,7 @@ const CONFIG = {
   DASHI_ICON:
     "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
   DASHI_PHOTO:
-    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png", // ← 山車のInfoWindowに表示
+    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png", // 山車InfoWindow画像
 };
 
 // 地図外観（ライト＆POI少なめ）
@@ -23,14 +22,15 @@ const MAP_STYLE = [
 
 // 歩行者専用の強調（道路色が変わったように見せる三層）
 const STROKE = {
-  casing: { strokeColor: "#ffffff", strokeOpacity: 1, strokeWeight: 10, zIndex: 1001 },
-  main: { strokeColor: "#6bc06b", strokeOpacity: 0.95, strokeWeight: 6, zIndex: 1002 },
-  glow: { strokeColor: "#6bc06b", strokeOpacity: 0.25, strokeWeight: 14, zIndex: 1000 },
+  casing: { strokeColor: "#ffffff", strokeOpacity: 1, strokeWeight: 10, zIndex: 3001 },
+  main:   { strokeColor: "#6bc06b", strokeOpacity: 0.95, strokeWeight: 6,  zIndex: 3002 },
+  glow:   { strokeColor: "#6bc06b", strokeOpacity: 0.25, strokeWeight: 14, zIndex: 3000 },
 };
 
 /* ================== イベント系マーカー定義 ================== */
-// 共通：タイトル先頭の丸数字や記号を落とす
-const cleanTitle = (s) => String(s || "").replace(/^[\s\u2460-\u2473\u3251-\u325F\u32B1-\u32BF\u3000・\-\d\.\(\)]+/, "");
+// 先頭の丸数字・記号等を落とす
+const cleanTitle = (s) =>
+  String(s || "").replace(/^[\s\u2460-\u2473\u3251-\u325F\u32B1-\u32BF\u3000・\-()\d\.]+/, "");
 
 // アイコン
 const ICONS = {
@@ -111,7 +111,7 @@ const PARK_POINTS = [
   { title: "鹿嶋市営鹿島神宮駅西駐車場",   lat: 35.9700000, lng: 140.6238333 },
 ];
 
-/* ================= 交通規制スロット（そのまま） ================= */
+/* ================= 交通規制スロット ================= */
 const DAYS = [
   {
     id: "d1",
@@ -141,6 +141,7 @@ const DAYS = [
 /* ================= メイン ================= */
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null;
+let firstFitDone = false; // ← 初回300mフィット用
 
 // 規制描画用
 let currentDayId = DAYS[0].id;
@@ -169,7 +170,7 @@ window.initMap = function () {
       scaledSize: new google.maps.Size(48, 48),
       anchor: new google.maps.Point(24, 38),
     },
-    zIndex: 2000,
+    zIndex: 4000,
     title: "桜町区山車",
   });
 
@@ -188,10 +189,10 @@ window.initMap = function () {
   /* 規制UI構築 */
   setupRegulationUI();
 
-  /* カテゴリーマーカー設置 */
-  addCategoryMarkers(INFO_POINTS, ICONS.info, 1500);
-  addCategoryMarkers(WC_POINTS,   ICONS.wc,   1200);
-  addCategoryMarkers(PARK_POINTS, ICONS.park, 1200);
+  /* カテゴリーマーカー設置（必ず出るよう堅牢化） */
+  addCategoryMarkers(INFO_POINTS, ICONS.info, 2500);
+  addCategoryMarkers(WC_POINTS,   ICONS.wc,   2200);
+  addCategoryMarkers(PARK_POINTS, ICONS.park, 2100);
 
   // 初期：現在時刻に合うスロット自動表示
   autoShow(new Date());
@@ -217,9 +218,15 @@ async function fetchPosition() {
 
     dashMarker.setPosition(pos);
 
+    // 初回だけ半径300mにフィット
+    if (!firstFitDone) {
+      fitRadius(pos, 300); // ← 300m
+      firstFitDone = true;
+    }
+
     // 簡易軌跡
     if (!routePolyline) {
-      routePolyline = new google.maps.Polyline({ map, strokeColor: "#1a73e8", strokeOpacity: 0.85, strokeWeight: 3 });
+      routePolyline = new google.maps.Polyline({ map, strokeColor: "#1a73e8", strokeOpacity: 0.85, strokeWeight: 3, zIndex: 3500 });
     }
     const path = routePolyline.getPath();
     const last = path.getLength() ? path.getAt(path.getLength() - 1) : null;
@@ -247,7 +254,6 @@ function makeDashiBody(status) {
   const pos = dashMarker.getPosition();
   const lat = pos.lat(), lng = pos.lng();
   const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-  // ← 画像を「最終更新」の下に挿入
   return `
     <div class="iw">
       <div class="title">桜町区山車</div>
@@ -280,10 +286,10 @@ function setInfoBar(iw, text) {
   });
 }
 
-/* ========== カテゴリーマーカー描画 ========== */
+/* ========== カテゴリーマーカー描画（堅牢版） ========== */
 function addCategoryMarkers(list, iconUrl, zIndex = 1000) {
   const iw = new google.maps.InfoWindow();
-  const icon = {
+  const baseIcon = {
     url: iconUrl,
     size: new google.maps.Size(36, 36),
     scaledSize: new google.maps.Size(36, 36),
@@ -293,7 +299,7 @@ function addCategoryMarkers(list, iconUrl, zIndex = 1000) {
     const m = new google.maps.Marker({
       map,
       position: { lat: p.lat, lng: p.lng },
-      icon,
+      icon: baseIcon, // もしURLが404でも、Maps側がデフォルトピンにフォールバック
       zIndex,
       title: cleanTitle(p.title),
     });
@@ -309,7 +315,7 @@ function addCategoryMarkers(list, iconUrl, zIndex = 1000) {
         </div>
       `);
       iw.open(map, m);
-      setInfoBar(iw, ""); // インフォはバーなし
+      setInfoBar(iw, ""); // バー不要
     });
   });
 }
@@ -481,4 +487,15 @@ function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, c=>({
     "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
   }[c]));
+}
+
+// 位置（中心・半径[m]）でフィット
+function fitRadius(center, meters){
+  // 緯度方向：1度 ≒ 111,320m
+  const dLat = meters / 111320;
+  const dLng = meters / (111320 * Math.cos(center.lat * Math.PI/180));
+  const sw = { lat: center.lat - dLat, lng: center.lng - dLng };
+  const ne = { lat: center.lat + dLat, lng: center.lng + dLng };
+  const bounds = new google.maps.LatLngBounds(sw, ne);
+  map.fitBounds(bounds);
 }
