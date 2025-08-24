@@ -22,6 +22,15 @@ const CONFIG = {
   POI_ICON_PX: 24
 };
 
+/* ================= ライブ配信スケジュール（JST） =================
+   8/31 18:00–22:00, 9/1 10:00–22:00, 9/2 11:30–22:00
+================================================================== */
+const LIVE_SCHEDULE = [
+  { start: "2025-08-31T18:00:00+09:00", end: "2025-08-31T22:00:00+09:00" },
+  { start: "2025-09-01T10:00:00+09:00", end: "2025-09-01T22:00:00+09:00" },
+  { start: "2025-09-02T11:30:00+09:00", end: "2025-09-02T22:00:00+09:00" },
+];
+
 /* ================= 地図の初期中心 ================= */
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
@@ -108,6 +117,7 @@ const DAYS = [
 /* ================= 地図・状態 ================= */
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null, firstFitDone = false;
+let liveTimer = null, pollingEnabled = false;
 
 // 交通規制レイヤー
 const layers = new Map();       // key -> [Polyline...]
@@ -153,31 +163,66 @@ window.initMap = function(){
     if(drawer) drawer.style.display="none";
   });
 
-  // 現在地ボタン（左下・Map Control）
-  addMyLocationControl();
-
-  // 現在位置ポーリング
-  startPolling();
+  // 左パネル：山車フォーカス＋カテゴリトグル＋現在地
+  setupLeftPanel();
 
   // 交通規制UI
   setupRegulationUI();
 
-  // 左パネル：山車フォーカス＋カテゴリトグル
-  setupLeftPanel();
+  // ライブ状態（配信中/休止中）の管理
+  updateLiveStatus();                    // 初回判定
+  liveTimer = setInterval(updateLiveStatus, 30 * 1000); // 30秒おきに再判定
 
   // 初期：現在時刻に合う規制を1本表示
   autoShow(new Date());
 };
 
+/* ================= ライブ状態（配信スケジュール管理） ================= */
+function isInSchedule(d){
+  return LIVE_SCHEDULE.some(w => d >= new Date(w.start) && d <= new Date(w.end));
+}
+
+function setLivePill(live){
+  const dot = document.getElementById("liveDot");
+  const text= document.getElementById("liveText");
+  if(live){
+    dot.classList.remove("pause"); dot.classList.add("live");
+    text.textContent = "配信中";
+  }else{
+    dot.classList.remove("live"); dot.classList.add("pause");
+    text.textContent = "休止中";
+  }
+}
+
+function updateLiveStatus(){
+  const live = isInSchedule(new Date());
+  setLivePill(live);
+
+  if(live && !pollingEnabled){
+    startPolling();
+  }else if(!live && pollingEnabled){
+    stopPolling();
+  }
+}
+
 /* ================= 山車位置のポーリング ================= */
 function startPolling(){
   if(pollTimer) clearInterval(pollTimer);
   pollTimer=setInterval(fetchPosition, CONFIG.POLL_MS);
+  pollingEnabled = true;
   fetchPosition();
+}
+function stopPolling(){
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = null;
+  pollingEnabled = false;
 }
 
 async function fetchPosition(){
   try{
+    // スケジュール外なら更新しない（保険）
+    if(!isInSchedule(new Date())) return;
+
     const url=`${CONFIG.SERVER_BASE}/api/positions?deviceId=${CONFIG.DEVICE_ID}&latest=true`;
     const res=await fetch(url,{cache:"no-store", headers:{Authorization:`Bearer ${CONFIG.PUBLIC_BEARER}`}});
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -209,8 +254,10 @@ async function fetchPosition(){
 }
 
 function currentStatusText(){
+  // スケジュール外なら「休止中」
+  if(!isInSchedule(new Date())) return "休止中";
   const now=Date.now();
-  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"停止中":"更新中";
+  return (now-lastFixMs>Math.max(20000,CONFIG.POLL_MS*4))?"一時停止中":"配信中";
 }
 
 function makeDashiBody(status){
@@ -301,7 +348,6 @@ async function showSlot(slot){
   const polys=[];
   for(const f of feats){
     const path=f.path.map(([lat,lng])=>({lat,lng}));
-    // 透明感優先：主線のみ（必要に応じてcasing/glowを追加可）
     const main   = new google.maps.Polyline({ path, ...STROKE.main, map });
     polys.push(main);
   }
@@ -335,7 +381,7 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ================= 左パネル：山車フォーカス & カテゴリON/OFF ================= */
+/* ================= 左パネル：山車フォーカス & カテゴリON/OFF & 現在地 ================= */
 function setupLeftPanel(){
   // 山車へフォーカス
   const btnFocus = document.getElementById("btnFocusDashi");
@@ -351,33 +397,62 @@ function setupLeftPanel(){
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
 
-  // クリックでON/OFF（OFFは白黒＝CSS .inactive）
+  // ON/OFF（OFF=白黒＝CSS .inactive）
   const btnInfo = document.getElementById("btnInfo");
   const btnWC   = document.getElementById("btnWC");
   const btnPark = document.getElementById("btnPark");
+  btnInfo.addEventListener("click", ()=>{ const off=btnInfo.classList.toggle("inactive"); toggleCategory("info", !off); });
+  btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
+  btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
 
-  btnInfo.addEventListener("click", ()=>{
-    const inactive = btnInfo.classList.toggle("inactive");
-    toggleCategory("info", !inactive);
-  });
-  btnWC.addEventListener("click", ()=>{
-    const inactive = btnWC.classList.toggle("inactive");
-    toggleCategory("wc", !inactive);
-  });
-  btnPark.addEventListener("click", ()=>{
-    const inactive = btnPark.classList.toggle("inactive");
-    toggleCategory("park", !inactive);
+  // 現在地へ移動（Pの下）
+  const btnMyLoc = document.getElementById("btnMyLoc");
+  btnMyLoc.addEventListener("click", ()=>{
+    if(!navigator.geolocation){
+      alert("お使いのブラウザは現在地取得に対応していません。");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const {latitude, longitude, accuracy} = pos.coords;
+      const ll = {lat: latitude, lng: longitude};
+
+      if(!myLocMarker){
+        myLocMarker = new google.maps.Marker({
+          position: ll, map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 6, fillColor: "#4285f4", fillOpacity: 1,
+            strokeColor: "#fff", strokeWeight: 2
+          },
+          zIndex: 4500, title: "現在地"
+        });
+      } else { myLocMarker.setPosition(ll); myLocMarker.setMap(map); }
+
+      if(!myLocCircle){
+        myLocCircle = new google.maps.Circle({
+          center: ll, map,
+          radius: Math.max(accuracy, 60),
+          fillColor: "#4285f4", fillOpacity: 0.15,
+          strokeColor: "#4285f4", strokeOpacity: 0.5, strokeWeight: 1,
+          zIndex: 4400
+        });
+      } else {
+        myLocCircle.setCenter(ll);
+        myLocCircle.setRadius(Math.max(accuracy, 60));
+        myLocCircle.setMap(map);
+      }
+
+      fitRadius(ll, 300);
+    }, (err)=>{
+      console.warn(err);
+      alert("現在地を取得できませんでした。位置情報の許可設定をご確認ください。");
+    }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
   });
 }
 
 function createCategoryMarkers(key, list, iconUrl, show){
-  // 既存を除去
-  if(markers[key]?.length){
-    markers[key].forEach(m=>m.setMap(null));
-    markers[key] = [];
-  }else{
-    markers[key] = [];
-  }
+  if(markers[key]?.length){ markers[key].forEach(m=>m.setMap(null)); markers[key] = []; }
+  else { markers[key] = []; }
 
   const px = CONFIG.POI_ICON_PX;
   const icon = {
@@ -411,70 +486,6 @@ function createCategoryMarkers(key, list, iconUrl, show){
 
 function toggleCategory(key, on){
   (markers[key] || []).forEach(m=>m.setMap(on?map:null));
-}
-
-/* ================= 現在地ボタン（単発） ================= */
-function addMyLocationControl(){
-  const div = document.createElement("div");
-  div.className = "loc-btn";
-  // シンプルな現在地アイコン（SVG）
-  div.innerHTML = `
-    <svg class="loc-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3" fill="#4285f4"></circle>
-      <circle cx="12" cy="12" r="8" fill="none" stroke="#4285f4" stroke-width="2"></circle>
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285f4" stroke-width="2" stroke-linecap="round"></path>
-    </svg>`;
-  div.title = "現在地へ移動";
-
-  div.addEventListener("click", ()=>{
-    if(!navigator.geolocation){
-      alert("お使いのブラウザは現在地取得に対応していません。");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition((pos)=>{
-      const {latitude, longitude, accuracy} = pos.coords;
-      const ll = {lat: latitude, lng: longitude};
-
-      // マーカーと精度円を作成/更新
-      if(!myLocMarker){
-        myLocMarker = new google.maps.Marker({
-          position: ll, map,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 6, fillColor: "#4285f4", fillOpacity: 1,
-            strokeColor: "#fff", strokeWeight: 2
-          },
-          zIndex: 4500, title: "現在地"
-        });
-      } else {
-        myLocMarker.setPosition(ll);
-        myLocMarker.setMap(map);
-      }
-
-      if(!myLocCircle){
-        myLocCircle = new google.maps.Circle({
-          center: ll, map,
-          radius: Math.max(accuracy, 60), // ざっくり60m以上
-          fillColor: "#4285f4", fillOpacity: 0.15,
-          strokeColor: "#4285f4", strokeOpacity: 0.5, strokeWeight: 1,
-          zIndex: 4400
-        });
-      } else {
-        myLocCircle.setCenter(ll);
-        myLocCircle.setRadius(Math.max(accuracy, 60));
-        myLocCircle.setMap(map);
-      }
-
-      // 表示調整：半径300mでフィット（または精度円でfitBoundsでもOK）
-      fitRadius(ll, 300);
-    }, (err)=>{
-      console.warn(err);
-      alert("現在地を取得できませんでした。位置情報の許可設定をご確認ください。");
-    }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
-  });
-
-  // Map Control として左下へ（GoogleマップのUIと同じ挙動で配置）
-  map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(div);
 }
 
 /* ================= Util ================= */
