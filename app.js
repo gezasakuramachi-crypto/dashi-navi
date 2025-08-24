@@ -7,7 +7,7 @@ const CONFIG = {
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
   DASHI_ICON:
-    "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
+    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png",
 };
 
 // 地図外観（ライト＆POI少なめ）
