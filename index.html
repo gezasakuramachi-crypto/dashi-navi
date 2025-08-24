@@ -5,21 +5,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>桜町区山車 現在位置＋交通規制</title>
   <style>
-    :root { --headerH: 70px; }
+    :root { --headerH: 64px; }
     html, body { height:100%; margin:0; }
     #map { height:100%; }
 
-    /* ヘッダー */
+    /* ヘッダー（レスポンシブで溢れない） */
     .app-header{
       position:fixed; inset:0 0 auto 0; z-index:10;
       display:flex; align-items:center; justify-content:center;
       background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
-      padding:8px 10px; height:var(--headerH);
+      height:var(--headerH); padding:6px 8px;
     }
-    .app-header img{ display:block; height:100%; max-height:54px; width:auto; }
+    .app-header img{
+      max-height:100%; height:100%;
+      width:auto; object-fit:contain; display:block;
+    }
     .header-spacer{ height:var(--headerH); }
+    @media (max-width:480px){
+      :root{ --headerH: 56px; }
+    }
 
-    /* 交通規制パネル（ヘッダーの下に固定して重ならない） */
+    /* 交通規制パネル（112px幅） */
     .ctrl{ position:absolute; top:calc(var(--headerH) + 8px); right:6px; z-index:11; }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
@@ -54,18 +60,6 @@
     }
     .layer-btn.inactive{ filter:grayscale(100%); }   /* OFF=白黒 */
     .layer-btn.focus { filter:none; }                /* フォーカス系 */
-
-    /* ライブ状態ピル */
-    .live-pill{
-      position:absolute; left:6px; top:calc(var(--headerH) + 8px + 110px + 8px); /* 左パネルのすぐ下に配置 */
-      z-index:11; background:#fff; border:1px solid #ddd; border-radius:999px;
-      padding:6px 10px; font:12px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-      box-shadow:0 2px 8px rgba(0,0,0,.1);
-      display:flex; align-items:center; gap:6px;
-    }
-    .dot{ width:8px; height:8px; border-radius:50%; background:#aaa }
-    .dot.live{ background:#18a058 }   /* 配信中=緑 */
-    .dot.pause{ background:#999 }      /* 休止中=グレー */
 
     /* InfoWindow */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -120,21 +114,18 @@
     <img src="https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1"
          id="btnFocusDashi" class="layer-btn focus" title="山車へ移動">
 
-    <!-- 表示ON/OFFトグル（OFF=白黒） -->
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png" 
+    <!-- ON/OFFトグル（OFF=白黒） -->
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png"
          id="btnInfo" class="layer-btn active" title="インフォ">
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png" 
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png"
          id="btnWC" class="layer-btn active" title="トイレ">
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" 
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png"
          id="btnPark" class="layer-btn active" title="駐車場">
 
     <!-- 現在地へ移動（Googleマップ風アイコン） -->
     <img id="btnMyLoc" class="layer-btn focus" title="現在地へ移動"
          src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
   </div>
-
-  <!-- ライブ状態ピル -->
-  <div class="live-pill" id="livePill"><span class="dot pause" id="liveDot"></span><span id="liveText">休止中</span></div>
 
   <div id="map"></div>
 
