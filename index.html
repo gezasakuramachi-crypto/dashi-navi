@@ -16,11 +16,11 @@
       padding:8px 10px;
     }
     .app-header img{ display:block; height:auto; max-width:560px; width:90vw; }
-    .header-spacer{ height:70px; }
+    .header-spacer{ height:70px; } /* JSで実寸にあわせて再計算されます */
 
     /* 左上：地図切替＆現在地ボタン */
     .lt-controls{
-      position:absolute; top:78px; left:6px; z-index:11;
+      position:absolute; left:6px; z-index:11;
       display:flex; gap:8px;
     }
     .ctl-btn{
@@ -29,8 +29,8 @@
       box-shadow:0 1px 3px rgba(0,0,0,.2);
     }
 
-    /* 交通規制UI（幅112px） */
-    .ctrl{ position:absolute; top:78px; right:6px; z-index:11; }
+    /* 右上：交通規制パネル（幅112px） */
+    .ctrl{ position:absolute; right:6px; z-index:11; }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 6px 18px rgba(0,0,0,.12);
@@ -55,7 +55,22 @@
     }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
-    /* InfoWindow 調整（山車/POI共通） */
+    /* 左側：カテゴリ表示/非表示（インフォ・WC・P） */
+    .layer-ctrl{
+      position:absolute; left:6px; z-index:11;
+      display:grid; gap:6px; width:120px;
+      background:#fff; border:1px solid #d8d8d8; border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+      padding:6px;
+    }
+    .layer-ctrl .head{ font-size:12px; font-weight:700; }
+    .layer-ctrl label{
+      display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer;
+      user-select:none;
+    }
+    .layer-ctrl img{ width:18px; height:18px; object-fit:contain }
+
+    /* InfoWindow 共通 */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
     .iw { font:14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; color:#555; }
     .iw .title{ font-weight:700; font-size:15px; color:#202124; margin:0 0 6px; }
@@ -76,26 +91,34 @@
 </head>
 <body>
   <!-- タイトル画像 -->
-  <div class="app-header">
+  <div class="app-header" id="appHeader">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif" alt="令和7年 鹿島神宮神幸祭 山車祭">
   </div>
-  <div class="header-spacer"></div>
+  <div class="header-spacer" id="headerSpacer"></div>
 
   <!-- 左上：地図切替＆現在地 -->
-  <div class="lt-controls">
+  <div class="lt-controls" id="ltControls">
     <button id="btnMapStyle" class="ctl-btn">地図：標準</button>
     <button id="btnLocate" class="ctl-btn">現在地</button>
   </div>
 
-  <!-- 交通規制パネル（右上） -->
-  <div class="ctrl">
+  <!-- 左側：カテゴリ切替 -->
+  <div class="layer-ctrl" id="layerCtrl">
+    <div class="head">表示切替</div>
+    <label><input type="checkbox" id="chkInfo" checked> <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png" alt="">インフォ</label>
+    <label><input type="checkbox" id="chkWC" checked>   <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png" alt="">トイレ</label>
+    <label><input type="checkbox" id="chkPark" checked> <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" alt="">駐車場</label>
+  </div>
+
+  <!-- 右上：交通規制パネル -->
+  <div class="ctrl" id="regCtrl">
     <div class="panel">
       <div class="row" style="justify-content:space-between">
         <div class="title">交通規制</div>
         <button id="openBtn" class="btn">表示</button>
       </div>
 
-      <!-- 折りたたみ時のサマリー（クリックで再オープン） -->
+      <!-- 折りたたみ時のサマリー -->
       <div id="collapsedHint" class="row" style="margin-top:4px; display:none">
         <button id="collapsedBtn" class="btn" style="flex:1">自動更新</button>
       </div>
@@ -123,6 +146,6 @@
   <script src="app.js"></script>
 
   <!-- Google Maps API（APIキーを差し替え） -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&callback=initMap&v=weekly&language=ja"></script>
 </body>
 </html>
