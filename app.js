@@ -8,7 +8,12 @@ const CONFIG = {
   DASHI_ICON:
     "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
   DASHI_PHOTO:
-    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png", // 山車InfoWindow画像
+    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png",
+  ICONS: {
+    info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
+    wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
+    park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
+  },
 };
 
 // 地図外観（ライト＆POI少なめ）
@@ -30,17 +35,10 @@ const STROKE = {
 /* ========== 共有 InfoWindow 参照 ========== */
 let activeInfoWindow = null;
 
-/* ================== イベント系マーカー定義 ================== */
-// 先頭の丸数字・記号等を落とす
+/* ================== イベント系マーカー定義（ラベル文字なし） ================== */
+// 先頭に丸数字・記号があっても落とす（データ保険）
 const cleanTitle = (s) =>
   String(s || "").replace(/^[\s\u2460-\u2473\u3251-\u325F\u32B1-\u32BF\u3000・\-()\d\.]+/, "");
-
-// アイコン（mark/ 配下）
-const ICONS = {
-  info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
-  wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
-  park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
-};
 
 // ■インフォメーション
 const INFO_POINTS = [
@@ -118,25 +116,25 @@ const PARK_POINTS = [
 const DAYS = [
   {
     id: "d1",
-    label: "9/1（日）",
+    label: "9/1(月)",
     slots: [
-      { name: "9/1 10:30–15:00", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
-      { name: "9/1 15:00–16:00", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
-      { name: "9/1 16:00–19:30", start: "2025-09-01T16:00:00+09:00", end: "2025-09-01T19:30:00+09:00", src: "data/91-1600-1930.geojson" },
-      { name: "9/1 19:30–20:45", start: "2025-09-01T19:30:00+09:00", end: "2025-09-01T20:45:00+09:00", src: "data/91-1930-2045.geojson" },
-      { name: "9/1 20:45–22:00", start: "2025-09-01T20:45:00+09:00", end: "2025-09-01T22:00:00+09:00", src: "data/91-2045-2200.geojson" },
+      { name: "9/1 10:30-", key: "91-1030-1500", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
+      { name: "9/1 15:00-", key: "91-1500-1600", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
+      { name: "9/1 16:00-", key: "91-1600-1930", start: "2025-09-01T16:00:00+09:00", end: "2025-09-01T19:30:00+09:00", src: "data/91-1600-1930.geojson" },
+      { name: "9/1 19:30-", key: "91-1930-2045", start: "2025-09-01T19:30:00+09:00", end: "2025-09-01T20:45:00+09:00", src: "data/91-1930-2045.geojson" },
+      { name: "9/1 20:45-", key: "91-2045-2200", start: "2025-09-01T20:45:00+09:00", end: "2025-09-01T22:00:00+09:00", src: "data/91-2045-2200.geojson" },
     ],
   },
   {
     id: "d2",
-    label: "9/2（月）",
+    label: "9/2(火)",
     slots: [
-      { name: "9/2 11:00–12:30", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
-      { name: "9/2 12:30–14:00", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
-      { name: "9/2 14:00–16:30", start: "2025-09-02T14:00:00+09:00", end: "2025-09-02T16:30:00+09:00", src: "data/92-1400-1630.geojson" },
-      { name: "9/2 16:30–19:00", start: "2025-09-02T16:30:00+09:00", end: "2025-09-02T19:00:00+09:00", src: "data/92-1630-1900.geojson" },
-      { name: "9/2 19:00–19:30", start: "2025-09-02T19:00:00+09:00", end: "2025-09-02T19:30:00+09:00", src: "data/92-1900-1930.geojson" },
-      { name: "9/2 19:30–22:00", start: "2025-09-02T19:30:00+09:00", end: "2025-09-02T22:00:00+09:00", src: "data/92-1930-2200.geojson" },
+      { name: "9/2 11:00-", key: "92-1100-1230", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
+      { name: "9/2 12:30-", key: "92-1230-1400", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
+      { name: "9/2 14:00-", key: "92-1400-1630", start: "2025-09-02T14:00:00+09:00", end: "2025-09-02T16:30:00+09:00", src: "data/92-1400-1630.geojson" },
+      { name: "9/2 16:30-", key: "92-1630-1900", start: "2025-09-02T16:30:00+09:00", end: "2025-09-02T19:00:00+09:00", src: "data/92-1630-1900.geojson" },
+      { name: "9/2 19:00-", key: "92-1900-1930", start: "2025-09-02T19:00:00+09:00", end: "2025-09-02T19:30:00+09:00", src: "data/92-1900-1930.geojson" },
+      { name: "9/2 19:30-", key: "92-1930-2200", start: "2025-09-02T19:30:00+09:00", end: "2025-09-02T22:00:00+09:00", src: "data/92-1930-2200.geojson" },
     ],
   },
 ];
@@ -147,12 +145,11 @@ let lastFixMs = 0, pollTimer = null;
 let firstFitDone = false; // 初回300mフィット用
 
 // 規制描画用
-let currentDayId = DAYS[0].id;
-const layers = new Map();      // key: slot.start → [Polyline...]
+const layers = new Map();      // key: slot.key → [Polyline...]
 const loadedCache = new Map(); // src -> [{path:[lat,lng], note?}...]
 
-// 主要イベント（INFO_POINTS）用のマーカーリスト（ラベル制御）
-let infoMarkers = [];
+// UI要素参照（後で取得）
+let drawer, tabAutoEl, tabD1El, tabD2El, slotListEl;
 
 // Google Maps APIのcallback
 window.initMap = function () {
@@ -189,33 +186,27 @@ window.initMap = function () {
     setInfoBar(dashInfo, formatLastFixBar());
   });
 
-  // 地図余白クリックでどのInfoWindowも閉じる
+  // 地図余白クリックで：InfoWindowを閉じる + 規制UIを自動に戻して閉じる
   map.addListener("click", () => {
-    if (activeInfoWindow) {
-      activeInfoWindow.close();
-      activeInfoWindow = null;
-    }
+    if (activeInfoWindow) { activeInfoWindow.close(); activeInfoWindow = null; }
+    switchToAuto(true); // 自動に戻してUIを閉じる
   });
 
   /* 現在地ポーリング */
   startPolling();
 
-  /* 規制UI構築 */
+  /* 規制UI構築（超コンパクト） */
   setupRegulationUI();
 
-  /* カテゴリーマーカー設置（主要イベントのみラベル表示） */
-  addCategoryMarkers(INFO_POINTS, ICONS.info, 2500, true);  // ラベル付き
-  addCategoryMarkers(WC_POINTS,   ICONS.wc,   2200, false); // ラベルなし
-  addCategoryMarkers(PARK_POINTS, ICONS.park, 2100, false); // ラベルなし
-
-  /* ズームに応じてラベルの出し入れ */
-  map.addListener("zoom_changed", updateInfoLabels);
-  updateInfoLabels();
+  /* カテゴリーマーカー設置（ラベルなし） */
+  addCategoryMarkers(INFO_POINTS, CONFIG.ICONS.info, 2500);
+  addCategoryMarkers(WC_POINTS,   CONFIG.ICONS.wc,   2200);
+  addCategoryMarkers(PARK_POINTS, CONFIG.ICONS.park, 2100);
 
   /* 位置情報ボタン */
   addMyLocationControls();
 
-  // 初期：現在時刻に合うスロット自動表示
+  // 初期：自動モードで表示
   autoShow(new Date());
 };
 
@@ -307,41 +298,130 @@ function setInfoBar(iw, text) {
   });
 }
 
-/* ========== カテゴリーマーカー描画（主要イベントはラベル付き） ========== */
-function addCategoryMarkers(list, iconUrl, zIndex = 1000, withLabel = false) {
+/* ========== 交通規制UI（自動／日付→時間ボタン・重ね表示なし） ========== */
+function setupRegulationUI(){
+  const openBtn = document.getElementById("openBtn");
+  drawer   = document.getElementById("drawer");
+  tabAutoEl= document.getElementById("tabAuto");
+  tabD1El  = document.getElementById("tabD1");
+  tabD2El  = document.getElementById("tabD2");
+  slotListEl = document.getElementById("slotList");
+
+  openBtn.addEventListener("click", () => {
+    drawer.style.display = drawer.style.display === "none" ? "block" : "none";
+    // 開いた直後は自動タブ（最初に選択）
+    if (drawer.style.display === "block") switchToAuto(false);
+  });
+
+  tabAutoEl.addEventListener("click", () => switchToAuto(false));
+  tabD1El.addEventListener("click", () => switchToDay("d1"));
+  tabD2El.addEventListener("click", () => switchToDay("d2"));
+}
+
+function setActiveTabs({auto=false, d1=false, d2=false}){
+  tabAutoEl.classList.toggle("active", auto);
+  tabD1El.classList.toggle("active", d1);
+  tabD2El.classList.toggle("active", d2);
+}
+
+function switchToAuto(closeDrawerAfter){
+  // タブ状態
+  setActiveTabs({auto:true, d1:false, d2:false});
+  // 時間ボタンは消す
+  slotListEl.innerHTML = "";
+  // 自動表示に切替（現在時刻）
+  autoShow(new Date());
+  if (closeDrawerAfter) drawer.style.display = "none";
+}
+
+function switchToDay(dayId){
+  setActiveTabs({auto:false, d1: dayId==="d1", d2: dayId==="d2"});
+  // 重ね表示なし：一旦全部消す
+  hideAll();
+
+  // スロットボタンを並べる（チェックボックスなし）
+  const day = DAYS.find(d=>d.id===dayId);
+  slotListEl.innerHTML = "";
+  day.slots.forEach((s) => {
+    const b = document.createElement("button");
+    b.className = "slotbtn";
+    b.textContent = s.name;
+    b.addEventListener("click", async () => {
+      hideAll();         // 重ねず単体表示
+      await showSlot(s);
+    });
+    slotListEl.appendChild(b);
+  });
+}
+
+/* 自動表示：現在時刻に該当するスロットを表示（重ね表示はせず、最初に合致した1件のみ表示） */
+async function autoShow(now){
+  hideAll();
+  const allSlots = [...DAYS[0].slots, ...DAYS[1].slots];
+  const hit = allSlots.find(s => now >= new Date(s.start) && now <= new Date(s.end));
+  if (hit) await showSlot(hit);
+}
+
+/* ========== GeoJSON → 線三層描画（歩行者専用） ========== */
+async function showSlot(slot){
+  if(layers.has(slot.key)) return; // 既に表示中なら何もしない
+  const feats = await loadGeojsonPaths(slot.src);
+  const polys=[];
+  for(const f of feats){
+    const path = f.path.map(([lat,lng])=>({lat,lng}));
+    const glow   = new google.maps.Polyline({ path, ...STROKE.glow,   map });
+    const casing = new google.maps.Polyline({ path, ...STROKE.casing, map });
+    const main   = new google.maps.Polyline({ path, ...STROKE.main,   map });
+    polys.push(glow,casing,main);
+  }
+  layers.set(slot.key, polys);
+}
+function hideAll(){
+  for(const arr of layers.values()) arr.forEach(pl=>pl.setMap(null));
+  layers.clear();
+}
+
+async function loadGeojsonPaths(src){
+  if(loadedCache.has(src)) return loadedCache.get(src);
+  const res = await fetch(src, {cache:'no-store'});
+  const gj = await res.json();
+  const out = [];
+  const toLatLngList = (coords) => coords.map((c)=>[c[1], c[0]]); // [lng,lat]→[lat,lng]
+  for(const feat of (gj.features||[])){
+    const g=feat.geometry||{}; const t=g.type;
+    const p=feat.properties||{}; const note=p.name||p.description||"";
+    if(t==='LineString'){
+      out.push({path: toLatLngList(g.coordinates), note});
+    }else if(t==='MultiLineString'){
+      for(const line of g.coordinates) out.push({path: toLatLngList(line), note});
+    }else if(t==='Polygon'){
+      out.push({path: toLatLngList(g.coordinates[0]), note});
+    }else if(t==='MultiPolygon'){
+      for(const poly of g.coordinates) out.push({path: toLatLngList(poly[0]), note});
+    }
+  }
+  loadedCache.set(src, out);
+  return out;
+}
+
+/* ========== 汎用マーカー（Info/WC/駐車場：ラベルなし） ========== */
+function addCategoryMarkers(list, iconUrl, zIndex = 1000) {
   const iw = new google.maps.InfoWindow();
   const baseIcon = {
     url: iconUrl,
     size: new google.maps.Size(36, 36),
     scaledSize: new google.maps.Size(36, 36),
     anchor: new google.maps.Point(18, 30),
-    labelOrigin: new google.maps.Point(44, 18), // ラベルの原点をアイコン右側へ
   };
-
   list.forEach((p) => {
-    const labelObj = withLabel
-      ? {
-          text: cleanTitle(p.title),
-          color: "#1f2937",
-          fontSize: "12px",
-          fontWeight: "700",
-        }
-      : null;
-
     const m = new google.maps.Marker({
       map,
       position: { lat: p.lat, lng: p.lng },
       icon: baseIcon,
       zIndex,
       title: cleanTitle(p.title),
-      label: labelObj,           // 主要イベントのみ
       optimized: true,
     });
-
-    // ラベルの元データを保持（ズームに応じた表示切替に使う）
-    m.__baseLabel = labelObj;
-    if (withLabel) infoMarkers.push(m);
-
     m.addListener("click", () => {
       const title = cleanTitle(p.title);
       const photoHtml = p.photo ? `<img class="photo" src="${p.photo}" alt="${title}">` : "";
@@ -353,182 +433,12 @@ function addCategoryMarkers(list, iconUrl, zIndex = 1000, withLabel = false) {
           <div>${body}</div>
         </div>
       `);
-
       if (activeInfoWindow) { activeInfoWindow.close(); activeInfoWindow = null; }
       iw.open(map, m);
       activeInfoWindow = iw;
       setInfoBar(iw, "");
     });
   });
-}
-
-// ズームに応じたラベル自動出し入れ（重なり防止）
-function updateInfoLabels() {
-  if (!map) return;
-  const show = map.getZoom() >= 16; // 16以上でラベル表示（調整可）
-  infoMarkers.forEach(m => m.setLabel(show ? m.__baseLabel : null));
-}
-
-/* ========== 交通規制レイヤーUI ========== */
-function setupRegulationUI() {
-  const openBtn = document.getElementById("openBtn");
-  const drawer = document.getElementById("drawer");
-  openBtn.addEventListener("click", () => {
-    drawer.style.display = drawer.style.display === "none" ? "block" : "none";
-  });
-
-  // 日付タブ
-  const dayTabs = document.getElementById("dayTabs");
-  dayTabs.innerHTML = "";
-  DAYS.forEach((d) => {
-    const b = document.createElement("button");
-    b.textContent = d.label;
-    b.className = "btn";
-    b.style.flex = "1";
-    if (d.id === currentDayId) b.classList.add("active");
-    b.addEventListener("click", () => {
-      currentDayId = d.id;
-      [...dayTabs.children].forEach((x) => x.classList.remove("active"));
-      b.classList.add("active");
-      if (document.getElementById("manualPane").style.display !== "none") buildManualList();
-      autoShow(new Date());
-    });
-    dayTabs.appendChild(b);
-  });
-
-  // 自動/手動
-  const tabAuto = document.getElementById("tabAuto");
-  const tabManual = document.getElementById("tabManual");
-  tabAuto.addEventListener("click", () => {
-    tabAuto.classList.add("active");
-    tabManual.classList.remove("active");
-    document.getElementById("autoPane").style.display = "grid";
-    document.getElementById("manualPane").style.display = "none";
-    autoShow(new Date());
-  });
-  tabManual.addEventListener("click", () => {
-    tabManual.classList.add("active");
-    tabAuto.classList.remove("active");
-    document.getElementById("autoPane").style.display = "none";
-    document.getElementById("manualPane").style.display = "grid";
-    buildManualList();
-  });
-
-  // 自動モード UI
-  const useNow = document.getElementById("useNow");
-  const when = document.getElementById("when");
-  const refresh = document.getElementById("refresh");
-  const d = new Date();
-  when.value = toLocalInputValue(d);
-  when.disabled = true;
-  useNow.addEventListener("change", () => (when.disabled = useNow.checked));
-  refresh.addEventListener("click", () => {
-    const t = useNow.checked ? new Date() : new Date(when.value);
-    autoShow(t);
-  });
-}
-
-function toLocalInputValue(d) {
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-// 手動リスト
-function buildManualList() {
-  const box = document.getElementById("slotList");
-  box.innerHTML = "";
-  const day = DAYS.find((d) => d.id === currentDayId);
-  day.slots.forEach((s, idx) => {
-    const id = `chk_${currentDayId}_${idx}`;
-    const div = document.createElement("label");
-    div.className = "tag";
-    div.innerHTML = `<input type="checkbox" id="${id}" style="margin-right:6px">${s.name}`;
-    box.appendChild(div);
-    const chk = div.querySelector("input");
-    chk.addEventListener("change", async (e) => {
-      if (e.target.checked) {
-        await showSlot(s);
-        div.classList.add("active");
-      } else {
-        hideSlot(s);
-        div.classList.remove("active");
-      }
-      updateStatus();
-    });
-  });
-}
-
-// 自動表示
-async function autoShow(now) {
-  const status = document.getElementById("status");
-  hideAll();
-  const day = DAYS.find((d) => d.id === currentDayId);
-  const act = [];
-  for (const s of day.slots) {
-    const st = new Date(s.start), en = new Date(s.end);
-    if (now >= st && now <= en) {
-      await showSlot(s);
-      act.push(s.name);
-    }
-  }
-  status.textContent =
-    "表示時刻：" +
-    new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Tokyo" }).format(now) +
-    " ／ 表示中：" + act.length + "件";
-}
-
-// GeoJSON 読み→ポリライン三層描画
-async function showSlot(slot) {
-  if (layers.has(slot.start)) return;
-  const feats = await loadGeojsonPaths(slot.src);
-  const polys = [];
-  for (const f of feats) {
-    const path = f.path.map(([lat, lng]) => ({ lat, lng }));
-    const glow   = new google.maps.Polyline({ path, ...STROKE.glow,   map });
-    const casing = new google.maps.Polyline({ path, ...STROKE.casing, map });
-    const main   = new google.maps.Polyline({ path, ...STROKE.main,   map });
-    polys.push(glow, casing, main);
-  }
-  layers.set(slot.start, polys);
-}
-function hideSlot(slot) {
-  const arr = layers.get(slot.start);
-  if (!arr) return;
-  arr.forEach((pl) => pl.setMap(null));
-  layers.delete(slot.start);
-}
-function hideAll() {
-  for (const arr of layers.values()) arr.forEach((pl) => pl.setMap(null));
-  layers.clear();
-}
-function updateStatus() {
-  const status = document.getElementById("status");
-  status.textContent = "表示中スロット：" + layers.size + "件";
-}
-
-async function loadGeojsonPaths(src) {
-  if (loadedCache.has(src)) return loadedCache.get(src);
-  const res = await fetch(src, { cache: "no-store" });
-  const gj = await res.json();
-  const out = [];
-  const toLatLngList = (coords) => coords.map((c) => [c[1], c[0]]); // [lng,lat] → [lat,lng]
-  for (const feat of gj.features || []) {
-    const g = feat.geometry || {};
-    const t = g.type;
-    const p = feat.properties || {};
-    const note = p.name || p.description || "";
-    if (t === "LineString") {
-      out.push({ path: toLatLngList(g.coordinates), note });
-    } else if (t === "MultiLineString") {
-      for (const line of g.coordinates) out.push({ path: toLatLngList(line), note });
-    } else if (t === "Polygon") {
-      out.push({ path: toLatLngList(g.coordinates[0]), note }); // 外周のみ
-    } else if (t === "MultiPolygon") {
-      for (const poly of g.coordinates) out.push({ path: toLatLngList(poly[0]), note });
-    }
-  }
-  loadedCache.set(src, out);
-  return out;
 }
 
 /* ===== 現在地ボタン & 追尾 ===== */
