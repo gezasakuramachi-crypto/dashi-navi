@@ -8,7 +8,7 @@ const CONFIG = {
   DASHI_ICON:
     "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
   DASHI_PHOTO:
-    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana_R.png",
+    "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura-konohana2.jpg",
   ICONS: {
     info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
