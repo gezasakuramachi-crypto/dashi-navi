@@ -15,45 +15,19 @@
       display:flex; align-items:center; justify-content:center;
       background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
       height:var(--headerH);
-      padding:6px 12px;            /* ← 余白分も考慮して画像サイズを制御 */
+      padding:6px 12px;
     }
-    /* 画像は横幅100%優先＋高さは自動、必要なら上限だけ付ける */
     .app-header img{
-      width:100%;                  /* ← 横幅をビューポートにフィット */
-      height:auto;                 /* ← 高さは比率維持で自動 */
-      max-height:calc(var(--headerH) - 12px); /* ← ヘッダー内に収まる上限 */
-      object-fit:contain;          /* ← 収まり優先（引き伸ばし無し） */
-      display:block;
+      width:100%; height:auto;
+      max-height:calc(var(--headerH) - 12px);
+      object-fit:contain; display:block;
     }
     .header-spacer{ height:var(--headerH); }
     @media (max-width:480px){
       :root{ --headerH: 56px; }
     }
 
-    /* 交通規制パネル（ヘッダーに被らないように下げ気味） */
-    .ctrl{
-      position:absolute; top:calc(var(--headerH) + 20px); right:6px; z-index:11;
-    }
-    .panel{
-      background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
-      box-shadow:0 4px 12px rgba(0,0,0,.12);
-      padding:4px; width:112px; font-size:11px;
-    }
-    .row{ display:flex; align-items:center; gap:4px; flex-wrap:wrap }
-    .btn{ border:1.5px solid #333; border-radius:6px; background:#fff;
-          padding:3px 5px; cursor:pointer; font-size:11px }
-    .vlist{ display:grid; gap:4px; margin-top:4px }
-    .tab{ padding:5px 0; text-align:center; border:1px solid #88b5e6;
-          background:#fff; border-radius:6px; cursor:pointer; font-size:11px }
-    .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700 }
-    .legend{ display:flex; align-items:center; gap:4px; font-size:10px; color:#333; margin-top:4px }
-    .sw{ width:10px; height:10px; border-radius:3px; border:1px solid #888; background:#ff0000; opacity:0.4 }
-    .slotlist{ display:grid; gap:4px; margin-top:4px; }
-    .slotbtn{ padding:4px; border:1px solid #ccc; border-radius:6px; background:#fff;
-              text-align:center; cursor:pointer; font-size:11px }
-    .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
-
-    /* 左側：アイコンパネル（ヘッダーに被らないように下げ） */
+    /* 左側：アイコンパネル（縦並び） */
     .layer-ctrl{
       position:absolute; left:6px; top:calc(var(--headerH) + 20px); z-index:11;
       display:grid; gap:10px;
@@ -67,6 +41,39 @@
     }
     .layer-btn.inactive{ filter:grayscale(100%); }
     .layer-btn.focus { filter:none; }
+
+    /* 右側：交通規制ドロワー（進入禁止アイコンで開閉） */
+    .reg-drawer{
+      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:11;
+      width:220px; max-width:70vw;
+      background:#DAE9F8; border:1px solid #bcd4ea; border-radius:12px;
+      box-shadow:0 4px 16px rgba(0,0,0,.18);
+      padding:10px; font-size:12px; color:#222;
+      display:none;
+    }
+    .reg-drawer .title-row{
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      margin-bottom:6px;
+    }
+    .reg-drawer .title-row .title{ font-weight:700; }
+    .reg-drawer .close{
+      appearance:none; border:1px solid #7aa7d6; background:#fff;
+      padding:3px 6px; border-radius:8px; cursor:pointer; font-size:12px;
+    }
+    .tabs{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin:6px 0; }
+    .tab{
+      text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:8px;
+      padding:6px 0; cursor:pointer; user-select:none;
+    }
+    .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700; }
+    .legend{ display:flex; align-items:center; gap:6px; font-size:11px; color:#333; margin:4px 0 6px; }
+    .sw{ width:12px; height:12px; border-radius:3px; border:1px solid #888; background:#ff99cc; opacity:.7 }
+    .slotlist{ display:grid; gap:6px; }
+    .slotbtn{
+      padding:6px; border:1px solid #b9cfe8; border-radius:8px; background:#fff;
+      text-align:center; cursor:pointer; font-size:12px;
+    }
+    .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
     /* InfoWindow */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -96,43 +103,40 @@
   </div>
   <div class="header-spacer"></div>
 
-  <!-- 交通規制 -->
-  <div class="ctrl">
-    <div class="panel">
-      <div class="row" style="justify-content:space-between">
-        <div class="title">交通規制</div>
-        <button id="openBtn" class="btn">表示</button>
-      </div>
-      <div id="drawer" style="display:none">
-        <div class="vlist">
-          <div id="tabAuto" class="tab active">自動更新</div>
-          <div id="tabD1" class="tab">9/1(月)</div>
-          <div id="tabD2" class="tab">9/2(火)</div>
-          <div class="legend"><span class="sw"></span>歩行者専用</div>
-          <div id="slotList" class="slotlist"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- 左側アイコン -->
   <div class="layer-ctrl" id="layerCtrl">
     <img src="https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1"
          id="btnFocusDashi" class="layer-btn focus" title="山車へ移動">
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png"
-         id="btnInfo" class="layer-btn active" title="インフォ">
+    <img src="mark/info_transparent.png" id="btnInfo" class="layer-btn" title="インフォ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png"
-         id="btnWC" class="layer-btn active" title="トイレ">
+         id="btnWC" class="layer-btn" title="トイレ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png"
-         id="btnPark" class="layer-btn active" title="駐車場">
+         id="btnPark" class="layer-btn" title="駐車場">
+    <!-- ★ 進入禁止（ここをクリックで右ドロワーをトグル） -->
+    <img src="mark/no_entry_icon_24px.png" id="btnBan" class="layer-btn" title="交通規制を表示/非表示">
     <img id="btnMyLoc" class="layer-btn focus" title="現在地へ移動"
          src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
   </div>
 
+  <!-- 右側：交通規制ドロワー（初期は非表示） -->
+  <aside class="reg-drawer" id="regDrawer" aria-hidden="true">
+    <div class="title-row">
+      <div class="title">交通規制</div>
+      <button id="regClose" class="close" type="button">閉じる</button>
+    </div>
+    <div class="tabs">
+      <div id="tabAuto" class="tab active">自動更新</div>
+      <div id="tabD1" class="tab">9/1(月)</div>
+      <div id="tabD2" class="tab">9/2(火)</div>
+    </div>
+    <div class="legend"><span class="sw"></span>歩行者専用（淡ピンク）</div>
+    <div id="slotList" class="slotlist"></div>
+  </aside>
+
   <div id="map"></div>
 
   <!-- フッター -->
-  <div class="footer">Created by Masumi & AI</div>
+  <div class="footer">Created by Masumi & ChatGPT</div>
 
   <script src="app.js"></script>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
