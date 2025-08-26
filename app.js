@@ -22,20 +22,20 @@ const CONFIG = {
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* ================= 規制スタイル（線/面の両対応） ================= */
+/* ================= 規制スタイル（外枠は赤・塗りは淡ピンク） ================= */
 const STYLE = {
   line: {
-    strokeColor: "#ff4d88",   // 外枠ピンク
+    strokeColor: "#ff0000",   // 外枠：赤
     strokeOpacity: 1,
     strokeWeight: 0.5,        // 細め
     zIndex: 3002
   },
   polygon: {
-    strokeColor: "#ff4d88",   // 外枠ピンク
+    strokeColor: "#ff0000",   // 外枠：赤
     strokeOpacity: 1,
-    strokeWeight: 0.5,        // 細め
-    fillColor: "#ff99cc",     // 内側は淡いピンク
-    fillOpacity: 0.35,        // 少し透ける（35%不透明）
+    strokeWeight: 0.5,
+    fillColor: "#ff99cc",     // 塗り：淡いピンク
+    fillOpacity: 0.35,        // もう少し淡くするなら 0.25 〜 0.30
     zIndex: 3002
   }
 };
@@ -146,24 +146,23 @@ window.initMap = function(){
     dashInfo.open(map, dashMarker);
   });
 
-  // 地図クリック：InfoWindow & 規制UIを閉じる
+  // 画面外（地図）クリックでドロワーを閉じる
   map.addListener("click", ()=>{
     dashInfo.close();
     if(poiInfo) poiInfo.close();
-    const drawer=document.getElementById("drawer");
-    if(drawer) drawer.style.display="none";
+    closeRegDrawer();
   });
 
   // 左パネル
   setupLeftPanel();
 
-  // 交通規制UI
+  // 交通規制UI（タブ/ボタン類のイベント+初期自動表示）
   setupRegulationUI();
 
   // 現在地ポーリング
   startPolling();
 
-  // 初期：現在時刻に合う規制を1本表示
+  // 初期：現在時刻に合う規制を1本表示（ドロワーは閉じたまま）
   autoShow(new Date());
 };
 
@@ -225,39 +224,56 @@ function makeDashiBody(status){
   `;
 }
 
-/* ================= 交通規制 UI ================= */
+/* ================= 交通規制 UI（ドロワー開閉は進入禁止アイコンで） ================= */
 function setupRegulationUI(){
-  const openBtn=document.getElementById("openBtn");
-  const drawer=document.getElementById("drawer");
-  const tabAuto=document.getElementById("tabAuto");
-  const tabD1=document.getElementById("tabD1");
-  const tabD2=document.getElementById("tabD2");
-  const slotList=document.getElementById("slotList");
+  const drawer   = document.getElementById("regDrawer");
+  const btnClose = document.getElementById("regClose");
+  const tabAuto  = document.getElementById("tabAuto");
+  const tabD1    = document.getElementById("tabD1");
+  const tabD2    = document.getElementById("tabD2");
+  const slotList = document.getElementById("slotList");
 
-  openBtn.addEventListener("click", ()=>{
-    drawer.style.display = drawer.style.display==='none' ? 'block':'none';
-  });
+  // タブ切り替え
+  function activate(tab){
+    [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+  }
 
   tabAuto.addEventListener("click", ()=>{
-    [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
-    tabAuto.classList.add("active");
+    activate(tabAuto);
     slotList.innerHTML="";
     autoShow(new Date());
   });
-
   tabD1.addEventListener("click", ()=>{
-    [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
-    tabD1.classList.add("active");
+    activate(tabD1);
     buildTimeButtons("d1");
   });
-
   tabD2.addEventListener("click", ()=>{
-    [tabAuto,tabD1,tabD2].forEach(t=>t.classList.remove("active"));
-    tabD2.classList.add("active");
+    activate(tabD2);
     buildTimeButtons("d2");
   });
 
+  // 閉じるボタン
+  btnClose.addEventListener("click", closeRegDrawer);
+
+  // 初期は閉じておく
   drawer.style.display = "none";
+  drawer.setAttribute("aria-hidden","true");
+}
+
+function openRegDrawer(){
+  const el = document.getElementById("regDrawer");
+  el.style.display = "block";
+  el.setAttribute("aria-hidden","false");
+}
+function closeRegDrawer(){
+  const el = document.getElementById("regDrawer");
+  el.style.display = "none";
+  el.setAttribute("aria-hidden","true");
+}
+function toggleRegDrawer(){
+  const el = document.getElementById("regDrawer");
+  if (el.getAttribute("aria-hidden")==="true") openRegDrawer(); else closeRegDrawer();
 }
 
 function buildTimeButtons(dayId){
@@ -293,11 +309,9 @@ async function showSlot(slot){
   for(const f of feats){
     const path = f.path.map(([lat,lng])=>({lat,lng}));
     if (f.kind === "polygon") {
-      // 面データなら → Polygon（塗りつぶし＋枠線）
       const poly = new google.maps.Polygon({ path, ...STYLE.polygon, map });
       overlays.push(poly);
     } else {
-      // 線データなら → Polyline（枠線だけ）
       const line = new google.maps.Polyline({ path, ...STYLE.line, map });
       overlays.push(line);
     }
@@ -324,7 +338,7 @@ async function loadGeojsonPaths(src){
     }else if(t==='MultiLineString'){
       for(const line of g.coordinates) out.push({kind:'line', path: toLatLngList(line)});
     }else if(t==='Polygon'){
-      // 外周のみ（穴は未対応：必要なら paths 指定に拡張可）
+      // 外周のみ（穴はある場合は paths へ拡張可）
       out.push({kind:'polygon', path: toLatLngList(g.coordinates[0])});
     }else if(t==='MultiPolygon'){
       for(const poly of g.coordinates) out.push({kind:'polygon', path: toLatLngList(poly[0])});
@@ -334,7 +348,7 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ================= 左パネル：山車フォーカス & カテゴリON/OFF & 現在地 ================= */
+/* ================= 左パネル：山車フォーカス & カテゴリON/OFF & 現在地 & 進入禁止トグル ================= */
 function setupLeftPanel(){
   // 山車へフォーカス
   const btnFocus = document.getElementById("btnFocusDashi");
@@ -345,7 +359,7 @@ function setupLeftPanel(){
     fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
   });
 
-  // カテゴリトグル
+  // カテゴリトグル（地図マーカー）
   createCategoryMarkers("info", INFO_POINTS, CONFIG.ICONS.info, true);
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
@@ -356,6 +370,13 @@ function setupLeftPanel(){
   btnInfo.addEventListener("click", ()=>{ const off=btnInfo.classList.toggle("inactive"); toggleCategory("info", !off); });
   btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
   btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
+
+  // 進入禁止（交通規制ドロワーのトグル）
+  const btnBan = document.getElementById("btnBan");
+  btnBan.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    toggleRegDrawer();
+  });
 
   // 現在地へ移動
   const btnMyLoc = document.getElementById("btnMyLoc");
