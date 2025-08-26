@@ -293,9 +293,11 @@ async function showSlot(slot){
   for(const f of feats){
     const path = f.path.map(([lat,lng])=>({lat,lng}));
     if (f.kind === "polygon") {
+      // 面データなら → Polygon（塗りつぶし＋枠線）
       const poly = new google.maps.Polygon({ path, ...STYLE.polygon, map });
       overlays.push(poly);
     } else {
+      // 線データなら → Polyline（枠線だけ）
       const line = new google.maps.Polyline({ path, ...STYLE.line, map });
       overlays.push(line);
     }
