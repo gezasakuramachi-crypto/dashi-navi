@@ -7,25 +7,28 @@
   <style>
     :root { --headerH: 64px; }
     html, body { height:100%; margin:0; }
-    #map { height:100%; padding-top:var(--headerH); box-sizing:border-box; }
+    #map { height:100%; }
 
     /* ヘッダー */
     .app-header{
-      position:fixed; top:0; left:0; right:0; z-index:10;
+      position:fixed; inset:0 0 auto 0; z-index:10;
       display:flex; align-items:center; justify-content:center;
       background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
       height:var(--headerH); padding:6px 8px;
     }
     .app-header img{
-      max-height:100%; max-width:100%; height:100%;
+      max-height:100%; height:100%;
       width:auto; object-fit:contain; display:block;
     }
+    .header-spacer{ height:var(--headerH); }
     @media (max-width:480px){
       :root{ --headerH: 56px; }
     }
 
     /* 交通規制パネル */
-    .ctrl{ position:absolute; top:calc(var(--headerH) + 8px); right:6px; z-index:11; }
+    .ctrl{
+      position:absolute; top:calc(var(--headerH) + 20px); right:6px; z-index:11;
+    }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 4px 12px rgba(0,0,0,.12);
@@ -45,9 +48,9 @@
               text-align:center; cursor:pointer; font-size:11px }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
-    /* 左側アイコン切替 */
+    /* 左側：アイコンパネル */
     .layer-ctrl{
-      position:absolute; left:6px; top:calc(var(--headerH) + 8px); z-index:11;
+      position:absolute; left:6px; top:calc(var(--headerH) + 20px); z-index:11;
       display:grid; gap:10px;
       background:#fff; border:1px solid #d8d8d8; border-radius:10px;
       box-shadow:0 4px 12px rgba(0,0,0,.12);
@@ -73,7 +76,7 @@
 
     /* フッター */
     .footer{
-      position:fixed; bottom:0; left:0; right:0; height:32px; z-index:9;
+      position:fixed; inset:auto 0 0 0; height:32px; z-index:9;
       background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
       font:12px/1 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
       letter-spacing:.03em;
@@ -81,10 +84,12 @@
   </style>
 </head>
 <body>
+  <!-- タイトル -->
   <div class="app-header">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif"
          alt="令和7年 鹿島神宮神幸祭 山車祭">
   </div>
+  <div class="header-spacer"></div>
 
   <!-- 交通規制 -->
   <div class="ctrl">
@@ -105,7 +110,7 @@
     </div>
   </div>
 
-  <!-- 左側アイコン切替 -->
+  <!-- 左側アイコン -->
   <div class="layer-ctrl" id="layerCtrl">
     <img src="https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1"
          id="btnFocusDashi" class="layer-btn focus" title="山車へ移動">
@@ -120,7 +125,9 @@
   </div>
 
   <div id="map"></div>
-  <div class="footer">Created by Masumi</div>
+
+  <!-- フッター -->
+  <div class="footer">Created by Masumi & ChatGPT</div>
 
   <script src="app.js"></script>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
