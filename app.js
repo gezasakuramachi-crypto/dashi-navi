@@ -22,16 +22,22 @@ const CONFIG = {
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* ================= 規制線スタイル（赤枠＋20%塗り） ================= */
-const STROKE = {
-  main: {
+/* ================= 規制スタイル（線/面の両対応） ================= */
+const STYLE = {
+  line: {
+    strokeColor: "#ff0000",
+    strokeOpacity: 1,
+    strokeWeight: 2,
+    zIndex: 3002
+  },
+  polygon: {
     strokeColor: "#ff0000",
     strokeOpacity: 1,
     strokeWeight: 2,
     fillColor: "#ff0000",
-    fillOpacity: 0.2,
+    fillOpacity: 0.20,
     zIndex: 3002
-  },
+  }
 };
 
 /* ================= POIデータ ================= */
@@ -103,15 +109,19 @@ const DAYS = [
 let map, dashMarker, dashInfo, routePolyline;
 let lastFixMs = 0, pollTimer = null, firstFitDone = false;
 
+// 交通規制レイヤー（key -> [Overlay...]）
 const layers = new Map();
+// 取得キャッシュ（src -> [{ kind:'line'|'polygon', path:[[lat,lng],...]}]）
 const loadedCache = new Map();
 
+// POIマーカーとInfoWindow
 const markers = { info:[], wc:[], park:[] };
 let poiInfo = null;
 
+// 現在地（単発）表示用
 let myLocMarker = null, myLocCircle = null;
 
-/* ================= 初期化 ================= */
+/* ================= 初期化（Google Maps callback） ================= */
 window.initMap = function(){
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER, zoom: MAP_ZOOM,
@@ -119,6 +129,7 @@ window.initMap = function(){
     gestureHandling:"greedy"
   });
 
+  // 山車マーカー
   dashMarker = new google.maps.Marker({
     map, position: MAP_CENTER,
     icon:{
@@ -135,6 +146,7 @@ window.initMap = function(){
     dashInfo.open(map, dashMarker);
   });
 
+  // 地図クリック：InfoWindow & 規制UIを閉じる
   map.addListener("click", ()=>{
     dashInfo.close();
     if(poiInfo) poiInfo.close();
@@ -142,9 +154,16 @@ window.initMap = function(){
     if(drawer) drawer.style.display="none";
   });
 
+  // 左パネル
   setupLeftPanel();
+
+  // 交通規制UI
   setupRegulationUI();
+
+  // 現在地ポーリング
   startPolling();
+
+  // 初期：現在時刻に合う規制を1本表示
   autoShow(new Date());
 };
 
@@ -169,11 +188,13 @@ async function fetchPosition(){
 
     dashMarker.setPosition(pos);
 
+    // 初回のみ半径300mにフィット
     if(!firstFitDone){
       fitRadius(pos, 300);
       firstFitDone = true;
     }
 
+    // 簡易軌跡
     if(!routePolyline){
       routePolyline=new google.maps.Polyline({map,strokeColor:"#1a73e8",strokeOpacity:.85,strokeWeight:3});
     }
@@ -264,46 +285,56 @@ async function autoShow(now){
   if(hit) await showSlot(hit);
 }
 
-/* ================= 規制 GeoJSON ================= */
+/* ================= 規制 GeoJSON（線/面どちらもOK） ================= */
 async function showSlot(slot){
   if(layers.has(slot.key)) return;
   const feats = await loadGeojsonPaths(slot.src);
-  const polys=[];
+  const overlays=[];
   for(const f of feats){
-    const path=f.path.map(([lat,lng])=>({lat,lng}));
-    const polygon = new google.maps.Polygon({ path, ...STROKE.main, map });
-    polys.push(polygon);
+    const path = f.path.map(([lat,lng])=>({lat,lng}));
+    if (f.kind === "polygon") {
+      const poly = new google.maps.Polygon({ path, ...STYLE.polygon, map });
+      overlays.push(poly);
+    } else {
+      const line = new google.maps.Polyline({ path, ...STYLE.line, map });
+      overlays.push(line);
+    }
   }
-  layers.set(slot.key, polys);
+  layers.set(slot.key, overlays);
 }
+
 function hideAll(){
-  for(const arr of layers.values()) arr.forEach(pl=>pl.setMap(null));
+  for(const arr of layers.values()) arr.forEach(ov=>ov.setMap(null));
   layers.clear();
 }
+
 async function loadGeojsonPaths(src){
   if(loadedCache.has(src)) return loadedCache.get(src);
   const res = await fetch(src, {cache:'no-store'});
   const gj  = await res.json();
   const out=[];
   const toLatLngList = (coords)=>coords.map(c=>[c[1],c[0]]);
+
   for(const feat of (gj.features||[])){
     const g=feat.geometry||{}; const t=g.type;
     if(t==='LineString'){
-      out.push({path: toLatLngList(g.coordinates)});
+      out.push({kind:'line', path: toLatLngList(g.coordinates)});
     }else if(t==='MultiLineString'){
-      for(const line of g.coordinates) out.push({path: toLatLngList(line)});
+      for(const line of g.coordinates) out.push({kind:'line', path: toLatLngList(line)});
     }else if(t==='Polygon'){
-      out.push({path: toLatLngList(g.coordinates[0])});
+      // 外周のみ（穴は未対応だが必要なら paths に変更して holes も描画可）
+      out.push({kind:'polygon', path: toLatLngList(g.coordinates[0])});
     }else if(t==='MultiPolygon'){
-      for(const poly of g.coordinates) out.push({path: toLatLngList(poly[0])});
+      for(const poly of g.coordinates) out.push({kind:'polygon', path: toLatLngList(poly[0])});
     }
   }
   loadedCache.set(src,out);
   return out;
 }
 
-/* ================= 左パネル ================= */
+/* ================= 左パネル：山車フォーカス & カテゴリON/OFF & 現在地 ================= */
 function setupLeftPanel(){
+  // 山車へフォーカス
   const btnFocus = document.getElementById("btnFocusDashi");
   btnFocus.addEventListener("click", ()=>{
     if(!dashMarker) return;
@@ -312,10 +343,109 @@ function setupLeftPanel(){
     fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
   });
 
+  // カテゴリトグル
   createCategoryMarkers("info", INFO_POINTS, CONFIG.ICONS.info, true);
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
 
   const btnInfo = document.getElementById("btnInfo");
   const btnWC   = document.getElementById("btnWC");
-  const btnPark = document.getElement
+  const btnPark = document.getElementById("btnPark");
+  btnInfo.addEventListener("click", ()=>{ const off=btnInfo.classList.toggle("inactive"); toggleCategory("info", !off); });
+  btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
+  btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
+
+  // 現在地へ移動
+  const btnMyLoc = document.getElementById("btnMyLoc");
+  btnMyLoc.addEventListener("click", ()=>{
+    if(!navigator.geolocation){
+      alert("お使いのブラウザは現在地取得に対応していません。");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const {latitude, longitude, accuracy} = pos.coords;
+      const ll = {lat: latitude, lng: longitude};
+
+      if(!myLocMarker){
+        myLocMarker = new google.maps.Marker({
+          position: ll, map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 6, fillColor: "#4285f4", fillOpacity: 1,
+            strokeColor: "#fff", strokeWeight: 2
+          },
+          zIndex: 4500, title: "現在地"
+        });
+      } else { myLocMarker.setPosition(ll); myLocMarker.setMap(map); }
+
+      if(!myLocCircle){
+        myLocCircle = new google.maps.Circle({
+          center: ll, map,
+          radius: Math.max(accuracy, 60),
+          fillColor: "#4285f4", fillOpacity: 0.15,
+          strokeColor: "#4285f4", strokeOpacity: 0.5, strokeWeight: 1,
+          zIndex: 4400
+        });
+      } else {
+        myLocCircle.setCenter(ll);
+        myLocCircle.setRadius(Math.max(accuracy, 60));
+        myLocCircle.setMap(map);
+      }
+
+      fitRadius(ll, 300);
+    }, (err)=>{
+      console.warn(err);
+      alert("現在地を取得できませんでした。位置情報の許可設定をご確認ください。");
+    }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
+  });
+}
+
+function createCategoryMarkers(key, list, iconUrl, show){
+  if(markers[key]?.length){ markers[key].forEach(m=>m.setMap(null)); markers[key] = []; }
+  else { markers[key] = []; }
+
+  const px = CONFIG.POI_ICON_PX;
+  const icon = {
+    url: iconUrl,
+    size: new google.maps.Size(px,px),
+    scaledSize: new google.maps.Size(px,px),
+    anchor: new google.maps.Point(px/2, Math.round(px*0.8)),
+  };
+  if (!poiInfo) poiInfo = new google.maps.InfoWindow();
+
+  list.forEach(p=>{
+    const m = new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, icon, title:p.title,
+      zIndex: key==="info" ? 2500 : key==="wc" ? 2200 : 2100
+    });
+    m.addListener("click", ()=>{
+      const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px;height:auto"></div>` : "";
+      const desc  = p.desc ? `<div>${escapeHtml(p.desc).replace(/\n/g,"<br>")}</div>` : "";
+      poiInfo.setContent(`
+        <div class="iw">
+          <div class="title">${escapeHtml(p.title)}</div>
+          ${photo}${desc}
+        </div>
+      `);
+      poiInfo.open({ map, anchor:m, shouldFocus:false });
+    });
+    if(show) m.setMap(map);
+    markers[key].push(m);
+  });
+}
+
+function toggleCategory(key, on){
+  (markers[key] || []).forEach(m=>m.setMap(on?map:null));
+}
+
+/* ================= Util ================= */
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;","&gt;":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function fitRadius(center, meters){
+  const dLat = meters / 111320;
+  const dLng = meters / (111320 * Math.cos(center.lat * Math.PI/180));
+  const sw = { lat:center.lat-dLat, lng:center.lng-dLng };
+  const ne = { lat:center.lat+dLat, lng:center.lng+dLng };
+  map.fitBounds(new google.maps.LatLngBounds(sw,ne));
+}
