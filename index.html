@@ -7,25 +7,24 @@
   <style>
     :root { --headerH: 64px; }
     html, body { height:100%; margin:0; }
-    #map { height:100%; }
+    #map { height:100%; padding-top:var(--headerH); box-sizing:border-box; }
 
-    /* ヘッダー（レスポンシブで溢れない） */
+    /* ヘッダー */
     .app-header{
-      position:fixed; inset:0 0 auto 0; z-index:10;
+      position:fixed; top:0; left:0; right:0; z-index:10;
       display:flex; align-items:center; justify-content:center;
       background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
       height:var(--headerH); padding:6px 8px;
     }
     .app-header img{
-      max-height:100%; height:100%;
+      max-height:100%; max-width:100%; height:100%;
       width:auto; object-fit:contain; display:block;
     }
-    .header-spacer{ height:var(--headerH); }
     @media (max-width:480px){
       :root{ --headerH: 56px; }
     }
 
-    /* 交通規制パネル（112px幅） */
+    /* 交通規制パネル */
     .ctrl{ position:absolute; top:calc(var(--headerH) + 8px); right:6px; z-index:11; }
     .panel{
       background:#DAE9F8; border:1px solid #bcd4ea; border-radius:10px;
@@ -46,7 +45,7 @@
               text-align:center; cursor:pointer; font-size:11px }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
-    /* 左側：アイコンパネル（ヘッダー下に固定） */
+    /* 左側アイコン切替 */
     .layer-ctrl{
       position:absolute; left:6px; top:calc(var(--headerH) + 8px); z-index:11;
       display:grid; gap:10px;
@@ -58,8 +57,8 @@
       width:24px; height:24px; object-fit:contain;
       cursor:pointer; transition:filter .2s;
     }
-    .layer-btn.inactive{ filter:grayscale(100%); }   /* OFF=白黒 */
-    .layer-btn.focus { filter:none; }                /* フォーカス系 */
+    .layer-btn.inactive{ filter:grayscale(100%); }
+    .layer-btn.focus { filter:none; }
 
     /* InfoWindow */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -74,7 +73,7 @@
 
     /* フッター */
     .footer{
-      position:fixed; inset:auto 0 0 0; height:32px; z-index:9;
+      position:fixed; bottom:0; left:0; right:0; height:32px; z-index:9;
       background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
       font:12px/1 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
       letter-spacing:.03em;
@@ -82,12 +81,10 @@
   </style>
 </head>
 <body>
-  <!-- タイトル -->
   <div class="app-header">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/gojinkou.gif"
          alt="令和7年 鹿島神宮神幸祭 山車祭">
   </div>
-  <div class="header-spacer"></div>
 
   <!-- 交通規制 -->
   <div class="ctrl">
@@ -108,34 +105,24 @@
     </div>
   </div>
 
-  <!-- 左側アイコン切替（先頭に山車フォーカス、Pの下に現在地） -->
+  <!-- 左側アイコン切替 -->
   <div class="layer-ctrl" id="layerCtrl">
-    <!-- 山車へジャンプ -->
     <img src="https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1"
          id="btnFocusDashi" class="layer-btn focus" title="山車へ移動">
-
-    <!-- ON/OFFトグル（OFF=白黒） -->
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png"
          id="btnInfo" class="layer-btn active" title="インフォ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png"
          id="btnWC" class="layer-btn active" title="トイレ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png"
          id="btnPark" class="layer-btn active" title="駐車場">
-
-    <!-- 現在地へ移動（Googleマップ風アイコン） -->
     <img id="btnMyLoc" class="layer-btn focus" title="現在地へ移動"
          src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
   </div>
 
   <div id="map"></div>
-
-  <!-- フッター -->
   <div class="footer">Created by Masumi</div>
 
-  <!-- アプリ本体 -->
   <script src="app.js"></script>
-
-  <!-- Google Maps API（APIキー差替え） -->
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
 </body>
 </html>
