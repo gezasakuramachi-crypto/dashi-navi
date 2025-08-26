@@ -27,13 +27,13 @@ const STYLE = {
   line: {
     strokeColor: "#ff0000",
     strokeOpacity: 1,
-    strokeWeight: 1.5,          // 外枠を細く
+    strokeWeight: 0.5,          // 外枠を細く
     zIndex: 3002
   },
   polygon: {
     strokeColor: "#ff0000",
     strokeOpacity: 1,
-    strokeWeight: 1.5,          // 外枠を細く
+    strokeWeight: 0.5,          // 外枠を細く
     fillColor: "#ff0000",
     fillOpacity: 0.20,          // 20% 塗り
     zIndex: 3002
