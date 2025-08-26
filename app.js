@@ -25,17 +25,17 @@ const MAP_ZOOM   = 15;
 /* ================= 規制スタイル（線/面の両対応） ================= */
 const STYLE = {
   line: {
-    strokeColor: "#ff0000",
+    strokeColor: "#ff4d88",   // 外枠ピンク
     strokeOpacity: 1,
-    strokeWeight: 0.5,          // 外枠を細く
+    strokeWeight: 0.5,        // 細め
     zIndex: 3002
   },
   polygon: {
-    strokeColor: "#ff0000",
+    strokeColor: "#ff4d88",   // 外枠ピンク
     strokeOpacity: 1,
-    strokeWeight: 0.5,          // 外枠を細く
-    fillColor: "#ff0000",
-    fillOpacity: 0.20,          // 20% 塗り
+    strokeWeight: 0.5,        // 細め
+    fillColor: "#ff99cc",     // 内側は淡いピンク
+    fillOpacity: 0.35,        // 少し透ける（35%不透明）
     zIndex: 3002
   }
 };
