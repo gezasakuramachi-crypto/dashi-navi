@@ -3,8 +3,7 @@ const CONFIG = {
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
   PUBLIC_BEARER:
-    "RjBEAiBFnv1c-y2UogzASpoCl6Unh7484hSHdl3f22cFMdyhHAIgf8AZwvWpq0cQIXvsjTNTrfA3cKqtRaVxqAX9yr6sTYl7InUiOjUsImUiOiIyMDI1LTA5LTAzVDE1OjAwOjAwLjAwMCswMDowMCJ9
-",
+    "RjBEAiBFnv1c-y2UogzASpoCl6Unh7484hSHdl3f22cFMdyhHAIgf8AZwvWpq0cQIXvsjTNTrfA3cKqtRaVxqAX9yr6sTYl7InUiOjUsImUiOiIyMDI1LTA5LTAzVDE1OjAwOjAwLjAwMCswMDowMCJ9",
   POLL_MS: 5000,
 
   DASHI_ICON:
