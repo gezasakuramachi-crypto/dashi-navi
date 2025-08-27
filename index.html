@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>桜町区 山車ナビ</title>
   <style>
-    :root { --headerH: 84px; } /* タイトル少し大きめ */
+    :root { --headerH: 84px; --footerH: 40px; } /* タイトル/フッター */
     html, body { height:100%; margin:0; }
     body { background:#000; overflow:hidden; }
 
-    /* Google Map：通常フローで高さを確保（fixed/insetはやめる） */
+    /* Google Map：通常フローで高さを確保 */
     #map {
       width:100%;
-      height: calc(100dvh - var(--headerH) - 32px); /* 画面高 - ヘッダー - フッター */
+      height: calc(100dvh - var(--headerH) - var(--footerH));
       margin-top: var(--headerH);
+      margin-bottom: var(--footerH);
     }
 
     /* 固定ヘッダー（黒） */
@@ -71,7 +72,7 @@
       display:none; box-shadow:0 2px 10px rgba(0,0,0,.18);
     }
 
-    /* 左上：表示トグル */
+    /* 左上：表示トグル（インフォ/トイレ/パーキング/現在地/山車へ） */
     .layer-ctrl{
       position:fixed; left:8px; top: calc(var(--headerH) + 8px); z-index:11;
       display:grid; gap:10px;
@@ -82,21 +83,19 @@
     .layer-btn{ width:28px; height:28px; object-fit:contain; cursor:pointer; }
     .layer-btn.inactive{ filter: grayscale(100%); opacity:.55; }
 
-    /* 左下：Googleマップ経路 */
-    .route-btn{
-      position:fixed; left:8px; bottom: 42px; z-index:12;
-      background:#0b57d0; color:#fff; border:none; border-radius:10px;
-      padding:10px 12px; font-size:13px; cursor:pointer;
-      box-shadow:0 6px 18px rgba(0,0,0,.28);
+    /* 下：ボトムアクション（黒） */
+    .bottom-bar{
+      position:fixed; inset:auto 0 0 0; height:var(--footerH); z-index:12;
+      background:#000; color:#fff; display:grid; grid-template-columns:repeat(4,1fr);
+      align-items:center; gap:4px; border-top:1px solid rgba(255,255,255,.12);
+      padding:0 6px;
     }
-
-    /* 下：黒フッター */
-    .footer{
-      position:fixed; inset:auto 0 0 0; height:32px; z-index:9;
-      background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
-      font:12px/1 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
-      letter-spacing:.02em;
+    .bottom-btn{
+      appearance:none; background:transparent; color:#fff; border:0; height:100%;
+      display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px;
+      cursor:pointer;
     }
+    .bottom-btn .ico{ width:18px; height:18px; object-fit:contain; }
 
     /* InfoWindow の文字 */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -108,10 +107,16 @@
       box-shadow:0 1px 2px rgba(0,0,0,.12);
       display:inline-block; text-decoration:none; color:#1a73e8;
     }
+
+    /* 簡易ヘルプモーダル（プレースホルダ） */
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:20; }
+    .modal .box{ width:min(92vw,520px); background:#fff; border-radius:12px; padding:12px; }
+    .modal .box h3{ margin:4px 0 8px; font-size:16px; }
+    .modal .box .close{ float:right; border:1px solid #ddd; background:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; }
   </style>
 </head>
 <body>
-  <!-- ヘッダー（タイトル画像を少し大きく） -->
+  <!-- ヘッダー（タイトル画像） -->
   <header class="app-header">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/title.png" alt="鹿嶋のご神幸">
   </header>
@@ -126,8 +131,8 @@
       </div>
       <div class="vstack">
         <div id="tabAuto" class="tab active">自動更新</div>
-        <div id="tabD1"   class="tab">9/1(月)</div>
-        <div id="tabD2"   class="tab">9/2(火)</div>
+        <div id="tabD1"   class="tab">9/1</div>
+        <div id="tabD2"   class="tab">9/2</div>
       </div>
       <div class="legend"><span class="sw"></span>歩行者専用（淡ピンク）</div>
       <div id="slotList" class="slotlist"></div>
@@ -141,18 +146,42 @@
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png"   id="btnInfo" class="layer-btn" title="インフォ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png"     id="btnWC" class="layer-btn" title="トイレ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" id="btnPark" class="layer-btn" title="駐車場">
-    <img id="btnMyLoc" class="layer-btn" title="現在地へ移動"
+    <img id="btnMyLocSide" class="layer-btn" title="現在地へ移動"
          src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
   </div>
 
   <!-- 地図 -->
   <div id="map"></div>
 
-  <!-- 左下：Googleマップ経路 -->
-  <button class="route-btn" id="routeBtn">山車までの経路</button>
+  <!-- 下：ボトムアクション -->
+  <nav class="bottom-bar">
+    <button class="bottom-btn" id="bDashi" title="山車">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png" alt="">
+      <span>山車</span>
+    </button>
+    <button class="bottom-btn" id="bTraffic" title="交通規制">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry_icon_24px.png" alt="">
+      <span>交通規制</span>
+    </button>
+    <button class="bottom-btn" id="bMyLoc" title="現在地">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/myloc.svg" alt=""
+           onerror="this.src='data:image/svg+xml;utf8,<?xml version=&quot;1.0&quot;?><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot; fill=&quot;%234285f4&quot;/><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;8&quot; fill=&quot;none&quot; stroke=&quot;%234285f4&quot; stroke-width=&quot;2&quot;/><path d=&quot;M12 2v3M12 19v3M2 12h3M19 12h3&quot; stroke=&quot;%234285f4&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;/></svg>';">
+      <span>現在地</span>
+    </button>
+    <button class="bottom-btn" id="bHelp" title="ヘルプ">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/help.png" alt="">
+      <span>ヘルプ</span>
+    </button>
+  </nav>
 
-  <!-- フッター -->
-  <div class="footer">Created by Masumi & ChatGPT</div>
+  <!-- 簡易ヘルプ -->
+  <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="box">
+      <button class="close" id="helpClose">閉じる</button>
+      <h3>使い方（仮）</h3>
+      <div>ここにヘルプ本文を入れます（後で差し替え予定）。</div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
   <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
