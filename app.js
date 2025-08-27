@@ -56,7 +56,7 @@ const PARK_POINTS = [
   { title:"鹿嶋市営鹿島神宮駅西駐車場", lat:35.97, lng:140.6238333 },
 ];
 
-/* === 交通規制（GeoJSONファイル名は data/ 内の実ファイル名に合わせる） === */
+/* === 交通規制（GeoJSONのURLは data/ の公開URLに合わせる） === */
 const DAYS = [
   { id:"d1", label:"9/1(月)", slots:[
     { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
@@ -87,7 +87,6 @@ function getRouteMapUrlByDateJST() {
   } else if (m === 9 && d === 2) {
     return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
   }
-  // 予備（開催日前後など）
   return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
 }
 
@@ -162,7 +161,7 @@ async function showTrafficBySrc(src) {
   trafficOverlays.forEach(o => o.setMap(null));
   trafficOverlays = [];
   if (!src) return;
-  const added = await addGeoJsonAsOverlays(src, {}); // STYLE は既定（枠赤0.5・淡ピンク）
+  const added = await addGeoJsonAsOverlays(src, {}); // 既定STYLE（枠赤0.5/塗りピンク）
   trafficOverlays = added;
 }
 
@@ -355,7 +354,7 @@ async function initMap() {
   await autoUpdateTraffic();
 
   /* 左下：Googleマップ経路（現在地→山車） */
-  $("routeBtn").addEventListener("click", ()=>{
+  document.getElementById("routeBtn").addEventListener("click", ()=>{
     if(!dashiMarker) return;
     const p = dashiMarker.getPosition();
     const url=`https://www.google.com/maps/dir/?api=1&destination=${p.lat()},${p.lng()}&travelmode=walking`;
