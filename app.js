@@ -6,11 +6,8 @@ const CONFIG = {
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
 
-  // 山車ボタン画像（相対パスで安定運用）
-  DASHI_ICON: "mark/sakura.png",
-
   ICONS: {
-    info: "mark/info.png", // 相対パス推奨
+    info: "mark/info.png",
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
     park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
@@ -113,7 +110,7 @@ window.initMap = function(){
   dashMarker = new google.maps.Marker({
     map, position: MAP_CENTER,
     icon:{
-      url:CONFIG.DASHI_ICON,
+      url:"mark/sakura.png",
       size:new google.maps.Size(40,40),
       scaledSize:new google.maps.Size(40,40),
       anchor:new google.maps.Point(20,30)
@@ -133,11 +130,14 @@ window.initMap = function(){
     closeRegDrawer();
   });
 
-  // 左パネル
-  setupLeftPanel();
+  // 左パネル（レイヤー）
+  setupLeftLayers();
 
   // 交通規制UI（タブ/ボタン類のイベント+初期自動表示）
   setupRegulationUI();
+
+  // ボトムアクション
+  setupBottomActions();
 
   // 現在地ポーリング
   startPolling();
@@ -215,7 +215,7 @@ function makeDashiBody(status){
   `;
 }
 
-/* ================= 交通規制 UI（左アイコンで開閉） ================= */
+/* ================= 交通規制 UI ================= */
 function setupRegulationUI(){
   const drawer   = document.getElementById("regDrawer");
   const btnClose = document.getElementById("regClose");
@@ -251,6 +251,9 @@ function setupRegulationUI(){
   // 閉じるボタン
   btnClose.addEventListener("click", closeRegDrawer);
 
+  // 右端の補助“規制”ピル
+  document.getElementById("regPill").addEventListener("click", toggleRegDrawer);
+
   // 初期は閉じておく
   drawer.style.display = "none";
   drawer.setAttribute("aria-hidden","true");
@@ -267,6 +270,11 @@ function closeRegDrawer(){
   el.style.display = "none";
   el.setAttribute("aria-hidden","true");
   showRegStatus(REG_MODE === "manual"); // 手動なら閉じた時に出す
+}
+function toggleRegDrawer(){
+  const el = document.getElementById("regDrawer");
+  if (el.getAttribute("aria-hidden")==="true") openRegDrawer();
+  else closeRegDrawer();
 }
 
 /* ================= 規制スロット表示 ================= */
@@ -346,27 +354,9 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ================= 左パネル（ご指定順・各ボタンの挙動） ================= */
-function setupLeftPanel(){
-  // 山車へフォーカス
-  const btnFocus = document.getElementById("btnFocusDashi");
-  btnFocus.addEventListener("click", ()=>{
-    if(!dashMarker) return;
-    const pos = dashMarker.getPosition();
-    if(!pos) return;
-    fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
-  });
-
-  // 交通規制ドロワー開閉
-  const btnReg = document.getElementById("btnRegulation");
-  btnReg.addEventListener("click", (ev)=>{
-    ev.stopPropagation();
-    const drawer=document.getElementById("regDrawer");
-    if (drawer.getAttribute("aria-hidden")==="true") openRegDrawer();
-    else closeRegDrawer();
-  });
-
-  // カテゴリトグル（地図マーカー）
+/* ================= 左：レイヤー（表示切替） ================= */
+function setupLeftLayers(){
+  // カテゴリマーカー初期化（ONで出す）
   createCategoryMarkers("info", INFO_POINTS, CONFIG.ICONS.info, true);
   createCategoryMarkers("wc",   WC_POINTS,   CONFIG.ICONS.wc,   true);
   createCategoryMarkers("park", PARK_POINTS, CONFIG.ICONS.park, true);
@@ -378,9 +368,66 @@ function setupLeftPanel(){
   btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
   btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
 
+  // ミニツールチップ（長押しでラベル表示）
+  ["btnInfo","btnWC","btnPark"].forEach(id=>{
+    const el=document.getElementById(id);
+    el.addEventListener("touchstart", ()=>{ el.title && showMiniTooltip(el.title); }, {passive:true});
+  });
+}
+
+function createCategoryMarkers(key, list, iconUrl, show){
+  if(markers[key]?.length){ markers[key].forEach(m=>m.setMap(null)); markers[key] = []; }
+  else { markers[key] = []; }
+
+  const px = CONFIG.POI_ICON_PX;
+  const icon = {
+    url: iconUrl,
+    size: new google.maps.Size(px,px),
+    scaledSize: new google.maps.Size(px,px),
+    anchor: new google.maps.Point(px/2, Math.round(px*0.8)),
+  };
+  if (!poiInfo) poiInfo = new google.maps.InfoWindow();
+
+  list.forEach(p=>{
+    const m = new google.maps.Marker({
+      position:{lat:p.lat,lng:p.lng}, icon, title:p.title,
+      zIndex: key==="info" ? 2500 : key==="wc" ? 2200 : 2100
+    });
+    m.addListener("click", ()=>{
+      const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px;height:auto"></div>` : "";
+      const desc  = p.desc ? `<div>${escapeHtml(p.desc).replace(/\n/g,"<br>")}</div>` : "";
+      poiInfo.setContent(`
+        <div class="iw">
+          <div class="title">${escapeHtml(p.title)}</div>
+          ${photo}${desc}
+        </div>
+      `);
+      poiInfo.open({ map, anchor:m, shouldFocus:false });
+    });
+    if(show) m.setMap(map);
+    markers[key].push(m);
+  });
+}
+
+function toggleCategory(key, on){
+  (markers[key] || []).forEach(m=>m.setMap(on?map:null));
+}
+
+/* ================= ボトム：アクション ================= */
+function setupBottomActions(){
+  // 山車へフォーカス
+  document.getElementById("actionFocus").addEventListener("click", ()=>{
+    if(!dashMarker) return;
+    const pos = dashMarker.getPosition();
+    if(!pos) return;
+    fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
+  });
+
+  // 規制ドロワー開閉（ボトム＋右ピルの両方で開ける）
+  document.getElementById("actionReg").addEventListener("click", toggleRegDrawer);
+
   // 現在地へ移動
-  const btnMyLoc = document.getElementById("btnMyLoc");
-  btnMyLoc.addEventListener("click", ()=>{
+  document.getElementById("actionMyLoc").addEventListener("click", ()=>{
     if(!navigator.geolocation){
       alert("お使いのブラウザは現在地取得に対応していません。");
       return;
@@ -422,51 +469,18 @@ function setupLeftPanel(){
     }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
   });
 
-  // ヘルプモーダル
-  const btnHelp = document.getElementById("btnHelp");
+  // ヘルプ
   const helpModal = document.getElementById("helpModal");
   const helpClose = document.getElementById("helpClose");
-  btnHelp.addEventListener("click", ()=>{ helpModal.style.display='flex'; helpModal.setAttribute('aria-hidden','false'); });
-  helpClose.addEventListener("click", ()=>{ helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true'); });
-  helpModal.addEventListener("click", (e)=>{ if(e.target===helpModal){ helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true'); } });
-}
-
-function createCategoryMarkers(key, list, iconUrl, show){
-  if(markers[key]?.length){ markers[key].forEach(m=>m.setMap(null)); markers[key] = []; }
-  else { markers[key] = []; }
-
-  const px = CONFIG.POI_ICON_PX;
-  const icon = {
-    url: iconUrl,
-    size: new google.maps.Size(px,px),
-    scaledSize: new google.maps.Size(px,px),
-    anchor: new google.maps.Point(px/2, Math.round(px*0.8)),
-  };
-  if (!poiInfo) poiInfo = new google.maps.InfoWindow();
-
-  list.forEach(p=>{
-    const m = new google.maps.Marker({
-      position:{lat:p.lat,lng:p.lng}, icon, title:p.title,
-      zIndex: key==="info" ? 2500 : key==="wc" ? 2200 : 2100
-    });
-    m.addListener("click", ()=>{
-      const photo = p.photo ? `<div style="margin:6px 0"><img src="${p.photo}" alt="${escapeHtml(p.title)}" style="max-width:240px;height:auto"></div>` : "";
-      const desc  = p.desc ? `<div>${escapeHtml(p.desc).replace(/\n/g,"<br>")}</div>` : "";
-      poiInfo.setContent(`
-        <div class="iw">
-          <div class="title">${escapeHtml(p.title)}</div>
-          ${photo}${desc}
-        </div>
-      `);
-      poiInfo.open({ map, anchor:m, shouldFocus:false });
-    });
-    if(show) m.setMap(map);
-    markers[key].push(m);
+  document.getElementById("actionHelp").addEventListener("click", ()=>{
+    helpModal.style.display='flex'; helpModal.setAttribute('aria-hidden','false');
   });
-}
-
-function toggleCategory(key, on){
-  (markers[key] || []).forEach(m=>m.setMap(on?map:null));
+  helpClose.addEventListener("click", ()=>{
+    helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true');
+  });
+  helpModal.addEventListener("click", (e)=>{
+    if(e.target===helpModal){ helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true'); }
+  });
 }
 
 /* ================= インジケーター制御 ================= */
@@ -509,6 +523,21 @@ async function drawRunAreaOutline(){
   }catch(e){
     console.warn("走行エリアの読み込みに失敗:", e);
   }
+}
+
+/* ================= ちいさなUI補助 ================= */
+let _tipTimer=null;
+function showMiniTooltip(text){
+  if(_tipTimer) clearTimeout(_tipTimer);
+  const div = document.createElement("div");
+  div.textContent=text;
+  Object.assign(div.style,{
+    position:"fixed", left:"54px", top:"calc(var(--headerH) + 24px)", zIndex:905,
+    background:"rgba(0,0,0,.75)", color:"#fff", padding:"4px 8px", borderRadius:"8px",
+    fontSize:"11px", pointerEvents:"none"
+  });
+  document.body.appendChild(div);
+  _tipTimer=setTimeout(()=>{ div.remove(); _tipTimer=null; }, 1200);
 }
 
 /* ================= Util ================= */
