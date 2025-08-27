@@ -1,4 +1,4 @@
-/* ========= 設定 ========= */
+/* ========= 基本設定 ========= */
 const CONFIG = {
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
@@ -7,9 +7,10 @@ const CONFIG = {
   POLL_MS: 5000,
 
   ICONS: {
-    info: "mark/info.png",
-    wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
-    park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
+    sakura: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png",
+    info:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
+    wc:     "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
+    park:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
 
   POI_ICON_PX: 20
@@ -26,10 +27,10 @@ const STYLE = {
 
 /* === 走行エリア（外周青線・塗り無し） === */
 const RUNAREA_STYLE = { strokeColor:"#1e88e5", strokeOpacity:0.95, strokeWeight:2, zIndex:2900 };
-const RUNAREA_SRC   = "data/run-area.geojson";
+const RUNAREA_SRC   = "https://gezasakuramachi-crypto.github.io/dashi-navi/data/run-area.geojson";
 
-/* === （任意）地図の選択エリア制限 === */
-const MAP_VIEWPORT_SRC = "data/map-viewport.geojson"; // あれば読み込み→fit & restriction
+/* === 地図選択エリア（表示範囲制限に使用） === */
+const MAP_VIEWPORT_SRC = "https://gezasakuramachi-crypto.github.io/dashi-navi/data/map-viewport.geojson";
 
 /* === POI === */
 const INFO_POINTS = [
@@ -55,22 +56,22 @@ const PARK_POINTS = [
   { title:"鹿嶋市営鹿島神宮駅西駐車場", lat:35.97, lng:140.6238333 },
 ];
 
-/* === 交通規制（GeoJSONファイル名は既存の data/ に合わせる） === */
+/* === 交通規制（GeoJSONファイル名は data/ 内の実ファイル名に合わせる） === */
 const DAYS = [
   { id:"d1", label:"9/1(月)", slots:[
-    { shortLabel:"10:30-", key:"91-1030-1500", src:"data/91-1030-1500.geojson" },
-    { shortLabel:"15:00-", key:"91-1500-1600", src:"data/91-1500-1600.geojson" },
-    { shortLabel:"16:00-", key:"91-1600-1930", src:"data/91-1600-1930.geojson" },
-    { shortLabel:"19:30-", key:"91-1930-2045", src:"data/91-1930-20-45.geojson" },
-    { shortLabel:"20:45-", key:"91-2045-2200", src:"data/91-2045-2200.geojson" },
+    { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
+    { shortLabel:"15:00-", key:"91-1500-1600", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1500-1600.geojson" },
+    { shortLabel:"16:00-", key:"91-1600-1930", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1600-1930.geojson" },
+    { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-20-45.geojson" },
+    { shortLabel:"20:45-", key:"91-2045-2200", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-2045-2200.geojson" },
   ]},
   { id:"d2", label:"9/2(火)", slots:[
-    { shortLabel:"11:00-", key:"92-1100-1230", src:"data/92-1100-1230.geojson" },
-    { shortLabel:"12:30-", key:"92-1230-1400", src:"data/92-1230-1400.geojson" },
-    { shortLabel:"14:00-", key:"92-1400-1630", src:"data/92-1400-1630.geojson" },
-    { shortLabel:"16:30-", key:"92-1630-1900", src:"data/92-1630-1900.geojson" },
-    { shortLabel:"19:00-", key:"92-1900-1930", src:"data/92-1900-1930.geojson" },
-    { shortLabel:"19:30-", key:"92-1930-2200", src:"data/92-1930-2200.geojson" },
+    { shortLabel:"11:00-", key:"92-1100-1230", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1100-1230.geojson" },
+    { shortLabel:"12:30-", key:"92-1230-1400", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1230-1400.geojson" },
+    { shortLabel:"14:00-", key:"92-1400-1630", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1400-1630.geojson" },
+    { shortLabel:"16:30-", key:"92-1630-1900", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1630-1900.geojson" },
+    { shortLabel:"19:00-", key:"92-1900-1930", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1900-1930.geojson" },
+    { shortLabel:"19:30-", key:"92-1930-2200", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1930-2200.geojson" },
   ]},
 ];
 
@@ -86,47 +87,40 @@ function getRouteMapUrlByDateJST() {
   } else if (m === 9 && d === 2) {
     return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
   }
-  // 予備：開催日の前後などは9/1に
+  // 予備（開催日前後など）
   return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
 }
 
-/* ========= 地図・レイヤ ========= */
+/* ========= 変数 ========= */
 let map, dashiMarker, infoWindow;
 let infoMarkers = [], wcMarkers = [], parkMarkers = [];
-let trafficOverlays = []; // 規制表示
-let runAreaOverlays = [];
+let trafficOverlays = [];  // 規制表示
+let runAreaOverlays = [];  // 走行エリア表示
 
-/* API: Traccar 最新位置 */
+/* ========= ユーティリティ ========= */
 async function fetchLatestPosition() {
   const url = `${CONFIG.SERVER_BASE}/api/positions?deviceId=${CONFIG.DEVICE_ID}&limit=1`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${CONFIG.PUBLIC_BEARER}` },
-  });
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${CONFIG.PUBLIC_BEARER}` } });
   if (!res.ok) throw new Error("位置取得失敗");
   const arr = await res.json();
   return arr && arr[0];
 }
 
-/* マーカー作成 */
 function makeMarker({ lat, lng }, iconUrl, title, sizePX = 24) {
   return new google.maps.Marker({
     position: { lat, lng },
     map,
     title,
-    icon: {
-      url: iconUrl,
-      scaledSize: new google.maps.Size(sizePX, sizePX),
-    },
+    icon: { url: iconUrl, scaledSize: new google.maps.Size(sizePX, sizePX) },
     zIndex: 2500,
   });
 }
 
-/* POIマーカーの表示・非表示切り替え */
 function setMarkersVisible(list, visible) {
   list.forEach(m => m.setMap(visible ? map : null));
 }
 
-/* GeoJSON からポリライン／ポリゴンを載せる */
+/* GeoJSON → Polyline/Polygon 表示 */
 async function addGeoJsonAsOverlays(url, style) {
   const res = await fetch(url);
   if (!res.ok) return [];
@@ -163,19 +157,16 @@ async function addGeoJsonAsOverlays(url, style) {
   return added;
 }
 
-/* 規制の読み込み・表示切替 */
+/* 規制重ね描画 */
 async function showTrafficBySrc(src) {
-  // 既存削除
   trafficOverlays.forEach(o => o.setMap(null));
   trafficOverlays = [];
   if (!src) return;
-
-  // 交通規制=枠赤/塗りピンク/枠0.5px
-  const added = await addGeoJsonAsOverlays(src, {});
+  const added = await addGeoJsonAsOverlays(src, {}); // STYLE は既定（枠赤0.5・淡ピンク）
   trafficOverlays = added;
 }
 
-/* スロット一覧生成（手動タブ用） */
+/* スロットボタン生成 */
 function buildSlotButtons(day) {
   const cont = document.getElementById("slotList");
   cont.innerHTML = "";
@@ -184,10 +175,8 @@ function buildSlotButtons(day) {
     btn.className = "slotbtn";
     btn.textContent = slot.shortLabel;
     btn.addEventListener("click", () => {
-      // 手動選択：ステータス表示
-      document.getElementById("regStatus").style.display = "inline-block";
+      document.getElementById("regStatus").style.display = "inline-block"; // 手動表示中バッジ
       showTrafficBySrc(slot.src);
-      // アクティブ見た目
       [...cont.children].forEach(c => c.classList.remove("active"));
       btn.classList.add("active");
     });
@@ -195,7 +184,7 @@ function buildSlotButtons(day) {
   });
 }
 
-/* ==== 山車の InfoWindow HTML ==== */
+/* 山車 InfoWindow HTML */
 function buildDashiInfoContent(position, updatedText) {
   const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}&travelmode=walking`;
   const routeMapUrl = getRouteMapUrlByDateJST();
@@ -211,19 +200,21 @@ function buildDashiInfoContent(position, updatedText) {
   `;
 }
 
-/* ==== 地図初期化 ==== */
-async function initCore() {
+/* ========= 地図初期化 ========= */
+async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapId: "dashi-map",
+    mapTypeControl: false,       // ← 地図/航空写真 切替を削除
+    fullscreenControl: true,
+    streetViewControl: false,
     clickableIcons: true,
-    gestureHandling: "greedy"
+    gestureHandling: "greedy",
   });
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* 地図の選択エリア（任意） */
+  /* 地図選択エリア（fit + restriction） */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -253,19 +244,35 @@ async function initCore() {
   const makePoi = (arr, icon, size=CONFIG.POI_ICON_PX) =>
     arr.map(p => makeMarker({lat:p.lat,lng:p.lng}, icon, p.title, size));
 
-  infoMarkers = makePoi(INFO_POINTS, CONFIG.ICONS.info);
-  wcMarkers   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
-  parkMarkers = makePoi(PARK_POINTS, CONFIG.ICONS.park);
+  const infoMarkersLocal = makePoi(INFO_POINTS, CONFIG.ICONS.info);
+  const wcMarkersLocal   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
+  const parkMarkersLocal = makePoi(PARK_POINTS, CONFIG.ICONS.park);
+  infoMarkers = infoMarkersLocal; wcMarkers = wcMarkersLocal; parkMarkers = parkMarkersLocal;
 
   /* 左：表示トグル */
-  const btnInfo = document.getElementById("btnInfo");
-  const btnWC   = document.getElementById("btnWC");
-  const btnPark = document.getElementById("btnPark");
   let infoOn=true, wcOn=true, parkOn=true;
+  const $ = id => document.getElementById(id);
 
-  btnInfo.addEventListener("click", ()=>{ infoOn=!infoOn; setMarkersVisible(infoMarkers,infoOn); btnInfo.classList.toggle("inactive",!infoOn); });
-  btnWC.addEventListener("click",   ()=>{ wcOn=!wcOn; setMarkersVisible(wcMarkers,wcOn); btnWC.classList.toggle("inactive",!wcOn); });
-  btnPark.addEventListener("click", ()=>{ parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); btnPark.classList.toggle("inactive",!parkOn); });
+  $("btnInfo").addEventListener("click", ()=>{
+    infoOn=!infoOn; setMarkersVisible(infoMarkers,infoOn); $("btnInfo").classList.toggle("inactive",!infoOn);
+  });
+  $("btnWC").addEventListener("click", ()=>{
+    wcOn=!wcOn; setMarkersVisible(wcMarkers,wcOn); $("btnWC").classList.toggle("inactive",!wcOn);
+  });
+  $("btnPark").addEventListener("click", ()=>{
+    parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
+  });
+
+  /* 現在地へ移動 */
+  $("btnMyLoc").addEventListener("click", ()=>{
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos)=>{
+        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+        map.panTo(p);
+        map.setZoom(16);
+      });
+    }
+  });
 
   /* 山車の現在地 */
   const pos = await fetchLatestPosition().catch(()=>null);
@@ -273,12 +280,19 @@ async function initCore() {
     const p = { lat: pos.latitude, lng: pos.longitude };
     dashiMarker = new google.maps.Marker({
       position: p, map, title:"桜町区", zIndex: 3000,
-      icon: { url: "mark/sakura.png", scaledSize: new google.maps.Size(28,28) }
+      icon: { url: CONFIG.ICONS.sakura, scaledSize: new google.maps.Size(28,28) }
     });
-    const updated = new Date(pos.deviceTime || pos.fixTime || pos.serverTime || Date.now()).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+    const updated = new Date(pos.deviceTime || pos.fixTime || pos.serverTime || Date.now())
+      .toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+
     dashiMarker.addListener("click", ()=>{
       infoWindow.setContent(buildDashiInfoContent(p, updated));
       infoWindow.open({ anchor: dashiMarker, map });
+    });
+
+    // 左パネルの「山車へ移動」
+    $("btnFocusDashi").addEventListener("click", ()=>{
+      if(dashiMarker) map.panTo(dashiMarker.getPosition());
     });
   }
 
@@ -292,38 +306,33 @@ async function initCore() {
   }, CONFIG.POLL_MS);
 
   /* 右上：交通規制ピル → ドロワー */
-  const pill   = document.getElementById("regPill");
-  const drawer = document.getElementById("regDrawer");
-  const status = document.getElementById("regStatus");
-  const close  = document.getElementById("regClose");
-  const tabAuto= document.getElementById("tabAuto");
-  const tabD1  = document.getElementById("tabD1");
-  const tabD2  = document.getElementById("tabD2");
-  const slotList = document.getElementById("slotList");
+  const pill   = $("regPill");
+  const drawer = $("regDrawer");
+  const status = $("regStatus");
+  const close  = $("regClose");
+  const tabAuto= $("tabAuto");
+  const tabD1  = $("tabD1");
+  const tabD2  = $("tabD2");
+  const slotList = $("slotList");
 
   function openDrawer(){ drawer.style.display="block"; }
   function closeDrawer(){ drawer.style.display="none"; }
-
   pill.addEventListener("click", openDrawer);
   close.addEventListener("click", closeDrawer);
-
-  // ドロワー外クリックで閉じる
   document.addEventListener("click", (e)=>{
     if(!drawer.contains(e.target) && e.target!==pill && !pill.contains(e.target)){
       closeDrawer();
     }
   });
 
-  // 自動更新（枠のみ：時間帯に応じてファイル切替）→ここでは簡易版：開催時間帯に応じた候補の先頭を表示
   async function autoUpdateTraffic(){
-    status.style.display = "none"; // 自動はバッジ消す
-    // ここでは簡単に：本番日は当日の最初のスロットを表示
+    status.style.display = "none"; // 自動時はバッジ非表示
+    // ここでは簡易に：当日の先頭スロットを表示
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
     if(m===9 && d===1){ await showTrafficBySrc(DAYS[0].slots[0].src); }
     else if(m===9 && d===2){ await showTrafficBySrc(DAYS[1].slots[0].src); }
     else { await showTrafficBySrc(null); }
-    // 手動リストを初期化
     slotList.innerHTML = "";
   }
 
@@ -345,32 +354,14 @@ async function initCore() {
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* 下：黒バーの操作 */
-  document.getElementById("actionFocus").addEventListener("click", ()=>{
-    if(dashiMarker) map.panTo(dashiMarker.getPosition());
-  });
-  document.getElementById("actionReg").addEventListener("click", openDrawer);
-  document.getElementById("actionMyLoc").addEventListener("click", ()=>{
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
-        map.panTo(p);
-        map.setZoom(16);
-      });
-    }
-  });
-  document.getElementById("actionHelp").addEventListener("click", ()=>{
-    alert("ヘルプは準備中です。"); // 後で差し替え
-  });
-
-  /* 右下：Googleマップで山車まで経路 */
-  document.getElementById("routeDiamond").addEventListener("click", ()=>{
+  /* 左下：Googleマップ経路（現在地→山車） */
+  $("routeBtn").addEventListener("click", ()=>{
     if(!dashiMarker) return;
-    const p=dashiMarker.getPosition();
+    const p = dashiMarker.getPosition();
     const url=`https://www.google.com/maps/dir/?api=1&destination=${p.lat()},${p.lng()}&travelmode=walking`;
     window.open(url, "_blank", "noopener");
   });
 }
 
-/* コールバック */
-window.initMap = initCore;
+/* グローバルへ公開（Google Maps callback） */
+window.initMap = initMap;
