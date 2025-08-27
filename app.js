@@ -22,23 +22,32 @@ const CONFIG = {
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* ================= 規制スタイル（外枠は赤・塗りは淡ピンク） ================= */
+/* ================= 規制スタイル（枠=赤 / 塗り=淡ピンク） ================= */
 const STYLE = {
   line: {
-    strokeColor: "#ff0000",   // 外枠：赤
+    strokeColor: "#ff0000",
     strokeOpacity: 1,
-    strokeWeight: 0.5,        // 細め
+    strokeWeight: 0.5,
     zIndex: 3002
   },
   polygon: {
-    strokeColor: "#ff0000",   // 外枠：赤
+    strokeColor: "#ff0000",
     strokeOpacity: 1,
     strokeWeight: 0.5,
-    fillColor: "#ff99cc",     // 塗り：淡いピンク
-    fillOpacity: 0.35,        // もう少し淡くするなら 0.25 〜 0.30
+    fillColor: "#ff99cc",
+    fillOpacity: 0.35,
     zIndex: 3002
   }
 };
+
+/* ================= 走行エリア（外周だけ青線：任意） ================= */
+const RUNAREA_STYLE = {
+  strokeColor: "#1e88e5",
+  strokeOpacity: 0.95,
+  strokeWeight: 2,
+  zIndex: 2900
+};
+const RUNAREA_SRC = "data/run-area.geojson";
 
 /* ================= POIデータ ================= */
 const INFO_POINTS = [
@@ -121,6 +130,9 @@ let poiInfo = null;
 // 現在地（単発）表示用
 let myLocMarker = null, myLocCircle = null;
 
+// 表示モード（"auto" | "manual"）
+let REG_MODE = "auto";
+
 /* ================= 初期化（Google Maps callback） ================= */
 window.initMap = function(){
   map = new google.maps.Map(document.getElementById("map"), {
@@ -164,6 +176,9 @@ window.initMap = function(){
 
   // 初期：現在時刻に合う規制を1本表示（ドロワーは閉じたまま）
   autoShow(new Date());
+
+  // 走行エリア（外周線のみ）— 任意
+  drawRunAreaOutline().catch(console.warn);
 };
 
 /* ================= 山車位置のポーリング ================= */
@@ -215,11 +230,23 @@ function makeDashiBody(status){
   const lat = pos ? pos.lat() : MAP_CENTER.lat;
   const lng = pos ? pos.lng() : MAP_CENTER.lng;
   const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  // JSTの日付で経路図URLを分岐（例：固定パターン）
+  const nowJST = new Date(new Date().toLocaleString("ja-JP", { timeZone:"Asia/Tokyo" }));
+  const m = nowJST.getMonth()+1, d = nowJST.getDate();
+  let routePage = "";
+  if (m===8 && d===31) routePage = "route_0831.html";
+  else if (m===9 && d===1) routePage = "route_0901.html";
+  else if (m===9 && d===2) routePage = "route_0902.html";
+  // パスは後で差し替え可能（同ディレクトリ想定）
+  const routePageUrl = routePage ? routePage : "";
+
   return `
     <div class="iw">
       <div class="title">桜町区山車</div>
       <div>ステータス：${status}</div>
       <button class="btn" onclick="window.open('${routeUrl}','_blank')">Googleマップで経路案内</button>
+      ${routePageUrl ? `<button class="btn" style="margin-left:6px" onclick="window.open('${routePageUrl}','_blank')">経路図</button>` : ""}
     </div>
   `;
 }
@@ -241,9 +268,13 @@ function setupRegulationUI(){
 
   tabAuto.addEventListener("click", ()=>{
     activate(tabAuto);
+    REG_MODE = "auto";
+    showRegStatus(false); // 自動のときは非表示
     slotList.innerHTML="";
     autoShow(new Date());
   });
+
+  // シングルエクスパンド型：9/1, 9/2いずれか片方だけ展開
   tabD1.addEventListener("click", ()=>{
     activate(tabD1);
     buildTimeButtons("d1");
@@ -265,11 +296,15 @@ function openRegDrawer(){
   const el = document.getElementById("regDrawer");
   el.style.display = "block";
   el.setAttribute("aria-hidden","false");
+  // ドロワー開いたらインジケーターは一旦隠す（重なり防止）
+  showRegStatus(false);
 }
 function closeRegDrawer(){
   const el = document.getElementById("regDrawer");
   el.style.display = "none";
   el.setAttribute("aria-hidden","true");
+  // 手動モードなら閉じたときにインジケーター表示
+  showRegStatus(REG_MODE === "manual");
 }
 function toggleRegDrawer(){
   const el = document.getElementById("regDrawer");
@@ -285,8 +320,11 @@ function buildTimeButtons(dayId){
     b.className="slotbtn";
     b.textContent=s.shortLabel;
     b.addEventListener("click", async ()=>{
+      if (b.disabled) return;                  // 連打ガード
+      b.disabled = true; setTimeout(()=>b.disabled=false, 500);
       [...slotList.children].forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
+      REG_MODE = "manual";          // ← 手動に切替
       hideAll();
       await showSlot(s);
     });
@@ -299,6 +337,8 @@ async function autoShow(now){
   const all=[...DAYS[0].slots, ...DAYS[1].slots];
   const hit = all.find(s => now>=new Date(s.start) && now<=new Date(s.end));
   if(hit) await showSlot(hit);
+  REG_MODE = "auto";       // 自動モードに戻す
+  showRegStatus(false);    // インジケーター非表示
 }
 
 /* ================= 規制 GeoJSON（線/面どちらもOK） ================= */
@@ -338,7 +378,6 @@ async function loadGeojsonPaths(src){
     }else if(t==='MultiLineString'){
       for(const line of g.coordinates) out.push({kind:'line', path: toLatLngList(line)});
     }else if(t==='Polygon'){
-      // 外周のみ（穴はある場合は paths へ拡張可）
       out.push({kind:'polygon', path: toLatLngList(g.coordinates[0])});
     }else if(t==='MultiPolygon'){
       for(const poly of g.coordinates) out.push({kind:'polygon', path: toLatLngList(poly[0])});
@@ -459,6 +498,48 @@ function createCategoryMarkers(key, list, iconUrl, show){
 
 function toggleCategory(key, on){
   (markers[key] || []).forEach(m=>m.setMap(on?map:null));
+}
+
+/* ================= インジケーター制御 ================= */
+function showRegStatus(show){
+  const el = document.getElementById("regStatus");
+  el.style.display = show ? "inline-flex" : "none";
+}
+
+/* ================= 走行エリア外周線（塗り無し）を描画 ================= */
+async function drawRunAreaOutline(){
+  try{
+    const res = await fetch(RUNAREA_SRC, { cache: "no-store" });
+    if(!res.ok) return;
+    const gj  = await res.json();
+
+    const toLatLngList = (coords)=>coords.map(c=>({ lat: c[1], lng: c[0] }));
+
+    for(const feat of (gj.features || [])){
+      const g = feat.geometry || {};
+      if(g.type === "Polygon"){
+        const outer = g.coordinates?.[0];
+        if(outer && outer.length >= 2){
+          new google.maps.Polyline({ path: toLatLngList(outer), map, ...RUNAREA_STYLE });
+        }
+      }else if(g.type === "MultiPolygon"){
+        for(const poly of (g.coordinates || [])){
+          const outer = poly?.[0];
+          if(outer && outer.length >= 2){
+            new google.maps.Polyline({ path: toLatLngList(outer), map, ...RUNAREA_STYLE });
+          }
+        }
+      }else if(g.type === "LineString"){
+        new google.maps.Polyline({ path: toLatLngList(g.coordinates), map, ...RUNAREA_STYLE });
+      }else if(g.type === "MultiLineString"){
+        for(const line of (g.coordinates || [])){
+          new google.maps.Polyline({ path: toLatLngList(line), map, ...RUNAREA_STYLE });
+        }
+      }
+    }
+  }catch(e){
+    console.warn("走行エリアの読み込みに失敗:", e);
+  }
 }
 
 /* ================= Util ================= */
