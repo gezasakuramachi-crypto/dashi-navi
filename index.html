@@ -45,35 +45,54 @@
     /* 右側：交通規制ドロワー（進入禁止アイコンで開閉） */
     .reg-drawer{
       position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:11;
-      width:220px; max-width:70vw;
-      background:#DAE9F8; border:1px solid #bcd4ea; border-radius:12px;
+      width:130px; max-width:60vw;                 /* ← 130px に変更 */
+      background:rgba(218,233,248,0.7);            /* 透過30% */
+      border:1px solid #bcd4ea; border-radius:12px;
       box-shadow:0 4px 16px rgba(0,0,0,.18);
-      padding:10px; font-size:12px; color:#222;
+      padding:8px; font-size:11px; color:#222;     /* ← 小さめフォント＆余白 */
       display:none;
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+      max-height:60vh; overflow:auto;              /* ← 内部スクロールで地図を隠さない */
     }
     .reg-drawer .title-row{
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      margin-bottom:6px;
+      display:flex; align-items:center; justify-content:space-between; gap:6px;
+      margin-bottom:4px;
     }
     .reg-drawer .title-row .title{ font-weight:700; }
     .reg-drawer .close{
       appearance:none; border:1px solid #7aa7d6; background:#fff;
-      padding:3px 6px; border-radius:8px; cursor:pointer; font-size:12px;
+      padding:2px 6px; border-radius:8px; cursor:pointer; font-size:11px;
     }
-    .tabs{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin:6px 0; }
+
+    /* 縦並びのセクションボタン */
+    .vstack{ display:grid; gap:6px; }
     .tab{
       text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:8px;
       padding:6px 0; cursor:pointer; user-select:none;
     }
     .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700; }
-    .legend{ display:flex; align-items:center; gap:6px; font-size:11px; color:#333; margin:4px 0 6px; }
-    .sw{ width:12px; height:12px; border-radius:3px; border:1px solid #888; background:#ff99cc; opacity:.7 }
+
+    .legend{ display:flex; align-items:center; gap:6px; font-size:10px; color:#333; margin:6px 0; }
+    .sw{ width:10px; height:10px; border-radius:3px; border:1px solid #ff0000; background:#ff99cc; opacity:.7 }
+
     .slotlist{ display:grid; gap:6px; }
     .slotbtn{
       padding:6px; border:1px solid #b9cfe8; border-radius:8px; background:#fff;
-      text-align:center; cursor:pointer; font-size:12px;
+      text-align:center; cursor:pointer; font-size:11px;
     }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
+
+    /* 「交通規制日時指定表示」インジケーター */
+    .reg-status{
+      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:10;
+      background:rgba(0,0,0,.55);
+      color:#fff; padding:6px 10px;
+      border-radius:999px; font-size:12px; letter-spacing:.05em;
+      display:none;
+      box-shadow:0 2px 10px rgba(0,0,0,.18);
+      user-select:none;
+    }
 
     /* InfoWindow */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -112,7 +131,6 @@
          id="btnWC" class="layer-btn" title="トイレ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png"
          id="btnPark" class="layer-btn" title="駐車場">
-    <!-- ★ 進入禁止（ここをクリックで右ドロワーをトグル） -->
     <img src="mark/no_entry_icon_24px.png" id="btnBan" class="layer-btn" title="交通規制を表示/非表示">
     <img id="btnMyLoc" class="layer-btn focus" title="現在地へ移動"
          src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
@@ -124,14 +142,22 @@
       <div class="title">交通規制</div>
       <button id="regClose" class="close" type="button">閉じる</button>
     </div>
-    <div class="tabs">
+
+    <!-- 縦並び：自動更新 → 9/1 → 9/2 -->
+    <div class="vstack">
       <div id="tabAuto" class="tab active">自動更新</div>
       <div id="tabD1" class="tab">9/1(月)</div>
       <div id="tabD2" class="tab">9/2(火)</div>
     </div>
+
     <div class="legend"><span class="sw"></span>歩行者専用（淡ピンク）</div>
+
+    <!-- 日付を選ぶと時間帯ボタンをここへ -->
     <div id="slotList" class="slotlist"></div>
   </aside>
+
+  <!-- 手動選択インジケーター -->
+  <div id="regStatus" class="reg-status">交通規制日時指定表示</div>
 
   <div id="map"></div>
 
