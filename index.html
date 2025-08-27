@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>桜町区山車 現在位置＋交通規制</title>
   <style>
-    :root { --headerH: 64px; }
+    :root { --headerH: 64px; --bottomH: 52px; }
     html, body { height:100%; margin:0; }
     #map { height:100%; }
 
-    /* ヘッダー */
+    /* ヘッダー（最前面） */
     .app-header{
-      position:fixed; inset:0 0 auto 0; z-index:10;
+      position:fixed; inset:0 0 auto 0; z-index:1000;
       display:flex; align-items:center; justify-content:center;
       background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
       height:var(--headerH);
@@ -27,26 +27,26 @@
       :root{ --headerH: 56px; }
     }
 
-    /* 左：アイコンパネル（縦並び） */
+    /* 左：レイヤートグル（インフォ／トイレ／駐車場） */
     .layer-ctrl{
-      position:absolute; left:6px; top:calc(var(--headerH) + 20px); z-index:11;
+      position:absolute; left:6px; top:calc(var(--headerH) + 20px); z-index:900;
       display:grid; gap:10px;
       background:#fff; border:1px solid #d8d8d8; border-radius:10px;
       box-shadow:0 4px 12px rgba(0,0,0,.12);
-      padding:6px;
+      padding:6px; width:44px;
     }
     .layer-btn{
       width:24px; height:24px; object-fit:contain;
-      cursor:pointer; transition:filter .2s;
+      cursor:pointer; transition:filter .2s, opacity .2s;
     }
-    .layer-btn.inactive{ filter:grayscale(100%); }
-    .layer-btn.focus { filter:none; }
+    .layer-btn.inactive{ filter:grayscale(100%); opacity:.55; }
+    .layer-label{ font-size:10px; text-align:center; color:#333; }
 
-    /* 右：交通規制ドロワー（細幅・60vhスクロール・透過30%） */
+    /* 右：交通規制ドロワー（細幅・透過30%） */
     .reg-drawer{
-      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:11;
+      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:950;
       width:130px; max-width:60vw;
-      background:rgba(218,233,248,0.7); /* 約30%透過 */
+      background:rgba(218,233,248,0.7);
       border:1px solid #bcd4ea; border-radius:12px;
       box-shadow:0 4px 16px rgba(0,0,0,.18);
       padding:8px; font-size:11px; color:#222;
@@ -79,13 +79,37 @@
     }
     .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
 
+    /* 右端の補助“規制”ピル（任意） */
+    .reg-pill{
+      position:fixed; right:0; top:calc(var(--headerH) + 24px); z-index:940;
+      background:#e91e63; color:#fff; font-size:11px; letter-spacing:.05em;
+      padding:6px 10px; border-radius:10px 0 0 10px; cursor:pointer;
+      box-shadow:0 4px 10px rgba(0,0,0,.2);
+    }
+
     /* 手動選択インジケータ */
     .reg-status{
-      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:10;
+      position:fixed; right:6px; top:calc(var(--headerH) + 20px); z-index:940;
       background:rgba(0,0,0,.55); color:#fff; padding:6px 10px;
       border-radius:999px; font-size:12px; letter-spacing:.05em;
       display:none; box-shadow:0 2px 10px rgba(0,0,0,.18); user-select:none;
     }
+
+    /* ボトム：アクションバー（山車／規制／現在地／ヘルプ） */
+    .bottom-bar{
+      position:fixed; inset:auto 0 0 0; height:var(--bottomH); z-index:920;
+      background:#fff; border-top:1px solid #e5e7eb;
+      display:grid; grid-template-columns: repeat(4, 1fr);
+    }
+    .action-btn{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:4px; cursor:pointer; user-select:none;
+    }
+    .action-btn img{ width:22px; height:22px; object-fit:contain; }
+    .action-btn .lbl{ font-size:10px; color:#333; }
+    .action-btn:active{ transform:scale(.98); }
+
+    .bottom-spacer{ height:var(--bottomH); }
 
     /* InfoWindow */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
@@ -98,17 +122,9 @@
     }
     .iw .btn:hover{ filter:brightness(.97); }
 
-    /* フッター */
-    .footer{
-      position:fixed; inset:auto 0 0 0; height:32px; z-index:9;
-      background:#000; color:#fff; display:flex; align-items:center; justify-content:center;
-      font:12px/1 system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-      letter-spacing:.03em;
-    }
-
     /* ヘルプ（簡易モーダル） */
     .help-modal{
-      position:fixed; inset:0; z-index:20; display:none;
+      position:fixed; inset:0; z-index:980; display:none;
       align-items:flex-end; justify-content:center;
       background:rgba(0,0,0,.25);
     }
@@ -129,25 +145,11 @@
   </div>
   <div class="header-spacer"></div>
 
-  <!-- 左：アイコン（ご指定の順番） -->
-  <div class="layer-ctrl" id="layerCtrl">
-    <!-- 山車へ移動 -->
-    <img src="mark/sakura.png" id="btnFocusDashi" class="layer-btn focus" title="山車へ移動">
-
-    <!-- 交通規制（ドロワー開閉） -->
-    <img src="mark/no_entry_icon_24px.png" id="btnRegulation" class="layer-btn" title="交通規制">
-
-    <!-- カテゴリ トグル -->
+  <!-- 左：レイヤー（表示切替だけ） -->
+  <div class="layer-ctrl" id="layerCtrl" title="表示の切替">
     <img src="mark/info.png" id="btnInfo" class="layer-btn" title="インフォ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png" id="btnWC" class="layer-btn" title="トイレ">
     <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" id="btnPark" class="layer-btn" title="駐車場">
-
-    <!-- 現在地へ移動 -->
-    <img id="btnMyLoc" class="layer-btn focus" title="現在地へ移動"
-         src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
-
-    <!-- ヘルプ -->
-    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/help.PNG" id="btnHelp" class="layer-btn" title="使い方">
   </div>
 
   <!-- 右：交通規制ドロワー -->
@@ -164,6 +166,7 @@
     <div class="legend"><span class="sw"></span>歩行者専用（淡ピンク）</div>
     <div id="slotList" class="slotlist"></div>
   </aside>
+  <div class="reg-pill" id="regPill">規制</div>
 
   <!-- 手動選択インジケーター -->
   <div id="regStatus" class="reg-status">交通規制日時指定表示</div>
@@ -171,8 +174,23 @@
   <!-- 地図 -->
   <div id="map"></div>
 
-  <!-- フッター -->
-  <div class="footer">Created by Masumi & ChatGPT</div>
+  <!-- ボトム：アクションバー -->
+  <nav class="bottom-bar" aria-label="主要操作">
+    <div class="action-btn" id="actionFocus" title="山車へ移動">
+      <img src="mark/sakura.png" alt=""><div class="lbl">山車</div>
+    </div>
+    <div class="action-btn" id="actionReg" title="交通規制を開く/閉じる">
+      <img src="mark/no_entry_icon_24px.png" alt=""><div class="lbl">規制</div>
+    </div>
+    <div class="action-btn" id="actionMyLoc" title="現在地へ移動">
+      <img alt="" src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='3' fill='%234285f4'/><circle cx='12' cy='12' r='8' fill='none' stroke='%234285f4' stroke-width='2'/><path d='M12 2v3M12 19v3M2 12h3M19 12h3' stroke='%234285f4' stroke-width='2' stroke-linecap='round'/></svg>">
+      <div class="lbl">現在地</div>
+    </div>
+    <div class="action-btn" id="actionHelp" title="使い方">
+      <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/help.PNG" alt=""><div class="lbl">ヘルプ</div>
+    </div>
+  </nav>
+  <div class="bottom-spacer"></div>
 
   <!-- ヘルプ（内容は後で差し替え可） -->
   <div class="help-modal" id="helpModal" aria-hidden="true">
@@ -181,8 +199,9 @@
       <h2>使い方</h2>
       <p>この画面の使い方の説明は、後ほど掲載します。</p>
       <ul>
-        <li>左のアイコンから情報の表示/非表示や現在地への移動ができます。</li>
-        <li>左の「交通規制」アイコンで、規制日時の選択ドロワーを開閉できます。</li>
+        <li>左のアイコンで、インフォ／トイレ／駐車場の表示を切り替えられます。</li>
+        <li>下の「山車／規制／現在地／ヘルプ」から主要操作ができます。</li>
+        <li>規制は「自動」または日付→時間帯を選んで表示できます。</li>
       </ul>
     </div>
   </div>
