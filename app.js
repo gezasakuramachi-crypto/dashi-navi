@@ -6,11 +6,11 @@ const CONFIG = {
     "RzBFAiAaeMvmv32ZrmskwLBY7hx0jHxCezE-NGOh_K2-QFuHgQIhAOY_es0TTwL-GX4pbel4G6wxKQcYjJd1EgtRzGKhSlQ7eyJ1Ijo2LCJlIjoiMjAyNS0wOC0yN1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
 
-  DASHI_ICON:
-    "https://www.dropbox.com/scl/fi/echpcekhl6f13c9df5uzh/sakura.png?rlkey=e93ng3fdwbdlkvr07zkvw9pph&raw=1",
+  // 山車ボタン画像（相対パスで安定運用）
+  DASHI_ICON: "mark/sakura.png",
 
   ICONS: {
-    info: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png",
+    info: "mark/info.png", // 相対パス推奨
     wc:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png",
     park: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
@@ -24,95 +24,63 @@ const MAP_ZOOM   = 15;
 
 /* ================= 規制スタイル（枠=赤 / 塗り=淡ピンク） ================= */
 const STYLE = {
-  line: {
-    strokeColor: "#ff0000",
-    strokeOpacity: 1,
-    strokeWeight: 0.5,
-    zIndex: 3002
-  },
-  polygon: {
-    strokeColor: "#ff0000",
-    strokeOpacity: 1,
-    strokeWeight: 0.5,
-    fillColor: "#ff99cc",
-    fillOpacity: 0.35,
-    zIndex: 3002
-  }
+  line:   { strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:0.5, zIndex:3002 },
+  polygon:{ strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:0.5, fillColor:"#ff99cc", fillOpacity:0.35, zIndex:3002 }
 };
 
 /* ================= 走行エリア（外周だけ青線：任意） ================= */
-const RUNAREA_STYLE = {
-  strokeColor: "#1e88e5",
-  strokeOpacity: 0.95,
-  strokeWeight: 2,
-  zIndex: 2900
-};
-const RUNAREA_SRC = "data/run-area.geojson";
+const RUNAREA_STYLE = { strokeColor:"#1e88e5", strokeOpacity:0.95, strokeWeight:2, zIndex:2900 };
+const RUNAREA_SRC   = "data/run-area.geojson";
 
 /* ================= POIデータ ================= */
 const INFO_POINTS = [
-  {
-    title: "年番引継ぎ会場",
-    lat: 35.9658889, lng: 140.6268333,
-    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nen-hiki.png",
-    desc: "9月2日18:15～\n山車の運行を執り仕切るのが「山車年番」です。\n今年の年番が、次年度年番町内に\nお伺いをたて引継ぐことを「年番引継」といいます。"
-  },
-  { title: "にぎわい広場", lat: 35.9664167, lng: 140.6277778, photo: "", desc: "飲食販売屋台あり。\nトイレ・休憩スペースもあります。" },
-  {
-    title: "総踊りのの字廻し会場",
-    lat: 35.9679444, lng: 140.6300278,
-    photo: "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/souodori2.png",
-    desc: "9月1日18:00～\n町内の山車が勢ぞろいして、\n全町内が年番区の演奏にあわせて\n総踊りをします。\nその後は各町内による、\nのの字廻しが披露されます。"
-  },
-  {
-    title: "一斉踊り会場",
-    lat: 35.9670556, lng: 140.6306944, photo: "",
-    desc: "9月2日13:30～\n五ケ町が終結し、各町内が\n順番に踊りを踊っていきます。\nその後年番区を先頭に\n役曳きをして全町内を曳きまわします。"
-  },
-  {
-    title: "大町通り山車集合",
-    lat: 35.9679722, lng: 140.6286944, photo: "",
-    desc: "9/1 15:10-16:00\n9/2 15:00-15:30\n五ヶ町の山車が大町通り\nに並びます"
-  },
+  { title:"年番引継ぎ会場", lat:35.9658889, lng:140.6268333,
+    photo:"https://gezasakuramachi-crypto.github.io/dashi-navi/mark/nen-hiki.png",
+    desc:"9月2日18:15～\n山車の運行を執り仕切るのが「山車年番」です。\n今年の年番が、次年度年番町内に\nお伺いをたて引継ぐことを「年番引継」といいます。"},
+  { title:"にぎわい広場", lat:35.9664167, lng:140.6277778, photo:"", desc:"飲食販売屋台あり。\nトイレ・休憩スペースもあります。" },
+  { title:"総踊りのの字廻し会場", lat:35.9679444, lng:140.6300278,
+    photo:"https://gezasakuramachi-crypto.github.io/dashi-navi/mark/souodori2.png",
+    desc:"9月1日18:00～\n町内の山車が勢ぞろいして、\n全町内が年番区の演奏にあわせて\n総踊りをします。\nその後は各町内による、\nのの字廻しが披露されます。" },
+  { title:"一斉踊り会場", lat:35.9670556, lng:140.6306944, photo:"", desc:"9月2日13:30～\n五ケ町が終結し、各町内が\n順番に踊りを踊っていきます。\nその後年番区を先頭に\n役曳きをして全町内を曳きまわします。" },
+  { title:"大町通り山車集合", lat:35.9679722, lng:140.6286944, photo:"", desc:"9/1 15:10-16:00\n9/2 15:00-15:30\n五ヶ町の山車が大町通り\nに並びます" },
 ];
-
 const WC_POINTS = [
-  { title: "鹿島神宮公衆トイレ",          lat: 35.9679444, lng: 140.6305833 },
-  { title: "にぎわい広場 トイレ",          lat: 35.9664167, lng: 140.6278611 },
-  { title: "鹿嶋市宮中地区駐車場 トイレ",  lat: 35.9665,    lng: 140.6318056 },
-  { title: "道祖神児童公園 公衆トイレ",    lat: 35.9639444, lng: 140.6292778 },
-  { title: "観光案内所 公衆トイレ",        lat: 35.9672778, lng: 140.6266944 },
+  { title:"鹿島神宮公衆トイレ", lat:35.9679444, lng:140.6305833 },
+  { title:"にぎわい広場 トイレ", lat:35.9664167, lng:140.6278611 },
+  { title:"鹿嶋市宮中地区駐車場 トイレ", lat:35.9665, lng:140.6318056 },
+  { title:"道祖神児童公園 公衆トイレ", lat:35.9639444, lng:140.6292778 },
+  { title:"観光案内所 公衆トイレ", lat:35.9672778, lng:140.6266944 },
 ];
-
 const PARK_POINTS = [
-  { title: "鹿嶋市宮中地区駐車場",         lat: 35.9665833, lng: 140.632 },
-  { title: "鹿嶋市営鹿島神宮駅西駐車場",   lat: 35.97,      lng: 140.6238333 },
+  { title:"鹿嶋市宮中地区駐車場", lat:35.9665833, lng:140.632 },
+  { title:"鹿嶋市営鹿島神宮駅西駐車場", lat:35.97, lng:140.6238333 },
 ];
 
 /* ================= 交通規制スロット ================= */
 const DAYS = [
-  {
-    id: "d1", label: "9/1(月)",
-    slots: [
-      { shortLabel: "10:30-", key: "91-1030-1500", start: "2025-09-01T10:30:00+09:00", end: "2025-09-01T15:00:00+09:00", src: "data/91-1030-1500map.geojson" },
-      { shortLabel: "15:00-", key: "91-1500-1600", start: "2025-09-01T15:00:00+09:00", end: "2025-09-01T16:00:00+09:00", src: "data/91-1500-1600.geojson" },
-      { shortLabel: "16:00-", key: "91-1600-1930", start: "2025-09-01T16:00:00+09:00", end: "2025-09-01T19:30:00+09:00", src: "data/91-1600-1930.geojson" },
-      { shortLabel: "19:30-", key: "91-1930-2045", start: "2025-09-01T19:30:00+09:00", end: "2025-09-01T20:45:00+09:00", src: "data/91-1930-2045.geojson" },
-      { shortLabel: "20:45-", key: "91-2045-2200", start: "2025-09-01T20:45:00+09:00", end: "2025-09-01T22:00:00+09:00", src: "data/91-2045-2200.geojson" },
-    ],
-  },
-  {
-    id: "d2", label: "9/2(火)",
-    slots: [
-      { shortLabel: "11:00-", key: "92-1100-1230", start: "2025-09-02T11:00:00+09:00", end: "2025-09-02T12:30:00+09:00", src: "data/92-1100-1230.geojson" },
-      { shortLabel: "12:30-", key: "92-1230-1400", start: "2025-09-02T12:30:00+09:00", end: "2025-09-02T14:00:00+09:00", src: "data/92-1230-1400.geojson" },
-      { shortLabel: "14:00-", key: "92-1400-1630", start: "2025-09-02T14:00:00+09:00", end: "2025-09-02T16:30:00+09:00", src: "data/92-1400-1630.geojson" },
-      { shortLabel: "16:30-", key: "92-1630-1900", start: "2025-09-02T16:30:00+09:00", end: "2025-09-02T19:00:00+09:00", src: "data/92-1630-1900.geojson" },
-      { shortLabel: "19:00-", key: "92-1900-1930", start: "2025-09-02T19:00:00+09:00", end: "2025-09-02T19:30:00+09:00", src: "data/92-1900-1930.geojson" },
-      { shortLabel: "19:30-", key: "92-1930-2200", start: "2025-09-02T19:30:00+09:00", end: "2025-09-02T22:00:00+09:00", src: "data/92-1930-2200.geojson" },
-    ],
-  },
+  { id:"d1", label:"9/1(月)", slots:[
+    { shortLabel:"10:30-", key:"91-1030-1500", start:"2025-09-01T10:30:00+09:00", end:"2025-09-01T15:00:00+09:00", src:"data/91-1030-1500map.geojson" },
+    { shortLabel:"15:00-", key:"91-1500-1600", start:"2025-09-01T15:00:00+09:00", end:"2025-09-01T16:00:00+09:00", src:"data/91-1500-1600.geojson" },
+    { shortLabel:"16:00-", key:"91-1600-1930", start:"2025-09-01T16:00:00+09:00", end:"2025-09-01T19:30:00+09:00", src:"data/91-1600-1930.geojson" },
+    { shortLabel:"19:30-", key:"91-1930-2045", start:"2025-09-01T19:30:00+09:00", end:"2025-09-01T20:45:00+09:00", src:"data/91-1930-2045.geojson" },
+    { shortLabel:"20:45-", key:"91-2045-2200", start:"2025-09-01T20:45:00+09:00", end:"2025-09-01T22:00:00+09:00", src:"data/91-2045-2200.geojson" },
+  ]},
+  { id:"d2", label:"9/2(火)", slots:[
+    { shortLabel:"11:00-", key:"92-1100-1230", start:"2025-09-02T11:00:00+09:00", end:"2025-09-02T12:30:00+09:00", src:"data/92-1100-1230.geojson" },
+    { shortLabel:"12:30-", key:"92-1230-1400", start:"2025-09-02T12:30:00+09:00", end:"2025-09-02T14:00:00+09:00", src:"data/92-1230-1400.geojson" },
+    { shortLabel:"14:00-", key:"92-1400-1630", start:"2025-09-02T14:00:00+09:00", end:"2025-09-02T16:30:00+09:00", src:"data/92-1400-1630.geojson" },
+    { shortLabel:"16:30-", key:"92-1630-1900", start:"2025-09-02T16:30:00+09:00", end:"2025-09-02T19:00:00+09:00", src:"data/92-1630-1900.geojson" },
+    { shortLabel:"19:00-", key:"92-1900-1930", start:"2025-09-02T19:00:00+09:00", end:"2025-09-02T19:30:00+09:00", src:"data/92-1900-1930.geojson" },
+    { shortLabel:"19:30-", key:"92-1930-2200", start:"2025-09-02T19:30:00+09:00", end:"2025-09-02T22:00:00+09:00", src:"data/92-1930-2200.geojson" },
+  ]},
 ];
+
+/* ================= 経路図URL（JSTで日付振り分け） ================= */
+const ROUTE_URLS = {
+  "8-31": "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
+  "9-1" : "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
+  "9-2" : "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3"
+};
 
 /* ================= 地図・状態 ================= */
 let map, dashMarker, dashInfo, routePolyline;
@@ -158,7 +126,7 @@ window.initMap = function(){
     dashInfo.open(map, dashMarker);
   });
 
-  // 画面外（地図）クリックでドロワーを閉じる
+  // 画面外（地図）クリックで情報系を閉じる
   map.addListener("click", ()=>{
     dashInfo.close();
     if(poiInfo) poiInfo.close();
@@ -231,15 +199,11 @@ function makeDashiBody(status){
   const lng = pos ? pos.lng() : MAP_CENTER.lng;
   const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
-  // JSTの日付で経路図URLを分岐（例：固定パターン）
+  // JSTの日付で経路図URLを分岐
   const nowJST = new Date(new Date().toLocaleString("ja-JP", { timeZone:"Asia/Tokyo" }));
   const m = nowJST.getMonth()+1, d = nowJST.getDate();
-  let routePage = "";
-  if (m===8 && d===31) routePage = "route_0831.html";
-  else if (m===9 && d===1) routePage = "route_0901.html";
-  else if (m===9 && d===2) routePage = "route_0902.html";
-  // パスは後で差し替え可能（同ディレクトリ想定）
-  const routePageUrl = routePage ? routePage : "";
+  const key = `${m}-${d}`;
+  const routePageUrl = ROUTE_URLS[key] || "";
 
   return `
     <div class="iw">
@@ -251,7 +215,7 @@ function makeDashiBody(status){
   `;
 }
 
-/* ================= 交通規制 UI（ドロワー開閉は進入禁止アイコンで） ================= */
+/* ================= 交通規制 UI（左アイコンで開閉） ================= */
 function setupRegulationUI(){
   const drawer   = document.getElementById("regDrawer");
   const btnClose = document.getElementById("regClose");
@@ -296,21 +260,16 @@ function openRegDrawer(){
   const el = document.getElementById("regDrawer");
   el.style.display = "block";
   el.setAttribute("aria-hidden","false");
-  // ドロワー開いたらインジケーターは一旦隠す（重なり防止）
-  showRegStatus(false);
+  showRegStatus(false); // 開いたらバッジは隠す
 }
 function closeRegDrawer(){
   const el = document.getElementById("regDrawer");
   el.style.display = "none";
   el.setAttribute("aria-hidden","true");
-  // 手動モードなら閉じたときにインジケーター表示
-  showRegStatus(REG_MODE === "manual");
-}
-function toggleRegDrawer(){
-  const el = document.getElementById("regDrawer");
-  if (el.getAttribute("aria-hidden")==="true") openRegDrawer(); else closeRegDrawer();
+  showRegStatus(REG_MODE === "manual"); // 手動なら閉じた時に出す
 }
 
+/* ================= 規制スロット表示 ================= */
 function buildTimeButtons(dayId){
   const slotList=document.getElementById("slotList");
   slotList.innerHTML="";
@@ -387,7 +346,7 @@ async function loadGeojsonPaths(src){
   return out;
 }
 
-/* ================= 左パネル：山車フォーカス & カテゴリON/OFF & 現在地 & 進入禁止トグル ================= */
+/* ================= 左パネル（ご指定順・各ボタンの挙動） ================= */
 function setupLeftPanel(){
   // 山車へフォーカス
   const btnFocus = document.getElementById("btnFocusDashi");
@@ -396,6 +355,15 @@ function setupLeftPanel(){
     const pos = dashMarker.getPosition();
     if(!pos) return;
     fitRadius({lat:pos.lat(), lng:pos.lng()}, 300);
+  });
+
+  // 交通規制ドロワー開閉
+  const btnReg = document.getElementById("btnRegulation");
+  btnReg.addEventListener("click", (ev)=>{
+    ev.stopPropagation();
+    const drawer=document.getElementById("regDrawer");
+    if (drawer.getAttribute("aria-hidden")==="true") openRegDrawer();
+    else closeRegDrawer();
   });
 
   // カテゴリトグル（地図マーカー）
@@ -409,13 +377,6 @@ function setupLeftPanel(){
   btnInfo.addEventListener("click", ()=>{ const off=btnInfo.classList.toggle("inactive"); toggleCategory("info", !off); });
   btnWC.addEventListener("click",   ()=>{ const off=btnWC.classList.toggle("inactive");   toggleCategory("wc",   !off); });
   btnPark.addEventListener("click", ()=>{ const off=btnPark.classList.toggle("inactive"); toggleCategory("park", !off); });
-
-  // 進入禁止（交通規制ドロワーのトグル）
-  const btnBan = document.getElementById("btnBan");
-  btnBan.addEventListener("click", (ev)=>{
-    ev.stopPropagation();
-    toggleRegDrawer();
-  });
 
   // 現在地へ移動
   const btnMyLoc = document.getElementById("btnMyLoc");
@@ -460,6 +421,14 @@ function setupLeftPanel(){
       alert("現在地を取得できませんでした。位置情報の許可設定をご確認ください。");
     }, { enableHighAccuracy:true, timeout:8000, maximumAge:0 });
   });
+
+  // ヘルプモーダル
+  const btnHelp = document.getElementById("btnHelp");
+  const helpModal = document.getElementById("helpModal");
+  const helpClose = document.getElementById("helpClose");
+  btnHelp.addEventListener("click", ()=>{ helpModal.style.display='flex'; helpModal.setAttribute('aria-hidden','false'); });
+  helpClose.addEventListener("click", ()=>{ helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true'); });
+  helpModal.addEventListener("click", (e)=>{ if(e.target===helpModal){ helpModal.style.display='none'; helpModal.setAttribute('aria-hidden','true'); } });
 }
 
 function createCategoryMarkers(key, list, iconUrl, show){
