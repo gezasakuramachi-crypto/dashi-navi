@@ -58,14 +58,14 @@ const PARK_POINTS = [
 
 /* === 交通規制（GeoJSONのURLは data/ の公開URLに合わせる） === */
 const DAYS = [
-  { id:"d1", label:"9/1(月)", slots:[
+  { id:"d1", label:"9/1", slots:[
     { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
     { shortLabel:"15:00-", key:"91-1500-1600", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1500-1600.geojson" },
     { shortLabel:"16:00-", key:"91-1600-1930", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1600-1930.geojson" },
-    { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-20-45.geojson" },
+    { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-2045.geojson" }, /* ← 修正 */
     { shortLabel:"20:45-", key:"91-2045-2200", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-2045-2200.geojson" },
   ]},
-  { id:"d2", label:"9/2(火)", slots:[
+  { id:"d2", label:"9/2", slots:[
     { shortLabel:"11:00-", key:"92-1100-1230", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1100-1230.geojson" },
     { shortLabel:"12:30-", key:"92-1230-1400", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1230-1400.geojson" },
     { shortLabel:"14:00-", key:"92-1400-1630", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/92-1400-1630.geojson" },
@@ -75,20 +75,29 @@ const DAYS = [
   ]},
 ];
 
-/* === 経路図URL（JSTで日付振り分け） === */
+/* === 経路図URL（JSTで日付振り分け＋手動指定） === */
 function getRouteMapUrlByDateJST() {
+  const params = new URLSearchParams(location.search);
+  const override = params.get("route"); // 0831 / 0901 / 0902
+  if (override === "0831") return ROUTE_URLS["0831"];
+  if (override === "0901") return ROUTE_URLS["0901"];
+  if (override === "0902") return ROUTE_URLS["0902"];
+
   const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
   const m = jstNow.getMonth() + 1;
   const d = jstNow.getDate();
-  if (m === 8 && d === 31) {
-    return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
-  } else if (m === 9 && d === 1) {
-    return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
-  } else if (m === 9 && d === 2) {
-    return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
-  }
-  return "https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3";
+  if (m === 8 && d === 31) return ROUTE_URLS["0831"];
+  if (m === 9 && d === 1)  return ROUTE_URLS["0901"];
+  if (m === 9 && d === 2)  return ROUTE_URLS["0902"];
+  // デフォルト：直近開催日のページへ（9/1）
+  return ROUTE_URLS["0901"];
 }
+
+const ROUTE_URLS = {
+  "0831":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
+  "0901":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
+  "0902":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
+};
 
 /* ========= 変数 ========= */
 let map, dashiMarker, infoWindow;
@@ -262,16 +271,8 @@ async function initMap() {
     parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
   });
 
-  /* 現在地へ移動 */
-  $("btnMyLoc").addEventListener("click", ()=>{
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
-        map.panTo(p);
-        map.setZoom(16);
-      });
-    }
-  });
+  /* 現在地へ移動（左上アイコン） */
+  $("btnMyLocSide").addEventListener("click", ()=>goMyLocation());
 
   /* 山車の現在地 */
   const pos = await fetchLatestPosition().catch(()=>null);
@@ -326,11 +327,12 @@ async function initMap() {
 
   async function autoUpdateTraffic(){
     status.style.display = "none"; // 自動時はバッジ非表示
-    // ここでは簡易に：当日の先頭スロットを表示
+    // 当日の先頭スロットを表示（JST）
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
     if(m===9 && d===1){ await showTrafficBySrc(DAYS[0].slots[0].src); }
     else if(m===9 && d===2){ await showTrafficBySrc(DAYS[1].slots[0].src); }
+    else if(m===8 && d===31){ await showTrafficBySrc(null); } // 前夜祭に規制が無ければ非表示
     else { await showTrafficBySrc(null); }
     slotList.innerHTML = "";
   }
@@ -353,13 +355,33 @@ async function initMap() {
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* 左下：Googleマップ経路（現在地→山車） */
-  document.getElementById("routeBtn").addEventListener("click", ()=>{
-    if(!dashiMarker) return;
-    const p = dashiMarker.getPosition();
-    const url=`https://www.google.com/maps/dir/?api=1&destination=${p.lat()},${p.lng()}&travelmode=walking`;
-    window.open(url, "_blank", "noopener");
+  /* ==== ボトムメニュー ==== */
+  $("bDashi").addEventListener("click", ()=>{
+    if(dashiMarker) map.panTo(dashiMarker.getPosition());
   });
+  $("bTraffic").addEventListener("click", openDrawer);
+  $("bMyLoc").addEventListener("click", ()=>goMyLocation());
+  $("bHelp").addEventListener("click", ()=>{
+    const modal = document.getElementById("helpModal");
+    modal.style.display = "flex";
+  });
+  document.getElementById("helpClose").addEventListener("click", ()=>{
+    document.getElementById("helpModal").style.display="none";
+  });
+  document.getElementById("helpModal").addEventListener("click",(e)=>{
+    if(e.target.id==="helpModal") e.currentTarget.style.display="none";
+  });
+}
+
+/* 現在地へ */
+function goMyLocation(){
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      map.panTo(p);
+      map.setZoom(16);
+    });
+  }
 }
 
 /* グローバルへ公開（Google Maps callback） */
