@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>鹿嶋のご神幸 山車ナビ</title>
   <meta name="format-detection" content="telephone=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -10,47 +10,50 @@
 
   <style>
     :root{
-      --footerH: 82px;                      /* 下ナビの高さ */
-      --headerH: 50px;                      /* 見出し帯の目安（JSで最終調整） */
-      --z-header: 10;
-      --z-over: 20;
-      --z-top: 30;
+      --headerH: 48px;          /* タイトル帯の固定高さ（iPhone SEでも安全） */
+      --footerH: 82px;          /* 下メニューバーの高さ */
+      --pad: 10px;
+      --z-header: 20;
+      --z-ui: 30;
+      --z-top: 40;
     }
-    *{ box-sizing:border-box; }
+    *{ box-sizing: border-box; }
     html,body{ height:100%; }
     body{
       margin:0; background:#000; color:#111;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── ヘッダー（タイトル画像：左寄せ・スリム） ── */
+    /* ── ヘッダー（タイトル画像：左寄せ・指定の小さめ） ── */
     .app-header{
-      position:fixed; inset:0 0 auto 0; z-index:var(--z-header);
-      display:flex; align-items:center; justify-content:flex-start;
-      padding:6px 10px; gap:10px; background:#000;
+      position:fixed; left:0; right:0; top:0; height:var(--headerH);
+      display:flex; align-items:center; gap:8px; padding:6px 10px;
+      background:#000; z-index:var(--z-header);
       box-shadow:0 2px 8px rgba(0,0,0,.25);
-      -webkit-user-select:none; user-select:none;
     }
     .title-img{
-      display:block; width:auto; height:auto;
-      max-height:42px; object-fit:contain;
+      height:calc(var(--headerH) - 12px);
+      width:auto; object-fit:contain; display:block;
     }
-    @media (min-width:600px){ .title-img{ max-height:50px; } }
 
-    /* ── 地図：高さは JS で最終補正 ── */
+    /* ── 地図 ──
+       100dvh: iOSのアドレスバー込み問題を回避
+       env(safe-area-inset-bottom) を底に足す
+    */
     #map{
-      position:fixed;
-      /* 初期値（JSで上書き） */
-      top:var(--headerH);
-      left:0; right:0;
-      bottom:calc(var(--footerH) + env(safe-area-inset-bottom,0px));
-      background:#eee;
+      position:fixed; left:0; right:0; top:var(--headerH);
+      height:calc(100dvh - var(--headerH) - var(--footerH) - env(safe-area-inset-bottom,0px));
+      background:#eaeaea;    /* もし地図が出なくても真っ黒にならないように */
+    }
+    /* フォールバック：古いiOS用（100vhが小さくなる場合） */
+    @supports not (height: 100dvh){
+      #map{ height:calc(100vh - var(--headerH) - var(--footerH) - env(safe-area-inset-bottom,0px)); }
     }
 
-    /* ── 左サイド（情報/トイレ/駐車場） ── */
+    /* ── 左の縦アイコン（情報/トイレ/駐車場） ── */
     .left-stack{
-      position:fixed; left:10px; top:calc(var(--headerH) + 10px); z-index:var(--z-over);
+      position:fixed; left:10px; top:calc(var(--headerH) + 10px); z-index:var(--z-ui);
     }
     .stack-card{ background:#fff; border-radius:14px; box-shadow:0 6px 18px rgba(0,0,0,.18); padding:8px; display:grid; gap:8px; }
     .stack-btn{ width:48px; height:48px; border-radius:10px; display:grid; place-items:center; background:#fff; border:1px solid #e6e6e6; }
@@ -58,7 +61,7 @@
 
     /* ── 右上：交通規制ピル ── */
     .traffic-pill{
-      position:fixed; right:12px; top:calc(var(--headerH) + 8px); z-index:var(--z-over);
+      position:fixed; right:12px; top:calc(var(--headerH) + 8px); z-index:var(--z-ui);
       background:#ff2d55; color:#fff; font-weight:700; border:0; cursor:pointer;
       padding:8px 10px; border-radius:9999px; box-shadow:0 6px 18px rgba(0,0,0,.18);
       font-size:14px; line-height:1; -webkit-user-select:none; user-select:none;
@@ -66,21 +69,21 @@
 
     /* ── 左下：経路FAB（Googleマップへ） ── */
     .route-fab{
-      position:fixed; left:14px; z-index:var(--z-over);
+      position:fixed; left:14px; z-index:var(--z-ui);
       bottom:calc(var(--footerH) + 14px + env(safe-area-inset-bottom,0px));
       width:56px; height:56px; border-radius:16px; border:0; cursor:pointer;
       background:#0b8cff; color:#fff; font-size:22px;
       display:grid; place-items:center; box-shadow:0 10px 22px rgba(11,140,255,.35);
     }
 
-    /* ── 下部ナビ（以前どおり：黒/アイコン+文字） ── */
+    /* ── 下メニューバー（以前どおり：黒/アイコン＋文字） ── */
     .bottom-bar{
-      position:fixed; inset:auto 0 0 0; z-index:var(--z-top);
+      position:fixed; left:0; right:0; bottom:0; z-index:var(--z-top);
       height:calc(var(--footerH) + env(safe-area-inset-bottom,0px));
       padding-bottom:env(safe-area-inset-bottom,0px);
       background:#000; color:#fff;
-      display:grid; grid-template-columns:repeat(4,1fr);
-      align-items:center; border-top:1px solid rgba(255,255,255,.08);
+      display:grid; grid-template-columns:repeat(4,1fr); align-items:center;
+      border-top:1px solid rgba(255,255,255,.08);
     }
     .nav-btn{
       display:grid; grid-template-rows:auto auto; justify-items:center; align-content:center;
@@ -90,29 +93,36 @@
     .nav-btn .icon img{ width:28px; height:28px; display:block; }
     .nav-btn .label{ font-size:12px; letter-spacing:.02em; }
 
-    /* ── InfoWindow を細身に（山車カードが大きくなり過ぎない） ── */
+    /* ── InfoWindow を細身に ── */
     .gm-style .gm-style-iw-c{ max-width:240px !important; padding:8px 10px !important; border-radius:14px !important; }
-    .gm-style .gm-style-iw-d{ overflow:auto !important; max-height:calc(100vh - 220px) !important; }
+    .gm-style .gm-style-iw-d{ overflow:auto !important; max-height:calc(100dvh - 220px) !important; }
+
+    /* デバッグ用バナー（地図初期化失敗時） */
+    #map-error{
+      position:fixed; inset:auto 10px calc(var(--footerH) + 10px + env(safe-area-inset-bottom,0px)) 10px;
+      z-index:9999; background:#ff3b30; color:#fff; padding:8px 12px; border-radius:10px;
+      font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,.25); display:none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ヘッダー（タイトル：左寄せ） -->
-  <div class="app-header">
-    <img class="title-img" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/title.png" alt="鹿嶋神宮 神幸祭 鹿嶋のご神幸" />
-  </div>
+  <!-- ヘッダー（ご指定のタイトル画像・左寄せ） -->
+  <header class="app-header">
+    <img class="title-img" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/title.png" alt="鹿嶋のご神幸" />
+  </header>
 
   <!-- 地図 -->
   <div id="map" role="application" aria-label="山車ナビ地図"></div>
+  <div id="map-error">地図の読み込みに失敗しました。APIキーやネットワークをご確認ください。</div>
 
-  <!-- 左サイド（情報/トイレ/駐車場） -->
+  <!-- 左：情報/トイレ/駐車場 -->
   <div class="left-stack">
     <div class="stack-card">
       <button class="stack-btn" id="btn-info" title="インフォメーション表示/非表示">
         <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png" alt="info" />
       </button>
       <button class="stack-btn" id="btn-toilet" title="トイレ表示/非表示">
-        <!-- ★消えていたのでURLを明示 -->
         <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/toilet.png" alt="toilet" />
       </button>
       <button class="stack-btn" id="btn-parking" title="駐車場表示/非表示">
@@ -121,25 +131,23 @@
     </div>
   </div>
 
-  <!-- 右上：交通規制ピル（日時指定時は app.js で文字差し替え） -->
+  <!-- 右上：交通規制 -->
   <button class="traffic-pill" id="traffic-pill" type="button">交通<br>規制</button>
 
-  <!-- 左下：経路ボタン（Googleマップアプリへ遷移） -->
+  <!-- 左下：経路（Googleマップへ） -->
   <button class="route-fab" id="route-fab" type="button" aria-label="山車までの経路">➤</button>
 
-  <!-- 下部ナビ（以前どおり：山車/交通規制/現在地/ヘルプ） -->
+  <!-- 下ナビ（山車 / 交通規制 / 現在地 / ヘルプ）-->
   <nav class="bottom-bar">
     <button class="nav-btn" id="nav-dashi" type="button" aria-label="山車">
       <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png" alt=""></span>
       <span class="label">山車</span>
     </button>
     <button class="nav-btn" id="nav-traffic" type="button" aria-label="交通規制">
-      <!-- 中が白の最新版アイコン（ご指定の no_entry.png） -->
       <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry.png" alt=""></span>
       <span class="label">交通規制</span>
     </button>
     <button class="nav-btn" id="nav-locate" type="button" aria-label="現在地">
-      <!-- ★現在地アイコンのURLを固定 -->
       <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/locate.png" alt=""></span>
       <span class="label">現在地</span>
     </button>
@@ -149,27 +157,19 @@
     </button>
   </nav>
 
-  <!-- 本体JS -->
+  <!-- アプリ本体 -->
   <script src="./app.js"></script>
 
-  <!-- Google Maps JS（APIキー設定） -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=marker&callback=initMap"></script>
-
-  <!-- 地図エリアの高さを“確実に”合わせる（端末差・向き変更に強い版） -->
+  <!-- Google Maps（キーを差し替え） -->
   <script>
-    (function fixMapInsets(){
-      const mapEl   = document.getElementById('map');
-      const headerH = () => document.querySelector('.app-header')?.getBoundingClientRect().height || 0;
-      const footerH = () => document.querySelector('.bottom-bar')?.getBoundingClientRect().height || 0;
-      const apply = () => {
-        const top  = headerH();
-        const bot  = footerH();
-        mapEl.style.top    = top + 'px';
-        mapEl.style.bottom = bot + 'px';
-      };
-      ['load','resize','orientationchange'].forEach(ev => window.addEventListener(ev, apply, {passive:true}));
-      apply();
-    })();
+    // 読み込み失敗時の検知
+    window.gm_authFailure = function(){ document.getElementById('map-error').style.display='block'; };
+    window.addEventListener('error', function(e){
+      if (String(e?.filename||'').includes('maps.googleapis.com')){
+        document.getElementById('map-error').style.display='block';
+      }
+    }, true);
   </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=marker&callback=initMap"></script>
 </body>
 </html>
