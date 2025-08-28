@@ -1,277 +1,305 @@
-/* ===============================
- *  Dashi-Navi App
- * =============================== */
+/* =========================================================
+   鹿嶋のご神幸 山車現在地共有 - App Main
+   - 走行エリアの青枠（塗りつぶしなし）
+   - マップ表示制限（strictBounds）
+   - 山車マーカーのインフォウィンドウ（状態/経路表示/経路図）
+   - 左スタック（インフォ/トイレ/P）表示切替
+   - 右上＆下段の交通規制UI（細幅パネル）
+   ========================================================= */
 
-const SOURCES = {
-  GEOJSON: {
-    RUN_AREA:  'https://gezasakuramachi-crypto.github.io/dashi-navi/data/run-area.geojson',
-    VIEWPORT:  'https://gezasakuramachi-crypto.github.io/dashi-navi/data/map-viewport.geojson',
-  },
+let map;
+let infoWindow;
+let dashiMarker;
+let viewportBounds;  // map-viewport.geojson から生成
+let runAreaLayer;    // 走行エリア（青線）
+
+// 疑似データ：山車位置＆更新時刻（本番は実データをポーリングで更新してください）
+let dashiState = {
+  position: { lat: 35.96565, lng: 140.6407 },
+  lastUpdated: Date.now() - 120000, // 例：120秒前（=> 停止中）※実運用ではサーバー時刻で更新
 };
 
-let map, infoWindow;
-let layers = {
-  info: null,
-  toilet: null,
-  parking: null,
-  runArea: null,
+// 交通規制スロット（例）— 本番はGeoJSON/KML読み込み側に連携してください。
+const TRAFFIC_SLOTS = {
+  "8/31": ["19:00-", "20:45-"],
+  "9/1":  ["10:30-", "15:00-", "16:00-", "19:30-", "20:45-"],
+  "9/2":  ["13:00-"]
 };
-let markers = {
-  dashi: null,
-};
-let mapRestrictionBounds = null;
 
-/** iPhone のバー高さで 100vh がズレるのを防ぐ（CSS は 100dvh を使用） */
-function fixIOSVh() {
-  // いまは 100dvh を使っているため JS 側の補正は不要。将来用に残す。
+// UI要素キャッシュ
+const els = {};
+function cacheEls(){
+  els.trafficToggle = document.getElementById('trafficToggle');
+  els.trafficPanel  = document.getElementById('trafficPanel');
+  els.tpSlots       = document.getElementById('tpSlots');
+
+  els.btnInfo   = document.getElementById('btnInfo');
+  els.btnToilet = document.getElementById('btnToilet');
+  els.btnParking= document.getElementById('btnParking');
+
+  els.navDashi  = document.getElementById('navDashi');
+  els.navTraffic= document.getElementById('navTraffic');
+  els.navLocate = document.getElementById('navLocate');
+  els.navHelp   = document.getElementById('navHelp');
 }
 
-/** 初期化：ページ読込時に必ず呼ばれる（HTML の callback） */
+/* ===================== Map Init ===================== */
 window.initMap = async function initMap(){
-  // 初期中心（暫定）
-  const center = { lat: 35.9638, lng: 140.6392 };
+  cacheEls();
 
+  // 初期マップ（暫定中心）※ロード前の青背景回避のため高さはCSSで確保済み
   map = new google.maps.Map(document.getElementById('map'), {
-    center,
-    zoom: 16,
+    center: { lat: 35.965, lng: 140.641 },
+    zoom: 15,
     mapTypeControl: false,
     fullscreenControl: false,
     streetViewControl: false,
     clickableIcons: true,
-    gestureHandling: 'greedy',
+    gestureHandling: "greedy",
   });
 
-  infoWindow = new google.maps.InfoWindow({ maxWidth: 300 });
+  infoWindow = new google.maps.InfoWindow();
 
-  // 地図が動作可能になったらマスクを外す
-  map.addListener('idle', () => {
-    document.getElementById('map-mask')?.classList.add('hidden');
-  });
+  // 表示制限と走行エリアのロード
+  await Promise.all([
+    applyViewportRestriction(),
+    drawRunArea()
+  ]);
 
-  // 表示可能な最大エリア制限をロード
-  await applyViewportRestriction();
+  // ビューポートにフィットした後、1段階だけズームイン
+  if (viewportBounds){
+    map.fitBounds(viewportBounds);
+    map.addListener('idle', () => {
+      // 一度だけ適用
+      if (!map.__zoomedOnce) {
+        map.__zoomedOnce = true;
+        map.setZoom(map.getZoom() + 1);
+      }
+    });
+  }
 
-  // 走行エリア（外枠のみ青・塗り無し）を常時表示
-  await drawRunArea();
+  // 山車マーカー
+  placeDashiMarker();
 
-  // 山車マーカー（仮：中心に配置）。あなたの位置トークン取得処理で更新する。
-  setUpDashiMarker(center);
+  // 左スタック・下部ナビ・交通規制UI
+  wireLeftStack();
+  wireBottomNav();
+  wireTrafficUI();
 
-  // 左レールと下メニューのイベント
-  bindUI();
-
-  // 初期ズーム：ご指定「もう1段階拡大」
-  map.setZoom(Math.min(map.getZoom() + 1, 20));
+  // マップ外タップで InfoWindow を閉じる
+  map.addListener("click", () => infoWindow.close());
 };
 
-/* ---------- 走行エリア（外枠のみ青） ---------- */
-async function drawRunArea(){
-  try{
-    const res = await fetch(SOURCES.GEOJSON.RUN_AREA);
-    const gj  = await res.json();
-
-    // GeoJSON からポリライン/ポリゴンを作成
-    // 線だけ出したいので、Polygon も stroke のみ・fill なしに
-    layers.runArea = map.data;
-    layers.runArea.setStyle({
-      strokeColor: '#1976d2',
-      strokeOpacity: 1,
-      strokeWeight: 3,
-      fillOpacity: 0
-    });
-    layers.runArea.addGeoJson(gj);
-  }catch(e){
-    console.warn('run-area geojson 読み込み失敗', e);
-  }
-}
-
-/* ---------- 最大表示エリアの制限 ---------- */
+/* ===================== Viewport Restriction ===================== */
 async function applyViewportRestriction(){
   try{
-    const res = await fetch(SOURCES.GEOJSON.VIEWPORT);
+    const res = await fetch('data/map-viewport.geojson', { cache: 'no-store' });
     const gj  = await res.json();
 
-    // GeoJSON (Polygon または MultiPolygon) から Bounds を作る
+    // GeoJSON から bounds を算出（Polygon / MultiPolygon をサポート）
     const bounds = new google.maps.LatLngBounds();
-    const addCoord = (coord) => bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
-    const walk = (geom) => {
-      if(!geom) return;
-      if(geom.type === 'Polygon'){
-        geom.coordinates.flat(1).forEach(addCoord);
-      }else if(geom.type === 'MultiPolygon'){
-        geom.coordinates.flat(2).forEach(addCoord);
-      }else if(geom.type === 'Feature'){
-        walk(geom.geometry);
-      }else if(geom.type === 'FeatureCollection'){
-        geom.features.forEach(f => walk(f));
-      }
+    const pushCoord = c => bounds.extend(new google.maps.LatLng(c[1], c[0]));
+
+    const eachPoly = (coords) => {
+      // coords: [ [ [lng,lat], [lng,lat], ... ] , ... (holes) ]
+      coords[0].forEach(pushCoord); // 外輪だけで bounds 取得
     };
-    walk(gj);
 
-    map.fitBounds(bounds);
-    mapRestrictionBounds = bounds;
+    gj.features.forEach(f => {
+      const g = f.geometry;
+      if (g.type === 'Polygon') eachPoly(g.coordinates);
+      else if (g.type === 'MultiPolygon') g.coordinates.forEach(eachPoly);
+    });
 
-    // 制限（外は見えない・ズームアウトできない）
+    viewportBounds = bounds;
     map.setOptions({
-      restriction: {
-        latLngBounds: bounds,
-        strictBounds: true
-      },
-      minZoom: map.getZoom() - 1  // fitBounds より外へズームアウト不可に寄せる
+      restriction: { latLngBounds: bounds, strictBounds: true },
+      minZoom: 12
     });
-
-    // ユーザーがドラッグで境界外に出ようとしたら跳ね返す
-    map.addListener('dragend', () => {
-      if(!mapRestrictionBounds.contains(map.getCenter())){
-        map.panTo(clampToBounds(map.getCenter(), mapRestrictionBounds));
-      }
-    });
-
   }catch(e){
-    console.warn('viewport geojson 読み込み失敗', e);
+    console.warn('map-viewport.geojson の読込に失敗:', e);
   }
 }
 
-/* 点を Bounds 内にクランプ */
-function clampToBounds(latlng, bounds){
-  const lat = Math.min(Math.max(latlng.lat(), bounds.getSouthWest().lat()), bounds.getNorthEast().lat());
-  const lng = Math.min(Math.max(latlng.lng(), bounds.getSouthWest().lng()), bounds.getNorthEast().lng());
-  return new google.maps.LatLng(lat, lng);
+/* ===================== Run Area (blue stroke) ===================== */
+async function drawRunArea(){
+  try{
+    const res = await fetch('data/run-area.geojson', { cache: 'no-store' });
+    const gj  = await res.json();
+    if (runAreaLayer) runAreaLayer.setMap(null);
+    runAreaLayer = map.data;
+    runAreaLayer.addGeoJson(gj);
+
+    runAreaLayer.setStyle({
+      strokeColor: '#1976d2',
+      strokeWeight: 3,
+      strokeOpacity: 1,
+      fillOpacity: 0.0
+    });
+  }catch(e){
+    console.warn('run-area.geojson の読込に失敗:', e);
+  }
 }
 
-/* ---------- 山車マーカーと情報ウインドウ ---------- */
-function setUpDashiMarker(pos){
-  if(markers.dashi){
-    markers.dashi.setMap(null);
-  }
-  markers.dashi = new google.maps.Marker({
-    position: pos,
+/* ===================== Dashi Marker & Info ===================== */
+function placeDashiMarker(){
+  if (dashiMarker) dashiMarker.setMap(null);
+
+  dashiMarker = new google.maps.Marker({
+    position: dashiState.position,
     map,
     icon: {
       url: 'mark/sakura.png',
-      scaledSize: new google.maps.Size(40,40)
+      scaledSize: new google.maps.Size(40, 40)
     },
-    title: '桜町区'
+    title: '桜町区',
+    zIndex: 10
   });
 
-  markers.dashi.addListener('click', () => {
-    openDashiInfo(markers.dashi.getPosition());
+  dashiMarker.addListener('click', () => openDashiInfo());
+
+  // 下メニューの「山車」でフォーカス＆Infowindowを開く
+  els.navDashi.addEventListener('click', () => {
+    map.panTo(dashiMarker.getPosition());
+    map.setZoom(Math.max(map.getZoom(), 17));
+    openDashiInfo();
   });
 }
 
-function isStale(lastUpdatedMs){
-  // 「90秒以上届かなければ停止中」
+function openDashiInfo(){
   const now = Date.now();
-  return (now - lastUpdatedMs) >= 90 * 1000;
-}
+  const status = (now - dashiState.lastUpdated <= 90000) ? '更新中' : '停止中';
 
-function openDashiInfo(latlng){
-  // 実際の更新時刻はあなたの位置トークンの応答から差し込んでください
-  // ここでは仮に「停止中」にしておく
-  const lastMs = Date.now() - 120000; // 仮: 2分前
-  const status = isStale(lastMs) ? '停止中' : '更新中';
+  const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${dashiMarker.getPosition().lat()},${dashiMarker.getPosition().lng()}&travelmode=walking`;
 
-  const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${latlng.lat()},${latlng.lng()}&travelmode=walking`;
-
-  // 経路図リンク：日付ごとに自動分岐
-  const routeMapUrl = pickRouteMapUrlByDate(new Date());
+  // 経路図の自動切替（8/31 → 9/1 → 9/2）
+  const today = new Date();
+  const m = today.getMonth() + 1;
+  const d = today.getDate();
+  let routePage = '';
+  if (m === 8 && d <= 31) {
+    routePage = 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
+  } else if (m === 9 && d === 1) {
+    routePage = 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
+  } else if (m === 9 && d >= 2) {
+    routePage = 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
+  } else {
+    // デフォルトは 9/1 ページに
+    routePage = 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
+  }
 
   const html = `
-    <div class="mini-infowin">
-      <div class="row" style="font-weight:700;font-size:18px;">桜町区</div>
-      <div class="row" style="color:#6b7280;">${status}</div>
-      <div class="row">
-        <a class="pill" href="${routeUrl}" target="_blank" rel="noopener">
-          <span><span class="dot"></span>経路表示</span>
-          <span>開く ›</span>
-        </a>
-      </div>
-      <div class="row">
-        <a class="pill" href="${routeMapUrl}" target="_blank" rel="noopener">
-          <span><span class="dot" style="background:#d83a3a"></span>経路図</span>
-          <span>開く ›</span>
-        </a>
-      </div>
+    <div style="min-width:220px; max-width:260px;">
+      <div style="font-size:18px; font-weight:700; margin-bottom:6px;">桜町区</div>
+      <div style="font-size:14px; color:#555; margin-bottom:10px;">${status}</div>
+
+      <a href="${routeUrl}" target="_blank" rel="noopener" style="
+        display:flex; align-items:center; gap:8px;
+        text-decoration:none; font-weight:700; color:#1967d2;
+        background:#fff; border:1px solid #e5e8ef; padding:10px 12px;
+        border-radius:12px; margin-bottom:8px;">
+        <span style="display:inline-block; width:9px; height:9px; background:#2a73e8; border-radius:50%;"></span>
+        経路表示
+      </a>
+
+      <a href="${routePage}" target="_blank" rel="noopener" style="
+        display:flex; align-items:center; gap:8px;
+        text-decoration:none; font-weight:700; color:#1967d2;
+        background:#fff; border:1px solid #e5e8ef; padding:10px 12px;
+        border-radius:12px;">
+        <span style="display:inline-block; width:9px; height:9px; background:#e53935; border-radius:50%;"></span>
+        経路図
+      </a>
     </div>
   `;
+
   infoWindow.setContent(html);
-  infoWindow.setPosition(latlng);
-  infoWindow.open(map);
+  infoWindow.open({ map, anchor: dashiMarker, shouldFocus: false });
+}
 
-  // 画面外タップで閉じる
-  const closeOnTap = map.addListener('click', () => {
-    infoWindow.close();
-    google.maps.event.removeListener(closeOnTap);
+/* ===================== Left Stack (layer toggles) ===================== */
+function wireLeftStack(){
+  // デモ：インフォ/トイレ/Pは「見た目のON/OFF」だけトグル。
+  // 実データのMarker群がある場合は、配列.forEach(m => m.setMap(on?map:null)) に差し替えてください。
+  const toggleBtn = (btn) => {
+    btn.classList.toggle('off');
+    // ここで対象レイヤーの表示切替を行う
+  };
+  els.btnInfo.addEventListener('click', () => toggleBtn(els.btnInfo));
+  els.btnToilet.addEventListener('click', () => toggleBtn(els.btnToilet));
+  els.btnParking.addEventListener('click', () => toggleBtn(els.btnParking));
+}
+
+/* ===================== Bottom Nav ===================== */
+function wireBottomNav(){
+  // 交通規制（右上パネルのトグルと同じ動作）
+  els.navTraffic.addEventListener('click', toggleTrafficPanel);
+
+  // 現在地
+  els.navLocate.addEventListener('click', () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(pos => {
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      map.panTo(p);
+      map.setZoom(Math.max(17, map.getZoom()));
+      new google.maps.Marker({
+        map, position: p,
+        icon: { url:'mark/my_location.png', scaledSize: new google.maps.Size(28,28) },
+        zIndex: 12
+      });
+    });
+  });
+
+  // ヘルプ
+  els.navHelp.addEventListener('click', () => {
+    alert('ヘルプ：使い方の説明をここに表示（後で差し替え可能）');
   });
 }
 
-function pickRouteMapUrlByDate(d){
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  // 8/31, 9/1, 9/2 の分岐（URL はユーザー提供済み）
-  if (m === 8 && day <= 31){
-    return 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
-  }
-  if (m === 9 && day === 1){
-    return 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
-  }
-  // 既定：9/2
-  return 'https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3';
-}
+/* ===================== Traffic UI ===================== */
+function wireTrafficUI(){
+  // 右上トグル
+  els.trafficToggle.addEventListener('click', toggleTrafficPanel);
 
-/* ---------- UI バインド ---------- */
-function bindUI(){
-  // 右上 交通規制 FAB → 既存の交通規制 UI を開く（ここではフックだけ）
-  document.getElementById('trafficFab').addEventListener('click', () => {
-    // app 内の既存関数を呼んでパネルを開く想定
-    openTrafficPanel();
+  // 日付ボタン動的に active を付ける
+  [...els.trafficPanel.querySelectorAll('.tp-btn')].forEach(btn => {
+    btn.addEventListener('click', () => {
+      els.trafficPanel.querySelectorAll('.tp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTrafficSlots(btn.dataset.date);
+      // 右上丸ボタンのラベルも日時指定中は「9/1 15:00-」のように書き換えたい場合は、
+      // renderTrafficSlots 内で選択時に els.trafficToggle.textContent = '9/1 15:00-' などに変更してください。
+    });
   });
-
-  // 左レール：レイヤ可視切替（ここではダミーのトグル）
-  document.getElementById('btnInfo').addEventListener('click', ()=>toggleLayer('info'));
-  document.getElementById('btnToilet').addEventListener('click',()=>toggleLayer('toilet'));
-  document.getElementById('btnParking').addEventListener('click',()=>toggleLayer('parking'));
-
-  // 下メニュー
-  document.getElementById('mDashi').addEventListener('click', ()=>{
-    // 山車の位置にズーム＆情報
-    if(markers.dashi){
-      map.panTo(markers.dashi.getPosition());
-      map.setZoom(Math.max(map.getZoom(), 18));
-      openDashiInfo(markers.dashi.getPosition());
-    }
-  });
-  document.getElementById('mTraffic').addEventListener('click', ()=>openTrafficPanel());
-  document.getElementById('mLocate').addEventListener('click', locateMe);
-  document.getElementById('mHelp').addEventListener('click', ()=>alert('ヘルプは準備中です'));
 }
 
-/* 交通規制パネルを開くダミー（実装済みの関数に差し替えてOK） */
-function openTrafficPanel(){
-  // ここに既存の交通規制 UI を呼び出す処理を接続してください
-  // 例: TrafficUI.open();
-  console.log('交通規制パネルを開く');
-}
-
-/* レイヤ可視切替のダミー */
-function toggleLayer(name){
-  // あなたの既存レイヤ管理に合わせてください
-  console.log('toggle layer:', name);
-}
-
-/* 現在地に移動 */
-function locateMe(){
-  if(!navigator.geolocation){
-    alert('位置情報が利用できません');
-    return;
+function toggleTrafficPanel(){
+  const showing = els.trafficPanel.classList.toggle('show');
+  if (showing) {
+    // 初期は当日を自動選択（なければ 9/1）
+    const today = new Date();
+    const m = today.getMonth() + 1;
+    const d = today.getDate();
+    let key = (m === 8 && d === 31) ? '8/31' : (m === 9 && (d === 1 || d === 2)) ? `9/${d}` : '9/1';
+    const target = [...els.trafficPanel.querySelectorAll('.tp-btn')].find(b => b.dataset.date === key) || els.trafficPanel.querySelector('.tp-btn');
+    target.click();
   }
-  navigator.geolocation.getCurrentPosition((pos)=>{
-    const ll = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-    map.panTo(ll);
-    map.setZoom(Math.max(map.getZoom(), 17));
-  }, (err)=>{
-    console.warn(err);
-    alert('現在地を取得できませんでした');
-  }, { enableHighAccuracy:true, timeout:10000, maximumAge:5000 });
+}
+
+function renderTrafficSlots(dateKey){
+  const slots = TRAFFIC_SLOTS[dateKey] || [];
+  els.tpSlots.innerHTML = '';
+  slots.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tp-btn';
+    btn.textContent = t;
+    btn.addEventListener('click', () => {
+      // ここで実際の規制レイヤー切替処理を呼び出す
+      els.tpSlots.querySelectorAll('.tp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 右上ボタンの表示を日時にする
+      try { els.trafficToggle.textContent = `${dateKey} ${t}`; } catch {}
+    });
+    els.tpSlots.appendChild(btn);
+  });
 }
