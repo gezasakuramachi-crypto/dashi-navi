@@ -102,8 +102,8 @@ let map, dashiMarker, infoWindow;
 let infoMarkers = [], wcMarkers = [], parkMarkers = [];
 let trafficOverlays = [];  // 規制表示
 let runAreaOverlays = [];  // 走行エリア表示
-let latestPositionTime = null;  // ① 直近の位置時刻
-let currentTrafficLabel = "";   // ③ ピルに表示する手動選択中ラベル（例: "9/1 15:00-"）
+let latestPositionTime = null;  // 直近の位置時刻
+let currentTrafficLabel = "";   // ピル表示用（例: "9/1 15:00-"）
 
 /* ========= ユーティリティ ========= */
 async function fetchLatestPosition() {
@@ -134,20 +134,18 @@ async function addGeoJsonAsOverlays(url, style) {
   if (!res.ok) return [];
   const gj = await res.json();
   const added = [];
-  for (const f of gj.features || []) {
+  for (const f of (gj.features || [])) {
     const g = f.geometry;
-    const st = style || {};
     if (!g) continue;
+    const st = style || {};
     if (g.type === "LineString") {
       const path = g.coordinates.map(([lng, lat]) => ({ lat, lng }));
       const polyline = new google.maps.Polyline({ path, ...STYLE.line, ...st });
-      polyline.setMap(map);
-      added.push(polyline);
+      polyline.setMap(map); added.push(polyline);
     } else if (g.type === "Polygon") {
       const paths = g.coordinates.map(r => r.map(([lng, lat]) => ({ lat, lng })));
       const polygon = new google.maps.Polygon({ paths, ...STYLE.polygon, ...st });
-      polygon.setMap(map);
-      added.push(polygon);
+      polygon.setMap(map); added.push(polygon);
     } else if (g.type === "MultiLineString") {
       g.coordinates.forEach(ls => {
         const path = ls.map(([lng, lat]) => ({ lat, lng }));
@@ -183,17 +181,19 @@ function buildSlotButtons(day) {
     btn.className = "slotbtn";
     btn.textContent = slot.shortLabel;
     btn.addEventListener("click", () => {
-      document.getElementById("regStatus").style.display = "inline-block"; // 手動表示中バッジ
-      currentTrafficLabel = `${day.label} ${slot.shortLabel}`;             // ③ ピルに出す文言更新
       showTrafficBySrc(slot.src);
+      currentTrafficLabel = `${day.label} ${slot.shortLabel}`; // ピル表示文言更新
       [...cont.children].forEach(c => c.classList.remove("active"));
       btn.classList.add("active");
+      // ピルのラベル更新
+      const pill = document.getElementById("regPill");
+      pill.textContent = currentTrafficLabel;
     });
     cont.appendChild(btn);
   });
 }
 
-/* 山車 InfoWindow HTML（① 更新中/停止中表示・縦に細く） */
+/* 山車 InfoWindow HTML（ご指定の4行構成） */
 function buildDashiInfoContent(position, updateDate) {
   const now = new Date();
   const ageSec = updateDate ? Math.floor((now.getTime() - updateDate.getTime())/1000) : null;
@@ -203,26 +203,17 @@ function buildDashiInfoContent(position, updateDate) {
   const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}&travelmode=walking`;
   const routeMapUrl = getRouteMapUrlByDateJST();
 
-  const updatedText = updateDate
-    ? updateDate.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })
-    : "—";
-
   return `
     <div class="iw iw-narrow">
       <div class="title">桜町区</div>
       <div class="status">${statusText}</div>
-      <div>更新: ${updatedText}</div>
-      <div style="margin-top:6px;">
-        <a class="btn" href="${dirUrl}" target="_blank" rel="noopener">経路表示</a>
-      </div>
-      <div>
-        <a class="btn" href="${routeMapUrl}" target="_blank" rel="noopener">経路図</a>
-      </div>
+      <div><a class="btn" href="${dirUrl}" target="_blank" rel="noopener">経路表示</a></div>
+      <div><a class="btn" href="${routeMapUrl}" target="_blank" rel="noopener">経路図</a></div>
     </div>
   `;
 }
 
-/* POI InfoWindow HTML（② クリックで表示） */
+/* POI InfoWindow HTML（インフォ/トイレ/パーキング） */
 function buildPoiInfoContent(p) {
   const photo = p.photo ? `<div style="margin:4px 0;"><img src="${p.photo}" alt="" style="max-width:100%;border-radius:6px;"></div>` : "";
   const desc = p.desc ? `<div style="white-space:pre-wrap;">${p.desc}</div>` : "";
@@ -240,7 +231,7 @@ async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapTypeControl: false,      // 左上の地図/航空切替は削除
+    mapTypeControl: false,      // 左上の地図/航空切替は削除（ご要望反映済み）
     fullscreenControl: true,
     streetViewControl: false,
     clickableIcons: true,
@@ -248,6 +239,9 @@ async function initMap() {
   });
 
   infoWindow = new google.maps.InfoWindow();
+
+  /* 画面外タップで InfoWindow を閉じる（④） */
+  map.addListener("click", () => { infoWindow.close(); });
 
   /* 表示範囲制限：地図選択エリア（fit後に+2段階ズーム） */
   try {
@@ -272,15 +266,16 @@ async function initMap() {
           const z = map.getZoom() ?? 15;
           map.setZoom(Math.min(z + 2, 20));
         });
+        // エリア外に出さない
         map.setOptions({ restriction:{ latLngBounds: bounds, strictBounds:true }});
       }
     }
   } catch(e){ console.warn(e); }
 
-  /* 走行エリア（青線のみ・塗りなし）常時表示 */
+  /* 走行エリア（青線のみ・塗りなし）常時表示（①） */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
-  /* POI（初期ON）＋クリックで情報ウィンドウ（②） */
+  /* POI（初期ON）＋クリックで情報ウィンドウ */
   const makePoi = (arr, icon, size=CONFIG.POI_ICON_PX) =>
     arr.map(p => {
       const m = makeMarker({lat:p.lat,lng:p.lng}, icon, p.title, size);
@@ -309,7 +304,7 @@ async function initMap() {
     parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
   });
 
-  /* 山車の現在地（① 状態判定に使う時刻も保持） */
+  /* 山車の現在地（クリックで 4行構成のウインドウを表示、④ 画面外タップで閉じる） */
   const pos = await fetchLatestPosition().catch(()=>null);
   if (pos) {
     const p = { lat: pos.latitude, lng: pos.longitude };
@@ -320,26 +315,44 @@ async function initMap() {
       icon: { url: CONFIG.ICONS.sakura, scaledSize: new google.maps.Size(28,28) }
     });
 
-    dashiMarker.addListener("click", ()=>{
-      infoWindow.setContent(buildDashiInfoContent(p, latestPositionTime));
+    const openDashiIW = ()=>{
+      const iwHtml = buildDashiInfoContent(
+        { lat: dashiMarker.getPosition().lat(), lng: dashiMarker.getPosition().lng() },
+        latestPositionTime
+      );
+      infoWindow.setContent(iwHtml);
       infoWindow.open({ anchor: dashiMarker, map });
+    };
+
+    dashiMarker.addListener("click", openDashiIW);
+
+    // 下メニュー「山車」→ 現在地へパン＆ウインドウ表示
+    $("bDashi").addEventListener("click", ()=>{
+      if (!dashiMarker) return;
+      map.panTo(dashiMarker.getPosition());
+      openDashiIW();
+    });
+
+    // 定期更新（位置のみ）
+    setInterval(async ()=>{
+      const np = await fetchLatestPosition().catch(()=>null);
+      if(np){
+        const npPos = {lat:np.latitude,lng:np.longitude};
+        latestPositionTime = new Date(np.deviceTime || np.fixTime || np.serverTime || Date.now());
+        if(dashiMarker){ dashiMarker.setPosition(npPos); }
+      }
+    }, CONFIG.POLL_MS);
+  } else {
+    // 下メニュー「山車」→ 位置未取得でもマップだけフォーカス
+    document.getElementById("bDashi").addEventListener("click", ()=>{
+      map.setZoom(16);
+      map.panTo(MAP_CENTER);
     });
   }
 
-  /* 定期更新（位置のみ） */
-  setInterval(async ()=>{
-    const np = await fetchLatestPosition().catch(()=>null);
-    if(np){
-      const p = {lat:np.latitude,lng:np.longitude};
-      latestPositionTime = new Date(np.deviceTime || np.fixTime || np.serverTime || Date.now());
-      if(dashiMarker){ dashiMarker.setPosition(p); }
-    }
-  }, CONFIG.POLL_MS);
-
-  /* 右上：交通規制ピル → ドロワー（③ ピル文言切替対応） */
+  /* 右上：交通規制ピル → ドロワー（手動選択時はピルに日時を出す） */
   const pill   = $("regPill");
   const drawer = $("regDrawer");
-  const status = $("regStatus");
   const close  = $("regClose");
   const tabAuto= $("tabAuto");
   const tabD1  = $("tabD1");
@@ -355,25 +368,10 @@ async function initMap() {
       closeDrawer();
     }
   });
-  // ドロワーが閉じられるたびにピルのラベルを更新
-  const updatePillLabel = ()=>{
-    if (status.style.display === "inline-block" && currentTrafficLabel) {
-      pill.textContent = currentTrafficLabel;  // ③ 日時指定中は「9/1 15:00-」等
-    } else {
-      pill.textContent = "交通規制";          // 自動に戻ったら既定文言
-    }
-  };
-  ["click"].forEach(ev=>close.addEventListener(ev, updatePillLabel));
-  document.addEventListener("click",(e)=>{
-    if(!drawer.contains(e.target) && e.target!==pill && !pill.contains(e.target)){
-      updatePillLabel();
-    }
-  });
 
   async function autoUpdateTraffic(){
-    status.style.display = "none"; // 自動時はバッジ非表示
-    currentTrafficLabel = "";      // ③ ラベルもクリア
-    pill.textContent = "交通規制";
+    currentTrafficLabel = "";       // ラベルもクリア
+    pill.textContent = "交通規制";  // 自動に戻ったら既定文言
     // JSTで当日の先頭スロットを表示（前夜祭8/31は規制なし想定）
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
@@ -389,32 +387,18 @@ async function initMap() {
   });
   tabD1.addEventListener("click", ()=>{
     tabD1.classList.add("active"); tabAuto.classList.remove("active"); tabD2.classList.remove("active");
-    status.style.display = "inline-block";
     buildSlotButtons(DAYS[0]);
   });
   tabD2.addEventListener("click", ()=>{
     tabD2.classList.add("active"); tabAuto.classList.remove("active"); tabD1.classList.remove("active");
-    status.style.display = "inline-block";
     buildSlotButtons(DAYS[1]);
   });
 
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* 下ボタン */
+  /* 下ボタン（交通規制/現在地/ヘルプ） */
   const tapOpen = (e)=>{ e.preventDefault(); openDrawer(); };
-  $("bDashi").addEventListener("click", ()=>{
-    if (dashiMarker) {
-      map.panTo(dashiMarker.getPosition());
-      // タップ時に最新状態でInfoWindowを表示（任意）
-      const pos = dashiMarker.getPosition();
-      if (pos) {
-        const p = {lat: pos.lat(), lng: pos.lng()};
-        infoWindow.setContent(buildDashiInfoContent(p, latestPositionTime));
-        infoWindow.open({ anchor: dashiMarker, map });
-      }
-    }
-  });
   $("bTraffic").addEventListener("click", tapOpen, {passive:false});
   $("bTraffic").addEventListener("touchstart", tapOpen, {passive:false});
   $("bMyLoc").addEventListener("click", ()=>{
