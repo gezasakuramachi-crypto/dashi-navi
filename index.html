@@ -43,9 +43,9 @@
 
     .reg-drawer{
       margin-top:8px;
-      width:20vw;                /* ご指定：画面幅の20%以下 */
-      max-width: 240px;          /* 念のため上限 */
-      min-width: 160px;          /* 文字つぶれ防止の下限 */
+      width:10vw;                /* ⑤ さらに半分：10%幅 */
+      max-width: 180px;
+      min-width: 120px;
       background: rgba(218,233,248,0.7);
       border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 4px 16px rgba(0,0,0,.18);
@@ -97,15 +97,17 @@
       gap:2px; font-size:11px; line-height:1.1;
       -webkit-tap-highlight-color: transparent;
     }
-    .bottom-btn .ico{ width:32px; height:32px; object-fit:contain; } /* 交通規制白塗り前提 */
+    .bottom-btn .ico{ width:32px; height:32px; object-fit:contain; }
 
-    /* InfoWindow */
+    /* InfoWindow（山車・POI）本文の横幅を細く */
+    .iw-narrow { width: 180px; } /* ① 山車を細身に */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
     .iw { font:13px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif; color:#333; }
     .iw .title{ font-weight:700; font-size:14px; margin:0 0 6px; color:#202124; }
+    .iw .status{ font-size:12px; margin:2px 0 6px; color:#555; } /* ① 更新中 / 停止中 */
     .iw .btn{
       appearance:none; border:1px solid #dadce0; background:#fff; border-radius:8px;
-      padding:6px 10px; font-size:12px; cursor:pointer; margin-top:8px;
+      padding:6px 10px; font-size:12px; cursor:pointer; margin-top:6px;
       box-shadow:0 1px 2px rgba(0,0,0,.12);
       display:inline-block; text-decoration:none; color:#1a73e8;
     }
@@ -159,9 +161,9 @@
       <span>山車</span>
     </button>
     <button class="bottom-btn" id="bTraffic" title="交通規制" type="button">
-      <!-- 白塗り版（ご提供前提） -->
+      <!-- ④ ご指定のアイコンに変更 -->
       <img class="ico" id="icoTraffic"
-           src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry_icon_solid_32px.png"
+           src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry.png"
            alt="">
       <span>交通規制</span>
     </button>
