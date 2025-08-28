@@ -2,6 +2,7 @@
 const CONFIG = {
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
+  /* 新トークンへ更新（ユーザー提供） */
   PUBLIC_BEARER:
     "RzBFAiEAgbx61XQasV2upPQVJbBqrLh-xXi3-itlpVvbfW8XyGQCIEltaFXtQnEqVcz0W1Ajxc202t3DYetBvT4LIi1_B5B_eyJ1Ijo3LCJlIjoiMjAyNS0wOS0wM1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
@@ -26,7 +27,7 @@ const STYLE = {
 };
 
 /* === 走行エリア（外周青線・塗り無し） === */
-const RUNAREA_STYLE = { strokeColor:"#1e88e5", strokeOpacity:0.95, strokeWeight:2, zIndex:2900 };
+const RUNAREA_STYLE = { strokeColor:"#1e88e5", strokeOpacity:0.95, strokeWeight:2, fillOpacity:0, zIndex:2900 };
 const RUNAREA_SRC   = "https://gezasakuramachi-crypto.github.io/dashi-navi/data/run-area.geojson";
 
 /* === 地図選択エリア（表示範囲制限に使用） === */
@@ -56,13 +57,13 @@ const PARK_POINTS = [
   { title:"鹿嶋市営鹿島神宮駅西駐車場", lat:35.97, lng:140.6238333 },
 ];
 
-/* === 交通規制（GeoJSONのURLは data/ の公開URLに合わせる） === */
+/* === 交通規制（公開済みGeoJSONのURL名に合わせる） === */
 const DAYS = [
   { id:"d1", label:"9/1", slots:[
-    { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
+    { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" }, /* ⑥ ここが表示されるよう確認 */
     { shortLabel:"15:00-", key:"91-1500-1600", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1500-1600.geojson" },
     { shortLabel:"16:00-", key:"91-1600-1930", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1600-1930.geojson" },
-    { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-2045.geojson" }, /* ← 修正 */
+    { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-2045.geojson" },
     { shortLabel:"20:45-", key:"91-2045-2200", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-2045-2200.geojson" },
   ]},
   { id:"d2", label:"9/2", slots:[
@@ -75,35 +76,36 @@ const DAYS = [
   ]},
 ];
 
-/* === 経路図URL（JSTで日付振り分け＋手動指定） === */
-function getRouteMapUrlByDateJST() {
-  const params = new URLSearchParams(location.search);
-  const override = params.get("route"); // 0831 / 0901 / 0902
-  if (override === "0831") return ROUTE_URLS["0831"];
-  if (override === "0901") return ROUTE_URLS["0901"];
-  if (override === "0902") return ROUTE_URLS["0902"];
-
-  const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-  const m = jstNow.getMonth() + 1;
-  const d = jstNow.getDate();
-  if (m === 8 && d === 31) return ROUTE_URLS["0831"];
-  if (m === 9 && d === 1)  return ROUTE_URLS["0901"];
-  if (m === 9 && d === 2)  return ROUTE_URLS["0902"];
-  // デフォルト：直近開催日のページへ（9/1）
-  return ROUTE_URLS["0901"];
-}
-
+/* === 経路図URL（JST判定＋8/31までは常に8/31を表示） === */
 const ROUTE_URLS = {
   "0831":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/8%E6%9C%8831%E6%97%A5%E5%89%8D%E5%A4%9C%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
   "0901":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%881%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
   "0902":"https://sites.google.com/view/sakuramachiku/%E4%BB%A4%E5%92%8C%E5%B9%B4%E7%A5%9E%E5%B9%B8%E7%A5%AD/9%E6%9C%882%E6%97%A5-%E7%A5%9E%E5%B9%B8%E7%A5%AD%E7%B5%8C%E8%B7%AF%E5%9B%B3",
 };
 
+function getRouteMapUrlByDateJST() {
+  const params = new URLSearchParams(location.search);
+  const override = params.get("route"); // 0831/0901/0902 手動指定用
+  if (override && ROUTE_URLS[override]) return ROUTE_URLS[override];
+
+  const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const y = jstNow.getFullYear();
+  const m = jstNow.getMonth() + 1;
+  const d = jstNow.getDate();
+
+  // ⑤ 8/31までは常に8/31の経路図へ
+  if (m < 8 || (m === 8 && d <= 31)) return ROUTE_URLS["0831"];
+  if (m === 9 && d === 1) return ROUTE_URLS["0901"];
+  if (m === 9 && d === 2) return ROUTE_URLS["0902"];
+  // 開催日外は9/1を既定
+  return ROUTE_URLS["0901"];
+}
+
 /* ========= 変数 ========= */
 let map, dashiMarker, infoWindow;
 let infoMarkers = [], wcMarkers = [], parkMarkers = [];
 let trafficOverlays = [];  // 規制表示
-let runAreaOverlays = [];  // 走行エリア表示
+let runAreaOverlays = [];  // ⑦ 走行エリア表示
 
 /* ========= ユーティリティ ========= */
 async function fetchLatestPosition() {
@@ -192,7 +194,7 @@ function buildSlotButtons(day) {
   });
 }
 
-/* 山車 InfoWindow HTML */
+/* 山車 InfoWindow HTML（経路表示/経路図） */
 function buildDashiInfoContent(position, updatedText) {
   const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}&travelmode=walking`;
   const routeMapUrl = getRouteMapUrlByDateJST();
@@ -213,7 +215,7 @@ async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapTypeControl: false,       // ← 地図/航空写真 切替を削除
+    mapTypeControl: false,      // 左上の地図/航空切替は削除済み
     fullscreenControl: true,
     streetViewControl: false,
     clickableIcons: true,
@@ -222,7 +224,7 @@ async function initMap() {
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* 地図選択エリア（fit + restriction） */
+  /* ⑧ 地図選択エリア（fit + restriction） */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -240,12 +242,13 @@ async function initMap() {
         const bounds = new google.maps.LatLngBounds();
         coords.forEach(c=>bounds.extend(c));
         map.fitBounds(bounds);
+        /* エリア外のズーム/パンを禁止 */
         map.setOptions({ restriction:{ latLngBounds: bounds, strictBounds:true }});
       }
     }
   } catch(e){ console.warn(e); }
 
-  /* 走行エリア（青線のみ） */
+  /* ⑦ 走行エリア（青線のみ・塗りなし） */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
   /* POI（初期は表示ON） */
@@ -257,7 +260,7 @@ async function initMap() {
   const parkMarkersLocal = makePoi(PARK_POINTS, CONFIG.ICONS.park);
   infoMarkers = infoMarkersLocal; wcMarkers = wcMarkersLocal; parkMarkers = parkMarkersLocal;
 
-  /* 左：表示トグル */
+  /* ② 左：表示トグル */
   let infoOn=true, wcOn=true, parkOn=true;
   const $ = id => document.getElementById(id);
 
@@ -270,9 +273,6 @@ async function initMap() {
   $("btnPark").addEventListener("click", ()=>{
     parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
   });
-
-  /* 現在地へ移動（左上アイコン） */
-  $("btnMyLocSide").addEventListener("click", ()=>goMyLocation());
 
   /* 山車の現在地 */
   const pos = await fetchLatestPosition().catch(()=>null);
@@ -288,11 +288,6 @@ async function initMap() {
     dashiMarker.addListener("click", ()=>{
       infoWindow.setContent(buildDashiInfoContent(p, updated));
       infoWindow.open({ anchor: dashiMarker, map });
-    });
-
-    // 左パネルの「山車へ移動」
-    $("btnFocusDashi").addEventListener("click", ()=>{
-      if(dashiMarker) map.panTo(dashiMarker.getPosition());
     });
   }
 
@@ -327,12 +322,11 @@ async function initMap() {
 
   async function autoUpdateTraffic(){
     status.style.display = "none"; // 自動時はバッジ非表示
-    // 当日の先頭スロットを表示（JST）
+    // JSTで当日の先頭スロットを表示（前夜祭8/31は規制なし想定）
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
     if(m===9 && d===1){ await showTrafficBySrc(DAYS[0].slots[0].src); }
     else if(m===9 && d===2){ await showTrafficBySrc(DAYS[1].slots[0].src); }
-    else if(m===8 && d===31){ await showTrafficBySrc(null); } // 前夜祭に規制が無ければ非表示
     else { await showTrafficBySrc(null); }
     slotList.innerHTML = "";
   }
@@ -355,15 +349,22 @@ async function initMap() {
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* ==== ボトムメニュー ==== */
-  $("bDashi").addEventListener("click", ()=>{
-    if(dashiMarker) map.panTo(dashiMarker.getPosition());
+  /* ③/④ 下ボタンの動作（④ 交通規制ボタンが反応しない→明示的にイベント割当） */
+  document.getElementById("bDashi").addEventListener("click", ()=>{
+    if (dashiMarker) map.panTo(dashiMarker.getPosition());
   });
-  $("bTraffic").addEventListener("click", openDrawer);
-  $("bMyLoc").addEventListener("click", ()=>goMyLocation());
-  $("bHelp").addEventListener("click", ()=>{
-    const modal = document.getElementById("helpModal");
-    modal.style.display = "flex";
+  document.getElementById("bTraffic").addEventListener("click", openDrawer);
+  document.getElementById("bMyLoc").addEventListener("click", ()=>{
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos)=>{
+        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+        map.panTo(p);
+        map.setZoom(16);
+      });
+    }
+  });
+  document.getElementById("bHelp").addEventListener("click", ()=>{
+    document.getElementById("helpModal").style.display="flex";
   });
   document.getElementById("helpClose").addEventListener("click", ()=>{
     document.getElementById("helpModal").style.display="none";
@@ -373,16 +374,5 @@ async function initMap() {
   });
 }
 
-/* 現在地へ */
-function goMyLocation(){
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((pos)=>{
-      const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
-      map.panTo(p);
-      map.setZoom(16);
-    });
-  }
-}
-
-/* グローバルへ公開（Google Maps callback） */
+/* Google Maps callback */
 window.initMap = initMap;
