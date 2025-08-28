@@ -16,6 +16,7 @@ const CONFIG = {
   POI_ICON_PX: 20
 };
 
+/* 初期中心とズーム（fitBounds後に加算ズームも行う） */
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
@@ -183,8 +184,7 @@ function buildSlotButtons(day) {
       currentTrafficLabel = `${day.label} ${slot.shortLabel}`;
       [...cont.children].forEach(c => c.classList.remove("active"));
       btn.classList.add("active");
-      const pill = document.getElementById("regPill");
-      pill.textContent = currentTrafficLabel;
+      document.getElementById("regPill").textContent = currentTrafficLabel;
     });
     cont.appendChild(btn);
   });
@@ -237,12 +237,24 @@ async function initMap() {
     gestureHandling: "greedy",
   });
 
-  infoWindow = new google.maps.InfoWindow();
+  const $ = (id)=>document.getElementById(id);
+  const pill   = $("regPill");
+  const drawer = $("regDrawer");
+  const close  = $("regClose");
+  const tabAuto= $("tabAuto");
+  const tabD1  = $("tabD1");
+  const tabD2  = $("tabD2");
+  const slotList = $("slotList");
 
-  /* 画面外タップで InfoWindow を閉じる（④） */
-  map.addListener("click", () => { infoWindow.close(); });
+  /* InfoWindow 共通 */
+  const infoWindow = new google.maps.InfoWindow();
+  // 画面外タップで InfoWindow/ドロワーを閉じる
+  map.addListener("click", () => {
+    infoWindow.close();
+    drawer.style.display = "none";
+  });
 
-  /* 表示範囲制限：地図選択エリア（fit後に+3段階ズーム）＋minZoomロック（④） */
+  /* 表示範囲制限：地図選択エリア（fit後に+3段階ズーム）＋minZoomロック */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -262,14 +274,13 @@ async function initMap() {
         map.fitBounds(bounds);
         google.maps.event.addListenerOnce(map, "idle", ()=>{
           const z = map.getZoom() ?? 15;
-          map.setZoom(Math.min(z + 3, 20));  // もう1段階拡大して開始（③）
-          minZoomLock = map.getZoom();       // ← このズームより外側（ズームアウト）にさせない
+          map.setZoom(Math.min(z + 3, 20));  // さらに1段階拡大して開始
+          minZoomLock = map.getZoom();       // ズームアウト制限
           map.setOptions({
             restriction:{ latLngBounds: bounds, strictBounds:true },
             minZoom: minZoomLock
           });
         });
-        // 万一ズームアウトしたら戻す（④）
         map.addListener("zoom_changed", ()=>{
           if (minZoomLock != null && map.getZoom() < minZoomLock) {
             map.setZoom(minZoomLock);
@@ -279,7 +290,7 @@ async function initMap() {
     }
   } catch(e){ console.warn(e); }
 
-  /* 走行エリア（青線のみ・塗りなし）常時表示（①/③可視性UPのため太め） */
+  /* 走行エリア（青線のみ・塗りなし）常時表示 */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
   /* POI（初期ON）＋クリックで情報ウィンドウ */
@@ -293,11 +304,9 @@ async function initMap() {
       return m;
     });
 
-  const $ = id => document.getElementById(id);
-
-  infoMarkers = makePoi(INFO_POINTS, CONFIG.ICONS.info);
-  wcMarkers   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
-  parkMarkers = makePoi(PARK_POINTS, CONFIG.ICONS.park);
+  const infoMarkers = makePoi(INFO_POINTS, CONFIG.ICONS.info);
+  const wcMarkers   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
+  const parkMarkers = makePoi(PARK_POINTS, CONFIG.ICONS.park);
 
   /* 左：表示トグル */
   let infoOn=true, wcOn=true, parkOn=true;
@@ -313,10 +322,10 @@ async function initMap() {
 
   /* 山車の現在地（クリックで 4行構成の狭幅ウインドウ） */
   let dashiMarker = null;
-  const pos = await fetchLatestPosition().catch(()=>null);
-  if (pos) {
-    const p = { lat: pos.latitude, lng: pos.longitude };
-    latestPositionTime = new Date(pos.deviceTime || pos.fixTime || pos.serverTime || Date.now());
+  const latest = await fetchLatestPosition().catch(()=>null);
+  if (latest) {
+    const p = { lat: latest.latitude, lng: latest.longitude };
+    latestPositionTime = new Date(latest.deviceTime || latest.fixTime || latest.serverTime || Date.now());
 
     dashiMarker = new google.maps.Marker({
       position: p, map, title:"桜町区", zIndex: 3000,
@@ -335,7 +344,7 @@ async function initMap() {
     dashiMarker.addListener("click", openDashiIW);
 
     // 下メニュー「山車」→ 現在地へパン＆ウインドウ表示
-    $("bDashi").addEventListener("click", ()=>{
+    document.getElementById("bDashi").addEventListener("click", ()=>{
       if (!dashiMarker) return;
       map.panTo(dashiMarker.getPosition());
       openDashiIW();
@@ -351,24 +360,17 @@ async function initMap() {
       }
     }, CONFIG.POLL_MS);
   } else {
-    // 下メニュー「山車」→ 位置未取得でもマップだけフォーカス
-    $("bDashi").addEventListener("click", ()=>{
+    // 位置未取得でも「山車」押下時にフォーカス移動
+    document.getElementById("bDashi").addEventListener("click", ()=>{
       map.setZoom(16);
       map.panTo(MAP_CENTER);
     });
   }
 
-  /* 右上：交通規制ピル → ドロワー（手動選択時はピルに日時を出す） */
-  const pill   = $("regPill");
-  const drawer = $("regDrawer");
-  const close  = $("regClose");
-  const tabAuto= $("tabAuto");
-  const tabD1  = $("tabD1");
-  const tabD2  = $("tabD2");
-  const slotList = $("slotList");
-
+  /* 右上：交通規制ピル → ドロワー */
   function openDrawer(){ drawer.style.display="block"; }
   function closeDrawer(){ drawer.style.display="none"; }
+
   pill.addEventListener("click", openDrawer);
   close.addEventListener("click", closeDrawer);
   document.addEventListener("click", (e)=>{
@@ -407,9 +409,10 @@ async function initMap() {
 
   /* 下ボタン（交通規制/現在地/ヘルプ） */
   const tapOpen = (e)=>{ e.preventDefault(); openDrawer(); };
-  $("bTraffic").addEventListener("click", tapOpen, {passive:false});
-  $("bTraffic").addEventListener("touchstart", tapOpen, {passive:false});
-  $("bMyLoc").addEventListener("click", ()=>{
+  document.getElementById("bTraffic").addEventListener("click", tapOpen, {passive:false});
+  document.getElementById("bTraffic").addEventListener("touchstart", tapOpen, {passive:false});
+
+  document.getElementById("bMyLoc").addEventListener("click", ()=>{
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos)=>{
         const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
@@ -418,14 +421,9 @@ async function initMap() {
       });
     }
   });
-  $("bHelp").addEventListener("click", ()=>{
-    document.getElementById("helpModal").style.display="flex";
-  });
-  document.getElementById("helpClose").addEventListener("click", ()=>{
-    document.getElementById("helpModal").style.display="none";
-  });
-  document.getElementById("helpModal").addEventListener("click",(e)=>{
-    if(e.target.id==="helpModal") e.currentTarget.style.display="none";
+
+  document.getElementById("bHelp").addEventListener("click", ()=>{
+    alert("ヘルプは後ほど掲載します。"); // 簡易（モーダル実装を入れない軽量版）
   });
 }
 
