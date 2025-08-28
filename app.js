@@ -211,7 +211,7 @@ async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapTypeControl: false,
+    mapTypeControl: false,      // 左上の地図/航空切替は削除
     fullscreenControl: true,
     streetViewControl: false,
     clickableIcons: true,
@@ -220,7 +220,7 @@ async function initMap() {
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* 表示範囲制限：地図選択エリア */
+  /* 表示範囲制限：地図選択エリア（fit後に+2段階ズーム） */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -238,12 +238,17 @@ async function initMap() {
         const bounds = new google.maps.LatLngBounds();
         coords.forEach(c=>bounds.extend(c));
         map.fitBounds(bounds);
+        // idle後に+2段階ズーム（過度な引き状態を防ぐ）
+        const once = google.maps.event.addListenerOnce(map, "idle", ()=>{
+          const z = map.getZoom() ?? 15;
+          map.setZoom(Math.min(z + 2, 20));
+        });
         map.setOptions({ restriction:{ latLngBounds: bounds, strictBounds:true }});
       }
     }
   } catch(e){ console.warn(e); }
 
-  /* ④ 走行エリア（青線のみ・塗りなし）常時表示 */
+  /* 走行エリア（青線のみ・塗りなし）常時表示 */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
   /* POI（初期ON） */
@@ -344,7 +349,7 @@ async function initMap() {
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* 下ボタンの動作（タップ反応を明示＋iOS向けtouchstart） */
+  /* 下ボタン */
   const tapOpen = (e)=>{ e.preventDefault(); openDrawer(); };
   $("bDashi").addEventListener("click", ()=>{
     if (dashiMarker) map.panTo(dashiMarker.getPosition());
