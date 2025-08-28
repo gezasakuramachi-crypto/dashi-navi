@@ -56,7 +56,7 @@ const PARK_POINTS = [
   { title:"鹿嶋市営鹿島神宮駅西駐車場", lat:35.97, lng:140.6238333 },
 ];
 
-/* === 交通規制（公開済みGeoJSONのURL名に合わせる） === */
+/* === 交通規制 GeoJSON === */
 const DAYS = [
   { id:"d1", label:"9/1", slots:[
     { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
@@ -193,7 +193,7 @@ function buildSlotButtons(day) {
   });
 }
 
-/* 山車 InfoWindow HTML（ご指定の4行構成） */
+/* 山車 InfoWindow HTML（最小限＋ボタン見た目改善（④）） */
 function buildDashiInfoContent(position, updateDate) {
   const now = new Date();
   const ageSec = updateDate ? Math.floor((now.getTime() - updateDate.getTime())/1000) : null;
@@ -207,8 +207,10 @@ function buildDashiInfoContent(position, updateDate) {
     <div class="iw iw-narrow">
       <div class="title">桜町区</div>
       <div class="status">${statusText}</div>
-      <div><a class="btn" href="${dirUrl}" target="_blank" rel="noopener">経路表示</a></div>
-      <div><a class="btn" href="${routeMapUrl}" target="_blank" rel="noopener">経路図</a></div>
+      <div class="btnrow">
+        <a class="btn" href="${dirUrl}" target="_blank" rel="noopener"><span class="dot"></span>経路表示</a>
+        <a class="btn" href="${routeMapUrl}" target="_blank" rel="noopener"><span class="dot"></span>経路図</a>
+      </div>
     </div>
   `;
 }
@@ -231,7 +233,7 @@ async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapTypeControl: false,      // 左上の地図/航空切替は削除（ご要望反映済み）
+    mapTypeControl: false,      // 左上の地図/航空切替は表示しない
     fullscreenControl: true,
     streetViewControl: false,
     clickableIcons: true,
@@ -240,10 +242,10 @@ async function initMap() {
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* 画面外タップで InfoWindow を閉じる（④） */
+  /* 画面外タップで InfoWindow を閉じる */
   map.addListener("click", () => { infoWindow.close(); });
 
-  /* 表示範囲制限：地図選択エリア（fit後に+2段階ズーム） */
+  /* 表示範囲制限：地図選択エリア（fit後に+3段階ズーム：③の要望で+1段階増） */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -261,12 +263,12 @@ async function initMap() {
         const bounds = new google.maps.LatLngBounds();
         coords.forEach(c=>bounds.extend(c));
         map.fitBounds(bounds);
-        // idle後に+2段階ズーム（過度な引き状態を防ぐ）
+        // idle後に+3段階ズーム（従来+2 → もう1段階拡大：③）
         google.maps.event.addListenerOnce(map, "idle", ()=>{
           const z = map.getZoom() ?? 15;
-          map.setZoom(Math.min(z + 2, 20));
+          map.setZoom(Math.min(z + 3, 20));
         });
-        // エリア外に出さない
+        // エリア外に出さない（②）
         map.setOptions({ restriction:{ latLngBounds: bounds, strictBounds:true }});
       }
     }
@@ -286,14 +288,14 @@ async function initMap() {
       return m;
     });
 
-  infoMarkers = makePoi(INFO_POINTS, CONFIG.ICONS.info);
-  wcMarkers   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
-  parkMarkers = makePoi(PARK_POINTS, CONFIG.ICONS.park);
+  const $ = id => document.getElementById(id);
+
+  const infoMarkers = makePoi(INFO_POINTS, CONFIG.ICONS.info);
+  const wcMarkers   = makePoi(WC_POINTS,   CONFIG.ICONS.wc);
+  const parkMarkers = makePoi(PARK_POINTS, CONFIG.ICONS.park);
 
   /* 左：表示トグル */
   let infoOn=true, wcOn=true, parkOn=true;
-  const $ = id => document.getElementById(id);
-
   $("btnInfo").addEventListener("click", ()=>{
     infoOn=!infoOn; setMarkersVisible(infoMarkers,infoOn); $("btnInfo").classList.toggle("inactive",!infoOn);
   });
@@ -304,7 +306,8 @@ async function initMap() {
     parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
   });
 
-  /* 山車の現在地（クリックで 4行構成のウインドウを表示、④ 画面外タップで閉じる） */
+  /* 山車の現在地（クリックで 4行構成） */
+  let dashiMarker = null;
   const pos = await fetchLatestPosition().catch(()=>null);
   if (pos) {
     const p = { lat: pos.latitude, lng: pos.longitude };
@@ -344,7 +347,7 @@ async function initMap() {
     }, CONFIG.POLL_MS);
   } else {
     // 下メニュー「山車」→ 位置未取得でもマップだけフォーカス
-    document.getElementById("bDashi").addEventListener("click", ()=>{
+    $("bDashi").addEventListener("click", ()=>{
       map.setZoom(16);
       map.panTo(MAP_CENTER);
     });
@@ -370,8 +373,8 @@ async function initMap() {
   });
 
   async function autoUpdateTraffic(){
-    currentTrafficLabel = "";       // ラベルもクリア
-    pill.textContent = "交通規制";  // 自動に戻ったら既定文言
+    currentTrafficLabel = "";
+    pill.textContent = "交通規制";
     // JSTで当日の先頭スロットを表示（前夜祭8/31は規制なし想定）
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
