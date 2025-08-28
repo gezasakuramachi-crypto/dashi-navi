@@ -5,16 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>桜町区 山車ナビ</title>
   <style>
-    :root { --headerH: 34px; --footerH: 56px; }
+    :root{
+      /* ヘッダーは控えめ、フッターはスリム化 */
+      --headerH: 34px;
+      --footerH: 52px; /* ← 余白感の原因になりやすいので少し低めに */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
     html, body { height:100%; margin:0; }
     body { background:#000; overflow:hidden; color:#fff; }
 
-    /* Map：通常フロー＋ヘッダー/フッターぶん差し引き */
-    #map {
+    /* Map：ヘッダー/フッターぶん差し引き */
+    #map{
       width:100%;
-      height: calc(100dvh - var(--headerH) - var(--footerH));
+      height: calc(100dvh - var(--headerH) - var(--footerH) - var(--safe-bottom));
       margin-top: var(--headerH);
-      margin-bottom: var(--footerH);
+      margin-bottom: calc(var(--footerH) + var(--safe-bottom));
     }
 
     /* ヘッダー（タイトル画像） */
@@ -26,13 +31,10 @@
     }
     .app-header img{
       height: calc(var(--headerH) - 6px);
-      width: auto;
-      max-width: 98vw;
-      object-fit: contain;
-      display: block;
+      width:auto; max-width:98vw; object-fit:contain; display:block;
     }
 
-    /* 右上：交通規制ピル＋ドロワー */
+    /* 右上：交通規制ピル＋ドロワー（細身） */
     .ctrl{ position:fixed; right:8px; top: calc(var(--headerH) + 8px); z-index:11; }
     .reg-pill{
       background:#e91e63; color:#fff; text-align:center;
@@ -40,18 +42,13 @@
       border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.25);
       cursor:pointer; user-select:none; white-space:nowrap;
     }
-
     .reg-drawer{
       margin-top:8px;
-      width:10vw;                /* 全体の20%以下相当：細く保つ */
-      max-width: 180px;
-      min-width: 120px;
+      width:10vw; max-width:180px; min-width:120px; /* ← 画面幅の20%以下目安 */
       background: rgba(218,233,248,0.7);
       border:1px solid #bcd4ea; border-radius:10px;
       box-shadow:0 4px 16px rgba(0,0,0,.18);
-      padding:6px;
-      font-size:12px;            /* ← 1段階フォントアップ（⑥） */
-      color:#222; display:none;
+      padding:6px; font-size:12px; color:#222; display:none;
       -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
       max-height: 60vh; overflow:auto;
     }
@@ -70,39 +67,43 @@
     /* 左：表示切替（インフォ/トイレ/パーキングのみ） */
     .layer-ctrl{
       position:fixed; left:8px; top: calc(var(--headerH) + 8px); z-index:11;
-      display:grid; gap:8px;
+      display:grid; gap:8px; place-items:center;
       background:#fff; border:1px solid #e5e7eb; border-radius:12px;
       box-shadow:0 4px 12px rgba(0,0,0,.18);
-      padding:4px; width:36px; place-items:center;
+      padding:4px; width:36px;
     }
-    .layer-btn{ width:28px; height:28px; object-fit:contain; cursor:pointer; }
+    .layer-btn{ width:28px; height:28px; object-fit:contain; cursor:pointer; display:block; }
     .layer-btn.inactive{ filter: grayscale(100%); opacity:.55; }
 
-    /* 下：ボトムメニュー（アイコン↑/文字↓） */
+    /* 下：ボトムメニュー（アイコン↑/文字↓） — 上余白を完全になくす */
     .bottom-bar{
       position:fixed; inset:auto 0 0 0; height:var(--footerH); z-index:20;
       background:#000; color:#fff; display:grid; grid-template-columns:repeat(4,1fr);
       align-items:center; border-top:1px solid rgba(255,255,255,.12);
+      padding:0; margin:0;
+      padding-bottom: var(--safe-bottom);
     }
     .bottom-btn{
       appearance:none; background:transparent; color:#fff; border:0;
       width:100%; height:100%; cursor:pointer;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:3px; font-size:12.5px; line-height:1.1;
+      gap:2px; /* ← さらに詰める */
+      font-size:12.5px; line-height:1.1; padding:0; margin:0;
       -webkit-tap-highlight-color: transparent;
     }
-    .bottom-btn .ico{ width:38px; height:38px; object-fit:contain; } /* ← 一回り大きく（⑤） */
+    .bottom-btn .ico{ width:38px; height:38px; object-fit:contain; display:block; margin:0; }
+    .bottom-btn span{ display:block; margin:0; }
 
-    /* InfoWindow（山車・POI）細身 */
+    /* InfoWindow（山車・POI）さらに細く */
     .gm-style .gm-style-iw-c{ padding:6px !important; }
     .iw { font:13px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif; color:#333; }
-    .iw-narrow { width: 168px; }  /* ← もう少し小さく（④） */
+    .iw-narrow { width: 150px; }  /* ← さらに狭く（②） */
     .iw .title{ font-weight:700; font-size:13.5px; margin:0 0 4px; color:#202124; }
     .iw .status{ font-size:12px; margin:2px 0 6px; color:#555; }
-    .iw .btnrow{ display:flex; gap:6px; flex-wrap:wrap; }
+    .iw .btnrow{ display:flex; flex-direction:column; gap:6px; } /* ← ボタンを縦並び（②） */
     .iw .btn{
       appearance:none; border:1px solid #dadce0; background:#fff; border-radius:999px;
-      padding:6px 10px; font-size:12px; cursor:pointer; margin-top:2px;
+      padding:6px 10px; font-size:12px; cursor:pointer; margin:0;
       box-shadow:0 1px 2px rgba(0,0,0,.12);
       display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:#1a73e8;
     }
