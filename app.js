@@ -2,7 +2,7 @@
 const CONFIG = {
   SERVER_BASE: "https://traccar-railway.fly.dev",
   DEVICE_ID: 1,
-  /* 新トークンへ更新（ユーザー提供） */
+  /* 提供いただいた新トークン */
   PUBLIC_BEARER:
     "RzBFAiEAgbx61XQasV2upPQVJbBqrLh-xXi3-itlpVvbfW8XyGQCIEltaFXtQnEqVcz0W1Ajxc202t3DYetBvT4LIi1_B5B_eyJ1Ijo3LCJlIjoiMjAyNS0wOS0wM1QxNTowMDowMC4wMDArMDA6MDAifQ",
   POLL_MS: 5000,
@@ -60,7 +60,7 @@ const PARK_POINTS = [
 /* === 交通規制（公開済みGeoJSONのURL名に合わせる） === */
 const DAYS = [
   { id:"d1", label:"9/1", slots:[
-    { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" }, /* ⑥ ここが表示されるよう確認 */
+    { shortLabel:"10:30-", key:"91-1030-1500", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1030-1500.geojson" },
     { shortLabel:"15:00-", key:"91-1500-1600", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1500-1600.geojson" },
     { shortLabel:"16:00-", key:"91-1600-1930", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1600-1930.geojson" },
     { shortLabel:"19:30-", key:"91-1930-2045", src:"https://gezasakuramachi-crypto.github.io/dashi-navi/data/91-1930-2045.geojson" },
@@ -89,14 +89,13 @@ function getRouteMapUrlByDateJST() {
   if (override && ROUTE_URLS[override]) return ROUTE_URLS[override];
 
   const jstNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-  const y = jstNow.getFullYear();
   const m = jstNow.getMonth() + 1;
   const d = jstNow.getDate();
 
-  // ⑤ 8/31までは常に8/31の経路図へ
+  // 8/31までは常に8/31の経路図へ
   if (m < 8 || (m === 8 && d <= 31)) return ROUTE_URLS["0831"];
-  if (m === 9 && d === 1) return ROUTE_URLS["0901"];
-  if (m === 9 && d === 2) return ROUTE_URLS["0902"];
+  if (m === 9 && d === 1)  return ROUTE_URLS["0901"];
+  if (m === 9 && d === 2)  return ROUTE_URLS["0902"];
   // 開催日外は9/1を既定
   return ROUTE_URLS["0901"];
 }
@@ -105,7 +104,7 @@ function getRouteMapUrlByDateJST() {
 let map, dashiMarker, infoWindow;
 let infoMarkers = [], wcMarkers = [], parkMarkers = [];
 let trafficOverlays = [];  // 規制表示
-let runAreaOverlays = [];  // ⑦ 走行エリア表示
+let runAreaOverlays = [];  // 走行エリア表示
 
 /* ========= ユーティリティ ========= */
 async function fetchLatestPosition() {
@@ -224,7 +223,7 @@ async function initMap() {
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* ⑧ 地図選択エリア（fit + restriction） */
+  /* 地図選択エリア（fit + restriction） */
   try {
     const res = await fetch(MAP_VIEWPORT_SRC);
     if (res.ok) {
@@ -248,7 +247,7 @@ async function initMap() {
     }
   } catch(e){ console.warn(e); }
 
-  /* ⑦ 走行エリア（青線のみ・塗りなし） */
+  /* 走行エリア（青線のみ・塗りなし） */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
   /* POI（初期は表示ON） */
@@ -260,7 +259,7 @@ async function initMap() {
   const parkMarkersLocal = makePoi(PARK_POINTS, CONFIG.ICONS.park);
   infoMarkers = infoMarkersLocal; wcMarkers = wcMarkersLocal; parkMarkers = parkMarkersLocal;
 
-  /* ② 左：表示トグル */
+  /* 左：表示トグル */
   let infoOn=true, wcOn=true, parkOn=true;
   const $ = id => document.getElementById(id);
 
@@ -349,12 +348,14 @@ async function initMap() {
   // 初期は自動
   await autoUpdateTraffic();
 
-  /* ③/④ 下ボタンの動作（④ 交通規制ボタンが反応しない→明示的にイベント割当） */
-  document.getElementById("bDashi").addEventListener("click", ()=>{
+  /* 下ボタンの動作（④ タップ反応を明示＋iOS向けtouchstart） */
+  const tapOpen = (e)=>{ e.preventDefault(); openDrawer(); };
+  $("bDashi").addEventListener("click", ()=>{
     if (dashiMarker) map.panTo(dashiMarker.getPosition());
   });
-  document.getElementById("bTraffic").addEventListener("click", openDrawer);
-  document.getElementById("bMyLoc").addEventListener("click", ()=>{
+  $("bTraffic").addEventListener("click", tapOpen, {passive:false});
+  $("bTraffic").addEventListener("touchstart", tapOpen, {passive:false});
+  $("bMyLoc").addEventListener("click", ()=>{
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos)=>{
         const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
@@ -363,7 +364,7 @@ async function initMap() {
       });
     }
   });
-  document.getElementById("bHelp").addEventListener("click", ()=>{
+  $("bHelp").addEventListener("click", ()=>{
     document.getElementById("helpModal").style.display="flex";
   });
   document.getElementById("helpClose").addEventListener("click", ()=>{
