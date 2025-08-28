@@ -2,174 +2,174 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>鹿嶋のご神幸 山車ナビ</title>
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>桜町区 山車ナビ</title>
   <style>
     :root{
-      --headerH: 48px;          /* タイトル帯の固定高さ（iPhone SEでも安全） */
-      --footerH: 82px;          /* 下メニューバーの高さ */
-      --pad: 10px;
-      --z-header: 20;
-      --z-ui: 30;
-      --z-top: 40;
+      --headerH: 34px;             /* ヘッダー（タイトル画像）高さ */
+      --footerH: 52px;             /* フッター最小高さ（アイコン＋ラベル） */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
-    *{ box-sizing: border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0; background:#000; color:#111;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif;
+    html, body { height:100%; margin:0; }
+    body { background:#000; color:#fff; overflow:hidden; }
+
+    /* Map：ヘッダー/フッターぶん差し引き（iOSで安定する svh を優先） */
+    #map{
+      width:100%;
+      height: calc(100svh - var(--headerH) - (var(--footerH) + var(--safe-bottom)));
+      margin-top: var(--headerH);
+      margin-bottom: calc(var(--footerH) + var(--safe-bottom));
+      touch-action: manipulation;
+    }
+
+    /* ヘッダー（タイトル画像） */
+    .app-header{
+      position:fixed; inset:0 0 auto 0; z-index:10;
+      display:flex; align-items:center; justify-content:center;
+      background:#000; box-shadow:0 2px 8px rgba(0,0,0,.25);
+      height:var(--headerH); padding:2px 6px;
+    }
+    .app-header img{
+      height: calc(var(--headerH) - 6px);
+      width:auto; max-width:98vw; object-fit:contain; display:block;
+    }
+
+    /* 右上：交通規制ピル＋ドロワー（細身≒画面幅の20%以下） */
+    .ctrl{ position:fixed; right:8px; top: calc(var(--headerH) + 8px); z-index:11; }
+    .reg-pill{
+      background:#e91e63; color:#fff; text-align:center;
+      font-size:13px; line-height:1; padding:5px 10px;
+      border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.25);
+      cursor:pointer; user-select:none; white-space:nowrap;
+    }
+    .reg-drawer{
+      margin-top:8px;
+      width: 18vw;           /* 画面幅の20%以下を満たすよう少し小さめの目安 */
+      max-width:180px; min-width:120px;
+      background: rgba(218,233,248,0.7);
+      border:1px solid #bcd4ea; border-radius:10px;
+      box-shadow:0 4px 16px rgba(0,0,0,.18);
+      padding:6px; font-size:12px; color:#222; display:none;
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      max-height: 60vh; overflow:auto;
+    }
+    .reg-drawer .title-row{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .reg-drawer .title{ font-weight:700; font-size:13px; }
+    .reg-drawer .close{ border:1px solid #7aa7d6; background:#fff; padding:3px 8px; border-radius:8px; font-size:12px; cursor:pointer; }
+    .vstack{ display:grid; gap:6px; }
+    .tab{ text-align:center; border:1px solid #88b5e6; background:#fff; border-radius:8px; padding:5px 0; cursor:pointer; user-select:none; }
+    .tab.active{ background:#e9f2ff; border-color:#5ea2ff; font-weight:700; }
+    .legend{ display:flex; align-items:center; gap:6px; font-size:12px; color:#333; margin:6px 0; }
+    .sw{ width:10px; height:10px; border-radius:3px; border:1px solid #ff0000; background:#ff99cc; opacity:.7 }
+    .slotlist{ display:grid; gap:6px; }
+    .slotbtn{ padding:5px; border:1px solid #b9cfe8; border-radius:8px; background:#fff; text-align:center; cursor:pointer; font-size:12px; }
+    .slotbtn.active{ background:#5ea2ff; color:#fff; border-color:#5ea2ff; }
+
+    /* 左：表示切替（インフォ/トイレ/パーキングのみ） */
+    .layer-ctrl{
+      position:fixed; left:8px; top: calc(var(--headerH) + 8px); z-index:11;
+      display:grid; gap:8px; place-items:center;
+      background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.18);
+      padding:4px; width:36px;
+    }
+    .layer-btn{ width:28px; height:28px; object-fit:contain; cursor:pointer; display:block; }
+    .layer-btn.inactive{ filter: grayscale(100%); opacity:.55; }
+
+    /* 下：ボトムメニュー（アイコン↑/文字↓）— 謎の黒帯を無くす */
+    .bottom-bar{
+      position:fixed; inset:auto 0 0 0;
+      height: calc(var(--footerH) + var(--safe-bottom)); /* 高さにsafe-area分を含める */
+      z-index:20;
+      background:#000; color:#fff; display:grid; grid-template-columns:repeat(4,1fr);
+      align-items:center; border-top:1px solid rgba(255,255,255,.12);
+      padding:0; margin:0; /* 余白ゼロ */
+    }
+    .bottom-btn{
+      appearance:none; background:transparent; color:#fff; border:0;
+      width:100%; height:100%; cursor:pointer;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:1px;  /* さらに詰める */
+      font-size:13px; line-height:1.1;
+      padding:0; margin:0;
       -webkit-tap-highlight-color: transparent;
     }
+    .bottom-btn .ico{ width:40px; height:40px; object-fit:contain; display:block; margin:0; }
+    .bottom-btn span{ display:block; margin:0; padding:0; }
 
-    /* ── ヘッダー（タイトル画像：左寄せ・指定の小さめ） ── */
-    .app-header{
-      position:fixed; left:0; right:0; top:0; height:var(--headerH);
-      display:flex; align-items:center; gap:8px; padding:6px 10px;
-      background:#000; z-index:var(--z-header);
-      box-shadow:0 2px 8px rgba(0,0,0,.25);
+    /* InfoWindow をさらに細く（山車・POI共通） */
+    .gm-style .gm-style-iw-c{ padding:6px !important; }
+    .iw { font:13px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif; color:#333; }
+    .iw-narrow { width: 150px; } /* 狭幅指定 */
+    .iw .title{ font-weight:700; font-size:13.5px; margin:0 0 4px; color:#202124; }
+    .iw .status{ font-size:12px; margin:2px 0 6px; color:#555; }
+    .iw .btnrow{ display:flex; flex-direction:column; gap:6px; } /* 経路表示→経路図の縦並び */
+    .iw .btn{
+      appearance:none; border:1px solid #dadce0; background:#fff; border-radius:999px;
+      padding:6px 10px; font-size:12px; cursor:pointer; margin:0;
+      box-shadow:0 1px 2px rgba(0,0,0,.12);
+      display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:#1a73e8;
     }
-    .title-img{
-      height:calc(var(--headerH) - 12px);
-      width:auto; object-fit:contain; display:block;
-    }
-
-    /* ── 地図 ──
-       100dvh: iOSのアドレスバー込み問題を回避
-       env(safe-area-inset-bottom) を底に足す
-    */
-    #map{
-      position:fixed; left:0; right:0; top:var(--headerH);
-      height:calc(100dvh - var(--headerH) - var(--footerH) - env(safe-area-inset-bottom,0px));
-      background:#eaeaea;    /* もし地図が出なくても真っ黒にならないように */
-    }
-    /* フォールバック：古いiOS用（100vhが小さくなる場合） */
-    @supports not (height: 100dvh){
-      #map{ height:calc(100vh - var(--headerH) - var(--footerH) - env(safe-area-inset-bottom,0px)); }
-    }
-
-    /* ── 左の縦アイコン（情報/トイレ/駐車場） ── */
-    .left-stack{
-      position:fixed; left:10px; top:calc(var(--headerH) + 10px); z-index:var(--z-ui);
-    }
-    .stack-card{ background:#fff; border-radius:14px; box-shadow:0 6px 18px rgba(0,0,0,.18); padding:8px; display:grid; gap:8px; }
-    .stack-btn{ width:48px; height:48px; border-radius:10px; display:grid; place-items:center; background:#fff; border:1px solid #e6e6e6; }
-    .stack-btn img{ width:36px; height:36px; display:block; }
-
-    /* ── 右上：交通規制ピル ── */
-    .traffic-pill{
-      position:fixed; right:12px; top:calc(var(--headerH) + 8px); z-index:var(--z-ui);
-      background:#ff2d55; color:#fff; font-weight:700; border:0; cursor:pointer;
-      padding:8px 10px; border-radius:9999px; box-shadow:0 6px 18px rgba(0,0,0,.18);
-      font-size:14px; line-height:1; -webkit-user-select:none; user-select:none;
-    }
-
-    /* ── 左下：経路FAB（Googleマップへ） ── */
-    .route-fab{
-      position:fixed; left:14px; z-index:var(--z-ui);
-      bottom:calc(var(--footerH) + 14px + env(safe-area-inset-bottom,0px));
-      width:56px; height:56px; border-radius:16px; border:0; cursor:pointer;
-      background:#0b8cff; color:#fff; font-size:22px;
-      display:grid; place-items:center; box-shadow:0 10px 22px rgba(11,140,255,.35);
-    }
-
-    /* ── 下メニューバー（以前どおり：黒/アイコン＋文字） ── */
-    .bottom-bar{
-      position:fixed; left:0; right:0; bottom:0; z-index:var(--z-top);
-      height:calc(var(--footerH) + env(safe-area-inset-bottom,0px));
-      padding-bottom:env(safe-area-inset-bottom,0px);
-      background:#000; color:#fff;
-      display:grid; grid-template-columns:repeat(4,1fr); align-items:center;
-      border-top:1px solid rgba(255,255,255,.08);
-    }
-    .nav-btn{
-      display:grid; grid-template-rows:auto auto; justify-items:center; align-content:center;
-      row-gap:6px; padding:8px 0; background:none; border:0; color:#fff;
-    }
-    .nav-btn .icon{ width:38px; height:38px; border-radius:999px; display:grid; place-items:center; background:#111; border:1px solid #222; box-shadow:inset 0 0 0 1px rgba(255,255,255,.05); }
-    .nav-btn .icon img{ width:28px; height:28px; display:block; }
-    .nav-btn .label{ font-size:12px; letter-spacing:.02em; }
-
-    /* ── InfoWindow を細身に ── */
-    .gm-style .gm-style-iw-c{ max-width:240px !important; padding:8px 10px !important; border-radius:14px !important; }
-    .gm-style .gm-style-iw-d{ overflow:auto !important; max-height:calc(100dvh - 220px) !important; }
-
-    /* デバッグ用バナー（地図初期化失敗時） */
-    #map-error{
-      position:fixed; inset:auto 10px calc(var(--footerH) + 10px + env(safe-area-inset-bottom,0px)) 10px;
-      z-index:9999; background:#ff3b30; color:#fff; padding:8px 12px; border-radius:10px;
-      font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,.25); display:none;
-    }
+    .iw .btn .dot{ width:6px; height:6px; border-radius:50%; background:#1a73e8; }
   </style>
 </head>
 <body>
-
-  <!-- ヘッダー（ご指定のタイトル画像・左寄せ） -->
+  <!-- ヘッダー（タイトル画像） -->
   <header class="app-header">
-    <img class="title-img" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/title.png" alt="鹿嶋のご神幸" />
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/title.png" alt="鹿嶋のご神幸">
   </header>
 
-  <!-- 地図 -->
-  <div id="map" role="application" aria-label="山車ナビ地図"></div>
-  <div id="map-error">地図の読み込みに失敗しました。APIキーやネットワークをご確認ください。</div>
-
-  <!-- 左：情報/トイレ/駐車場 -->
-  <div class="left-stack">
-    <div class="stack-card">
-      <button class="stack-btn" id="btn-info" title="インフォメーション表示/非表示">
-        <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png" alt="info" />
-      </button>
-      <button class="stack-btn" id="btn-toilet" title="トイレ表示/非表示">
-        <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/toilet.png" alt="toilet" />
-      </button>
-      <button class="stack-btn" id="btn-parking" title="駐車場表示/非表示">
-        <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" alt="parking" />
-      </button>
-    </div>
+  <!-- 右上：交通規制 -->
+  <div class="ctrl">
+    <div class="reg-pill" id="regPill">交通規制</div>
+    <aside class="reg-drawer" id="regDrawer" aria-hidden="true">
+      <div class="title-row">
+        <div class="title">交通規制</div>
+        <button id="regClose" class="close" type="button">閉じる</button>
+      </div>
+      <div class="vstack">
+        <div id="tabAuto" class="tab active">自動更新</div>
+        <div id="tabD1"   class="tab">9/1</div>
+        <div id="tabD2"   class="tab">9/2</div>
+      </div>
+      <div class="legend"><span class="sw"></span>交通規制</div>
+      <div id="slotList" class="slotlist"></div>
+    </aside>
   </div>
 
-  <!-- 右上：交通規制 -->
-  <button class="traffic-pill" id="traffic-pill" type="button">交通<br>規制</button>
+  <!-- 左：表示切替（インフォ/トイレ/パーキングのみ） -->
+  <div class="layer-ctrl" id="layerCtrl" title="表示の切替">
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/info.png"    id="btnInfo" class="layer-btn" title="インフォ">
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/wc.png"      id="btnWC" class="layer-btn" title="トイレ">
+    <img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png" id="btnPark" class="layer-btn" title="駐車場">
+  </div>
 
-  <!-- 左下：経路（Googleマップへ） -->
-  <button class="route-fab" id="route-fab" type="button" aria-label="山車までの経路">➤</button>
+  <!-- 地図 -->
+  <div id="map"></div>
 
-  <!-- 下ナビ（山車 / 交通規制 / 現在地 / ヘルプ）-->
+  <!-- 下：ボトムメニュー（アイコン↑/文字↓） -->
   <nav class="bottom-bar">
-    <button class="nav-btn" id="nav-dashi" type="button" aria-label="山車">
-      <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png" alt=""></span>
-      <span class="label">山車</span>
+    <button class="bottom-btn" id="bDashi" title="山車" type="button">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/sakura.png" alt="">
+      <span>山車</span>
     </button>
-    <button class="nav-btn" id="nav-traffic" type="button" aria-label="交通規制">
-      <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry.png" alt=""></span>
-      <span class="label">交通規制</span>
+    <button class="bottom-btn" id="bTraffic" title="交通規制" type="button">
+      <img class="ico" id="icoTraffic"
+           src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/no_entry.png" alt="">
+      <span>交通規制</span>
     </button>
-    <button class="nav-btn" id="nav-locate" type="button" aria-label="現在地">
-      <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/locate.png" alt=""></span>
-      <span class="label">現在地</span>
+    <button class="bottom-btn" id="bMyLoc" title="現在地" type="button">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/myloc.svg" alt=""
+           onerror="this.src='data:image/svg+xml;utf8,<?xml version=&quot;1.0&quot;?><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot; fill=&quot;%234285f4&quot;/><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;8&quot; fill=&quot;none&quot; stroke=&quot;%234285f4&quot; stroke-width=&quot;2&quot;/><path d=&quot;M12 2v3M12 19v3M2 12h3M19 12h3&quot; stroke=&quot;%234285f4&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot;/></svg>';">
+      <span>現在地</span>
     </button>
-    <button class="nav-btn" id="nav-help" type="button" aria-label="ヘルプ">
-      <span class="icon"><img src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/help.png" alt=""></span>
-      <span class="label">ヘルプ</span>
+    <button class="bottom-btn" id="bHelp" title="ヘルプ" type="button">
+      <img class="ico" src="https://gezasakuramachi-crypto.github.io/dashi-navi/mark/help.png" alt="">
+      <span>ヘルプ</span>
     </button>
   </nav>
 
-  <!-- アプリ本体 -->
-  <script src="./app.js"></script>
-
-  <!-- Google Maps（キーを差し替え） -->
-  <script>
-    // 読み込み失敗時の検知
-    window.gm_authFailure = function(){ document.getElementById('map-error').style.display='block'; };
-    window.addEventListener('error', function(e){
-      if (String(e?.filename||'').includes('maps.googleapis.com')){
-        document.getElementById('map-error').style.display='block';
-      }
-    }, true);
-  </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=marker&callback=initMap"></script>
+  <script src="app.js"></script>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCExrqcE4MPmievjTlV8wFJrVtKcbKWqX8&callback=initMap&v=weekly&language=ja"></script>
 </body>
 </html>
