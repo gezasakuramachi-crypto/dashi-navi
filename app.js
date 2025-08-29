@@ -13,7 +13,7 @@ const CONFIG = {
     park:   "https://gezasakuramachi-crypto.github.io/dashi-navi/mark/parking.png",
   },
 
-  POI_ICON_PX: 20
+  POI_ICON_PX: 48
 };
 
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
