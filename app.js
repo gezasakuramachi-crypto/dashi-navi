@@ -19,7 +19,7 @@ const CONFIG = {
 const MAP_CENTER = { lat: 35.966, lng: 140.628 };
 const MAP_ZOOM   = 15;
 
-/* === 規制スタイル（枠=赤0.5 / 塗り=淡ピンク） === */
+/* === 規制スタイル（枠=赤 / 塗り=淡ピンク） === */
 const STYLE = {
   line:   { strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:1.0, zIndex:3002 },
   polygon:{ strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:1.0, fillColor:"#ff99cc", fillOpacity:0.35, zIndex:3002 }
@@ -100,8 +100,8 @@ function getRouteMapUrlByDateJST() {
 /* ========= 変数 ========= */
 let map, dashiMarker, infoWindow;
 let infoMarkers = [], wcMarkers = [], parkMarkers = [];
-let trafficOverlays = [];  // 規制表示
-let runAreaOverlays = [];  // 走行エリア表示
+let trafficOverlays = [];   // 規制表示
+let runAreaOverlays = [];   // 走行エリア表示
 let latestPositionTime = null;  // 直近の位置時刻
 let currentTrafficLabel = "";   // ピル表示用（例: "9/1 15:00-"）
 
@@ -168,7 +168,7 @@ async function showTrafficBySrc(src) {
   trafficOverlays.forEach(o => o.setMap(null));
   trafficOverlays = [];
   if (!src) return;
-  const added = await addGeoJsonAsOverlays(src, {}); // 既定STYLE（枠赤0.5/塗りピンク）
+  const added = await addGeoJsonAsOverlays(src, {}); // 既定STYLE
   trafficOverlays = added;
 }
 
@@ -193,7 +193,7 @@ function buildSlotButtons(day) {
   });
 }
 
-/* 山車 InfoWindow HTML（ご指定の4行構成） */
+/* 山車 InfoWindow HTML（4行構成） */
 function buildDashiInfoContent(position, updateDate) {
   const now = new Date();
   const ageSec = updateDate ? Math.floor((now.getTime() - updateDate.getTime())/1000) : null;
@@ -231,7 +231,7 @@ async function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: MAP_CENTER,
     zoom: MAP_ZOOM,
-    mapTypeControl: false,      // 左上の地図/航空切替は削除（ご要望反映済み）
+    mapTypeControl: false,
     fullscreenControl: true,
     streetViewControl: false,
     clickableIcons: true,
@@ -240,7 +240,7 @@ async function initMap() {
 
   infoWindow = new google.maps.InfoWindow();
 
-  /* 画面外タップで InfoWindow を閉じる（④） */
+  /* 画面外タップで InfoWindow を閉じる */
   map.addListener("click", () => { infoWindow.close(); });
 
   /* 表示範囲制限：地図選択エリア（fit後に+2段階ズーム） */
@@ -261,18 +261,16 @@ async function initMap() {
         const bounds = new google.maps.LatLngBounds();
         coords.forEach(c=>bounds.extend(c));
         map.fitBounds(bounds);
-        // idle後に+2段階ズーム（過度な引き状態を防ぐ）
         google.maps.event.addListenerOnce(map, "idle", ()=>{
           const z = map.getZoom() ?? 15;
           map.setZoom(Math.min(z + 2, 20));
         });
-        // エリア外に出さない
         map.setOptions({ restriction:{ latLngBounds: bounds, strictBounds:true }});
       }
     }
   } catch(e){ console.warn(e); }
 
-  /* 走行エリア（青線のみ・塗りなし）常時表示（①） */
+  /* 走行エリア（青線のみ・塗りなし）常時表示 */
   runAreaOverlays = await addGeoJsonAsOverlays(RUNAREA_SRC, RUNAREA_STYLE);
 
   /* POI（初期ON）＋クリックで情報ウィンドウ */
@@ -304,7 +302,7 @@ async function initMap() {
     parkOn=!parkOn; setMarkersVisible(parkMarkers,parkOn); $("btnPark").classList.toggle("inactive",!parkOn);
   });
 
-  /* 山車の現在地（クリックで 4行構成のウインドウを表示、④ 画面外タップで閉じる） */
+  /* 山車の現在地（クリックで 4行構成のウインドウ） */
   const pos = await fetchLatestPosition().catch(()=>null);
   if (pos) {
     const p = { lat: pos.latitude, lng: pos.longitude };
@@ -350,7 +348,7 @@ async function initMap() {
     });
   }
 
-  /* 右上：交通規制ピル → ドロワー（手動選択時はピルに日時を出す） */
+  /* 右上：交通規制ピル → ドロワー */
   const pill   = $("regPill");
   const drawer = $("regDrawer");
   const close  = $("regClose");
@@ -370,8 +368,8 @@ async function initMap() {
   });
 
   async function autoUpdateTraffic(){
-    currentTrafficLabel = "";       // ラベルもクリア
-    pill.textContent = "交通規制";  // 自動に戻ったら既定文言
+    currentTrafficLabel = "";
+    pill.textContent = "交通規制";
     // JSTで当日の先頭スロットを表示（前夜祭8/31は規制なし想定）
     const jst = new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Tokyo"}));
     const m=jst.getMonth()+1, d=jst.getDate();
@@ -405,17 +403,22 @@ async function initMap() {
   };
   $("bTraffic").addEventListener("click", toggleDrawer, {passive:false});
   $("bTraffic").addEventListener("touchstart", toggleDrawer, {passive:false});
-$("bMyLoc").addEventListener("click", ()=>{
-  if (navigator.geolocation) {
+
+  // 現在地表示：青い点＋誤差円
+  $("bMyLoc").addEventListener("click", ()=>{
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition((pos)=>{
-      const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      const acc = Math.max(5, pos.coords.accuracy || 0); // m
+
       map.panTo(p);
       map.setZoom(16);
 
-      // 現在地マーカーを表示（青い丸）
-      if (window.myLocMarker) {
-        window.myLocMarker.setMap(null); // 既存を消す
-      }
+      // 既存があれば削除
+      if (window.myLocMarker) window.myLocMarker.setMap(null);
+      if (window.myLocCircle) window.myLocCircle.setMap(null);
+
+      // 中心の青点
       window.myLocMarker = new google.maps.Marker({
         position: p,
         map,
@@ -428,9 +431,39 @@ $("bMyLoc").addEventListener("click", ()=>{
         },
         zIndex: 4000
       });
+
+      // 誤差範囲（青い円）
+      window.myLocCircle = new google.maps.Circle({
+        strokeColor: "#4285f4",
+        strokeOpacity: 0.5,
+        strokeWeight: 1,
+        fillColor: "#4285f4",
+        fillOpacity: 0.15,
+        map,
+        center: p,
+        radius: acc,   // メートル
+        zIndex: 3500
+      });
+    }, (err)=>{
+      console.warn(err);
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 10000,
+      timeout: 10000
     });
-  }
-});
+  });
+
+  // ヘルプ開閉
+  $("bHelp").addEventListener("click", ()=>{
+    const m = document.getElementById("helpModal");
+    m.style.display = "flex";
+  });
+  document.getElementById("helpClose").addEventListener("click", ()=>{
+    document.getElementById("helpModal").style.display = "none";
+  });
+  document.getElementById("helpModal").addEventListener("click",(e)=>{
+    if (e.target.id === "helpModal") e.currentTarget.style.display = "none";
+  });
 }
 
 /* Google Maps callback */
