@@ -397,7 +397,7 @@ async function initMap() {
   // 初期は自動
   await autoUpdateTraffic();
 
-　 /* 下ボタン（交通規制/現在地/ヘルプ） */
+  /* 下ボタン（交通規制/現在地/ヘルプ） */
   const toggleTraffic = (e)=>{
     e.preventDefault();
     const isOpen = drawer.style.display === "block";
@@ -405,15 +405,39 @@ async function initMap() {
   };
   $("bTraffic").addEventListener("click", toggleTraffic, {passive:false});
   $("bTraffic").addEventListener("touchstart", toggleTraffic, {passive:false});
+
+  // ★現在地ボタン：1回目=パン&青丸ON、2回目=青丸OFF（地図は動かさない）
   $("bMyLoc").addEventListener("click", ()=>{
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
-        map.panTo(p);
-        map.setZoom(16);
-      });
+    if (!navigator.geolocation) return;
+
+    // 既に青丸がある ⇒ 消して終了（2回目以降）
+    if (window.myLocMarker) {
+      window.myLocMarker.setMap(null);
+      window.myLocMarker = null;
+      return;
     }
+
+    // まだ無い ⇒ 取得して表示（1回目）
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      map.panTo(p);
+      map.setZoom(16);
+
+      window.myLocMarker = new google.maps.Marker({
+        position: p,
+        map,
+        title: "現在地",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#4285f4", fillOpacity: 1,
+          strokeColor: "#ffffff", strokeWeight: 2
+        },
+        zIndex: 4000
+      });
+    });
   });
+
   $("bHelp").addEventListener("click", ()=>{
     document.getElementById("helpModal").style.display="flex";
   });
