@@ -431,15 +431,6 @@ $("bMyLoc").addEventListener("click", ()=>{
     });
   }
 });
-  $("bHelp").addEventListener("click", ()=>{
-    document.getElementById("helpModal").style.display="flex";
-  });
-  document.getElementById("helpClose").addEventListener("click", ()=>{
-    document.getElementById("helpModal").style.display="none";
-  });
-  document.getElementById("helpModal").addEventListener("click",(e)=>{
-    if(e.target.id==="helpModal") e.currentTarget.style.display="none";
-  });
 }
 
 /* Google Maps callback */
