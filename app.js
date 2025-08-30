@@ -405,15 +405,32 @@ async function initMap() {
   };
   $("bTraffic").addEventListener("click", toggleDrawer, {passive:false});
   $("bTraffic").addEventListener("touchstart", toggleDrawer, {passive:false});
-  $("bMyLoc").addEventListener("click", ()=>{
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos)=>{
-        const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
-        map.panTo(p);
-        map.setZoom(16);
+$("bMyLoc").addEventListener("click", ()=>{
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      const p={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      map.panTo(p);
+      map.setZoom(16);
+
+      // 現在地マーカーを表示（青い丸）
+      if (window.myLocMarker) {
+        window.myLocMarker.setMap(null); // 既存を消す
+      }
+      window.myLocMarker = new google.maps.Marker({
+        position: p,
+        map,
+        title: "現在地",
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 6,
+          fillColor: "#4285f4", fillOpacity: 1,
+          strokeColor: "#ffffff", strokeWeight: 2
+        },
+        zIndex: 4000
       });
-    }
-  });
+    });
+  }
+});
   $("bHelp").addEventListener("click", ()=>{
     document.getElementById("helpModal").style.display="flex";
   });
