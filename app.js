@@ -398,9 +398,13 @@ async function initMap() {
   await autoUpdateTraffic();
 
   /* 下ボタン（交通規制/現在地/ヘルプ） */
-  const tapOpen = (e)=>{ e.preventDefault(); openDrawer(); };
-  $("bTraffic").addEventListener("click", tapOpen, {passive:false});
-  $("bTraffic").addEventListener("touchstart", tapOpen, {passive:false});
+  const toggleDrawer = (e)=>{
+    e.preventDefault();
+    const isOpen = drawer.style.display === "block";
+    if (isOpen) closeDrawer(); else openDrawer();
+  };
+  $("bTraffic").addEventListener("click", toggleDrawer, {passive:false});
+  $("bTraffic").addEventListener("touchstart", toggleDrawer, {passive:false});
   $("bMyLoc").addEventListener("click", ()=>{
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos)=>{
