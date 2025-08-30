@@ -312,7 +312,7 @@ async function initMap() {
 
     dashiMarker = new google.maps.Marker({
       position: p, map, title:"桜町区", zIndex: 3000,
-      icon: { url: CONFIG.ICONS.sakura, scaledSize: new google.maps.Size(28,28) }
+      icon: { url: CONFIG.ICONS.sakura, scaledSize: new google.maps.Size(40,40) }
     });
 
     const openDashiIW = ()=>{
