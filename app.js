@@ -398,7 +398,6 @@ async function initMap() {
     // ポーリング開始
     clearInterval(pollTimer);
     pollTimer = setInterval(async ()=>{
-      if (!isLive) return;
       const np = await fetchLatestPosition().catch(()=>null);
       if(np && dashiMarker){
         dashiMarker.setPosition({lat:np.latitude,lng:np.longitude});
