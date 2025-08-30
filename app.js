@@ -322,13 +322,18 @@ async function initMap() {
       infoWindow.open({ anchor: dashiMarker, map });
     };
 
+    // ★ 変更点：マーカーをタップしたときのみ InfoWindow を開く
     dashiMarker.addListener("click", openDashiIW);
 
-    // 下メニュー「山車」→ 現在地へパン＆ウインドウ表示
+    // ★ 変更点：下段「山車」はパン/ズームのみ（InfoWindowは開かない）
     $("bDashi").addEventListener("click", ()=>{
-      if (!dashiMarker) return;
-      map.panTo(dashiMarker.getPosition());
-      openDashiIW();
+      if (dashiMarker) {
+        map.panTo(dashiMarker.getPosition());
+        if ((map.getZoom() ?? 0) < 16) map.setZoom(16);
+      } else {
+        map.setZoom(16);
+        map.panTo(MAP_CENTER);
+      }
     });
 
     // 定期更新（位置のみ）
@@ -341,7 +346,7 @@ async function initMap() {
       }
     }, CONFIG.POLL_MS);
   } else {
-    // 下メニュー「山車」→ 位置未取得でもマップだけフォーカス
+    // 位置未取得時も「山車」クリックで地図だけフォーカス
     document.getElementById("bDashi").addEventListener("click", ()=>{
       map.setZoom(16);
       map.panTo(MAP_CENTER);
@@ -412,7 +417,7 @@ async function initMap() {
       const acc = Math.max(5, pos.coords.accuracy || 0); // m
 
       map.panTo(p);
-      map.setZoom(16);
+      if ((map.getZoom() ?? 0) < 16) map.setZoom(16);
 
       // 既存があれば削除
       if (window.myLocMarker) window.myLocMarker.setMap(null);
@@ -454,9 +459,8 @@ async function initMap() {
   });
 
   // ヘルプ開閉
-  $("bHelp").addEventListener("click", ()=>{
-    const m = document.getElementById("helpModal");
-    m.style.display = "flex";
+  document.getElementById("bHelp").addEventListener("click", ()=>{
+    document.getElementById("helpModal").style.display = "flex";
   });
   document.getElementById("helpClose").addEventListener("click", ()=>{
     document.getElementById("helpModal").style.display = "none";
