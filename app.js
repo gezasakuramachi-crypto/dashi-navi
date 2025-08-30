@@ -21,8 +21,8 @@ const MAP_ZOOM   = 15;
 
 /* === 規制スタイル（枠=赤0.5 / 塗り=淡ピンク） === */
 const STYLE = {
-  line:   { strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:0.5, zIndex:3002 },
-  polygon:{ strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:0.5, fillColor:"#ff99cc", fillOpacity:0.35, zIndex:3002 }
+  line:   { strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:1.0, zIndex:3002 },
+  polygon:{ strokeColor:"#ff0000", strokeOpacity:1, strokeWeight:1.0, fillColor:"#ff99cc", fillOpacity:0.35, zIndex:3002 }
 };
 
 /* === 走行エリア（外周青線・塗り無し） === */
