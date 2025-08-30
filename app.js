@@ -361,12 +361,7 @@ async function initMap() {
 
   function openDrawer(){ drawer.style.display="block"; }
   function closeDrawer(){ drawer.style.display="none"; }
-  function toggleDrawer(){
-    const isOpen = drawer.style.display === "block";
-    if (isOpen) closeDrawer(); else openDrawer();
-  }
-
-  pill.addEventListener("click", toggleDrawer);
+  pill.addEventListener("click", openDrawer);
   close.addEventListener("click", closeDrawer);
   document.addEventListener("click", (e)=>{
     if(!drawer.contains(e.target) && e.target!==pill && !pill.contains(e.target)){
