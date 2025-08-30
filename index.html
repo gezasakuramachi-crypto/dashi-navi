@@ -113,6 +113,13 @@
     .modal .box{ width:min(92vw,520px); background:#fff; border-radius:12px; padding:12px; color:#222; }
     .modal .box h3{ margin:4px 0 8px; font-size:16px; }
     .modal .box .close{ float:right; border:1px solid #ddd; background:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; }
+      /* ヘルプモーダルの本文がはみ出さないようにする */
+  .modal-content {
+    max-height: 80vh;   /* 画面の高さの80%まで */
+    overflow-y: auto;   /* はみ出したらスクロール */
+    padding: 16px;      /* 内側に余白 */
+    box-sizing: border-box;
+  }
   </style>
 </head>
 <body>
