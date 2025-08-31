@@ -204,7 +204,7 @@ function buildSlotButtons(day) {
 function buildDashiInfoContent(position, updateDate) {
   const now = new Date();
   const ageSec = updateDate ? Math.floor((now.getTime() - updateDate.getTime())/1000) : null;
-  const running = (ageSec !== null && ageSec <= 90);
+  const running = (ageSec !== null && ageSec <= 120);
   const statusText = running ? "更新中" : "停止中";
 
   const dirUrl = `https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}&travelmode=walking`;
