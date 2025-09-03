@@ -2,135 +2,79 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>桜町区 山車ナビ 2025｜ご利用ありがとうございました</title>
-  <meta name="description" content="桜町区 山車ナビ 2025年の運用は終了しました。ご利用ありがとうございました。">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>桜町区 山車ナビ 2025｜終了のご挨拶</title>
   <style>
-    :root{
-      color-scheme: dark;
-      --bg:#0b0b0b; --card:#141414; --fg:#eee; --muted:#bbb;
-      --accent:#e91e63; --accent-2:#ff9ec0;
-    }
-    html,body{height:100%;margin:0}
-    body{
-      background:var(--bg); color:var(--fg);
-      font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,
-            "Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
-      display:flex; align-items:center; justify-content:center;
+    body {
+      margin:0;
+      background:#0b0b0b;
+      color:#eee;
+      font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      text-align:center;
       padding:24px;
     }
-    .wrap{
-      width:min(680px,96vw);
-      background:var(--card);
-      border:1px solid #222; border-radius:16px;
+    .wrap {
+      max-width:680px;
+      background:#141414;
+      border:1px solid #222;
+      border-radius:16px;
+      padding:32px 20px;
       box-shadow:0 10px 30px rgba(0,0,0,.35);
-      padding:24px 20px;
     }
-    header{display:flex; align-items:center; gap:12px; margin-bottom:10px}
-    .dot{
-      width:8px;height:8px;border-radius:50%;
-      background:var(--accent); box-shadow:0 0 10px var(--accent-2);
-      flex:none;
+    h1 {
+      font-size:20px;
+      margin:0 0 16px;
+      color:#ff9ec0;
     }
-    h1{font-size:18px;margin:0}
-    .lead{
-      font-size:15px; color:var(--muted); margin:0 0 18px;
+    p {
+      margin:0 0 18px;
     }
-    .card{
-      background:#101010; border:1px solid #222; border-radius:12px;
-      padding:16px; margin:12px 0 6px;
+    .btn {
+      display:inline-block;
+      background:#e91e63;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:700;
+      text-decoration:none;
+      margin:6px 0;
     }
-    .thanks{font-size:17px}
-    .fine{font-size:14px; color:var(--muted)}
-    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
-    .btn{
-      appearance:none; border:0; cursor:pointer; text-decoration:none;
-      background:var(--accent); color:#fff;
-      padding:12px 16px; border-radius:999px; font-weight:700;
-      display:inline-flex; align-items:center; gap:8px;
+    .btn:hover {
+      background:#ff2f85;
     }
-    .btn:focus-visible{outline:2px solid var(--accent-2); outline-offset:2px}
-    .btn.subtle{
-      background:#1b1b1b; color:var(--muted); font-weight:600; border:1px solid #262626;
+    footer {
+      margin-top:20px;
+      font-size:13px;
+      color:#aaa;
     }
-    footer{margin-top:18px; font-size:12px; color:#888}
-    code{background:#1a1a1a; padding:.1em .4em; border-radius:6px}
   </style>
 </head>
 <body>
   <main class="wrap">
-    <header>
-      <span class="dot" aria-hidden="true"></span>
-      <h1>桜町区 山車ナビ 2025｜運用終了のご挨拶</h1>
-    </header>
-    <p class="lead">今年も多くの方にご利用いただき、ありがとうございました。</p>
-
-    <section class="card">
-      <p class="thanks">
-        今年の鹿島神宮神幸祭、<br>
-        無事に大きなケガもなく終えることが出来ました。
-      </p>
-      <p class="fine">
-        ご協力いただいた皆さま、そして山車ナビで応援・閲覧してくださった皆さまに心より感謝申し上げます。<br>
-        山車ナビは本年の運用を終了しました。来年以降の改善に向けて、ぜひご意見・ご感想をお寄せください。
-      </p>
-
-      <div class="actions">
-        <!-- メール起動（件名と本文のたたき台つき） -->
-        <a id="mailBtn" class="btn" href="#">
-          ✉ ご意見を送る
-        </a>
-        <!-- シンプルな生メールアドレス表示（コピーボタン代わり） -->
-        <span class="btn subtle" id="copyBtn" role="button" tabindex="0" title="メールアドレスをコピー">
-          复制 / Copy: <code>geza.sakuramachi@gmail.com</code>
-        </span>
-      </div>
-    </section>
-
-    <footer>
-      © 桜町区 山車ナビ 2025
-    </footer>
+    <h1>桜町区 山車ナビ 2025</h1>
+    <p>
+      今年の鹿島神宮神幸祭、<br>
+      無事に大きなケガもなく終えることが出来ました。<br>
+      たくさんの人に喜んでいただき、<br>
+      山車ナビを作成して本当によかったです！<br>
+      ご利用いただきありがとうございました。
+    </p>
+    <p>来年以降の改善に向けて、ご意見・ご感想をお寄せください。</p>
+    <p>
+      <a class="btn" href="mailto:geza.sakuramachi@gmail.com?subject=【山車ナビ2025】ご意見・ご感想">
+        ✉ ご意見をメールで送る
+      </a>
+    </p>
+    <p>
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLScTxUmFDfv8K0TPPQTAMaw6UuuD5QAFZa94m3yzPbPXOCn2WQ/viewform?usp=sharing&ouid=103216196133670047312" target="_blank" rel="noopener">
+        ご意見はこちらからも（匿名可）
+      </a>
+    </p>
+    <footer>© 桜町区 山車ナビ 2025</footer>
   </main>
-
-  <script>
-    // メールリンクを動的生成（端末・時刻を本文に差し込み）
-    (function(){
-      const to = "geza.sakuramachi@gmail.com";
-      const subject = "【山車ナビ 2025】ご意見・ご感想";
-      const ts = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
-      const ua = navigator.userAgent;
-      const body =
-`ご担当者さま
-
-山車ナビ 2025 へのフィードバックです。
-
-■内容：
-（ここにご意見・ご感想・不具合などをご記入ください）
-
-——
-送信端末：${ua}
-送信時刻（JST）：${ts}
-`;
-      const href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      document.getElementById("mailBtn").setAttribute("href", href);
-    })();
-
-    // コピー用
-    (function(){
-      const copyBtn = document.getElementById("copyBtn");
-      copyBtn.addEventListener("click", async () => {
-        try{
-          await navigator.clipboard.writeText("geza.sakuramachi@gmail.com");
-          copyBtn.textContent = "コピーしました ✔";
-          setTimeout(()=>copyBtn.textContent='复制 / Copy: '.concat('geza.sakuramachi@gmail.com'), 1600);
-        }catch(e){
-          // クリップボード非対応時は何もしない
-        }
-      });
-      copyBtn.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" || e.key === " ") copyBtn.click();
-      });
-    })();
-  </script>
 </body>
 </html>
