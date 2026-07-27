@@ -1,80 +1,111 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>桜町区 山車ナビ 2025｜終了のご挨拶</title>
-  <style>
-    body {
-      margin:0;
-      background:#0b0b0b;
-      color:#eee;
-      font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      text-align:center;
-      padding:24px;
-    }
-    .wrap {
-      max-width:680px;
-      background:#141414;
-      border:1px solid #222;
-      border-radius:16px;
-      padding:32px 20px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    h1 {
-      font-size:20px;
-      margin:0 0 16px;
-      color:#ff9ec0;
-    }
-    p {
-      margin:0 0 18px;
-    }
-    .btn {
-      display:inline-block;
-      background:#e91e63;
-      color:#fff;
-      padding:12px 18px;
-      border-radius:999px;
-      font-weight:700;
-      text-decoration:none;
-      margin:6px 0;
-    }
-    .btn:hover {
-      background:#ff2f85;
-    }
-    footer {
-      margin-top:20px;
-      font-size:13px;
-      color:#aaa;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#3f1427">
+  <meta name="description" content="令和8年 鹿島神宮神幸祭の山車現在地と来場者向け情報を案内します。">
+  <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="wrap">
-    <h1>桜町区 山車ナビ 2025</h1>
-    <p>
-      今年の鹿島神宮神幸祭、<br>
-      無事に大きなケガもなく終えることが出来ました。<br>
-      たくさんの人に喜んでいただき、<br>
-      山車ナビを作成して本当によかったです！<br>
-      ご利用いただきありがとうございました。
-    </p>
-    <p>来年以降の改善に向けて、ご意見・ご感想をお寄せください。</p>
-    <p>
-      <a class="btn" href="mailto:geza.sakuramachi@gmail.com?subject=【山車ナビ2025】ご意見・ご感想">
-        ✉ ご意見をメールで送る
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="title-group">
+        <p class="eyebrow">令和8年 鹿島神宮神幸祭</p>
+        <h1>山車ナビ</h1>
+      </div>
+      <div id="connectionStatus" class="status-pill status-waiting" role="status" aria-live="polite">
+        準備中
+      </div>
+    </header>
+
+    <main class="map-stage" aria-label="山車現在地マップ">
+      <div id="map" class="map-canvas"></div>
+
+      <div id="setupMessage" class="setup-message" hidden>
+        <strong>2026年版を準備しています</strong>
+        <span id="setupDetail">地図設定を確認中です。</span>
+      </div>
+
+      <div id="townSelector" class="town-selector" aria-label="表示する町内"></div>
+
+      <button id="refreshButton" class="map-fab" type="button" aria-label="位置情報を更新">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 8a7 7 0 1 0 1.2 7.9M19 8V3m0 5h-5"/>
+        </svg>
+      </button>
+
+      <p id="mapNotice" class="map-notice" aria-live="polite"></p>
+    </main>
+
+    <nav class="bottom-menu" aria-label="山車ナビ メニュー">
+      <button id="dashiButton" class="menu-button is-active" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 11h14l-1-4H6l-1 4Zm1 0v6h12v-6M8 17v2m8-2v2M9 7V5h6v2"/>
+        </svg>
+        <span>山車</span>
+      </button>
+      <button id="trafficButton" class="menu-button" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="m7 17 10-10"/>
+        </svg>
+        <span>交通規制</span>
+      </button>
+      <button id="locationButton" class="menu-button" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 3v3m0 12v3M3 12h3m12 0h3"/>
+        </svg>
+        <span>現在地</span>
+      </button>
+      <button id="guideButton" class="menu-button" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 11v6m0-10v.1"/>
+        </svg>
+        <span>ご案内</span>
+      </button>
+    </nav>
+
+    <aside id="sponsorArea" class="sponsor-area" aria-label="協賛広告">
+      <a id="sponsorLink" class="sponsor-link" href="#" rel="noopener" aria-label="協賛広告">
+        <img id="sponsorImage" alt="" hidden>
+        <span id="sponsorPlaceholder" class="sponsor-placeholder">
+          <small>山車ナビを応援してくださる</small>
+          <strong>協賛広告</strong>
+        </span>
       </a>
-    </p>
-    <p>
-      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLScTxUmFDfv8K0TPPQTAMaw6UuuD5QAFZa94m3yzPbPXOCn2WQ/viewform?usp=sharing&ouid=103216196133670047312" target="_blank" rel="noopener">
-        ご意見はこちらからも（匿名可）
-      </a>
-    </p>
-    <footer>© 桜町区 山車ナビ 2025</footer>
-  </main>
+    </aside>
+  </div>
+
+  <dialog id="trafficDialog" class="app-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="close" aria-label="閉じる">×</button>
+      <p class="dialog-eyebrow">TRAFFIC INFORMATION</p>
+      <h2>交通規制</h2>
+      <p>2026年の規制時間・範囲は、確定後に地図へ追加します。</p>
+      <p class="dialog-note">緊急車両や係員の案内を優先してください。</p>
+    </form>
+  </dialog>
+
+  <dialog id="guideDialog" class="app-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="close" aria-label="閉じる">×</button>
+      <p class="dialog-eyebrow">HOW TO USE</p>
+      <h2>山車ナビの使い方</h2>
+      <ul>
+        <li>「山車」で表示中の山車へ移動します。</li>
+        <li>町内名を押すと、その山車を中心に表示します。</li>
+        <li>「現在地」で、ご自身の位置を地図に表示します。</li>
+        <li>位置は30秒間隔を目安に更新されます。</li>
+      </ul>
+      <p class="dialog-note">通信状況や端末の状態により、実際の位置と差が出る場合があります。</p>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
