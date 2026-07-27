@@ -1,0 +1,17 @@
+# ローカル設定・認証情報
+config.local.js
+.env
+.env.*
+!.env.example
+
+# 生成物・依存関係
+node_modules/
+dist/
+coverage/
+*.log
+
+# OS・エディター
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
