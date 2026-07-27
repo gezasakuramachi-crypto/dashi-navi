@@ -1,80 +1,116 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>桜町区 山車ナビ 2025｜終了のご挨拶</title>
-  <style>
-    body {
-      margin:0;
-      background:#0b0b0b;
-      color:#eee;
-      font:16px/1.7 system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      text-align:center;
-      padding:24px;
-    }
-    .wrap {
-      max-width:680px;
-      background:#141414;
-      border:1px solid #222;
-      border-radius:16px;
-      padding:32px 20px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    h1 {
-      font-size:20px;
-      margin:0 0 16px;
-      color:#ff9ec0;
-    }
-    p {
-      margin:0 0 18px;
-    }
-    .btn {
-      display:inline-block;
-      background:#e91e63;
-      color:#fff;
-      padding:12px 18px;
-      border-radius:999px;
-      font-weight:700;
-      text-decoration:none;
-      margin:6px 0;
-    }
-    .btn:hover {
-      background:#ff2f85;
-    }
-    footer {
-      margin-top:20px;
-      font-size:13px;
-      color:#aaa;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
+  <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="wrap">
-    <h1>桜町区 山車ナビ 2025</h1>
-    <p>
-      今年の鹿島神宮神幸祭、<br>
-      無事に大きなケガもなく終えることが出来ました。<br>
-      たくさんの人に喜んでいただき、<br>
-      山車ナビを作成して本当によかったです！<br>
-      ご利用いただきありがとうございました。
-    </p>
-    <p>来年以降の改善に向けて、ご意見・ご感想をお寄せください。</p>
-    <p>
-      <a class="btn" href="mailto:geza.sakuramachi@gmail.com?subject=【山車ナビ2025】ご意見・ご感想">
-        ✉ ご意見をメールで送る
-      </a>
-    </p>
-    <p>
-      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLScTxUmFDfv8K0TPPQTAMaw6UuuD5QAFZa94m3yzPbPXOCn2WQ/viewform?usp=sharing&ouid=103216196133670047312" target="_blank" rel="noopener">
-        ご意見はこちらからも（匿名可）
-      </a>
-    </p>
-    <footer>© 桜町区 山車ナビ 2025</footer>
+  <header class="app-header">
+    <img src="mark/header-title.webp" alt="鹿嶋のご神幸">
+  </header>
+
+  <div id="testBanner" class="test-banner" hidden>
+    テスト表示中：<span id="testBannerTime"></span>
+  </div>
+
+  <main>
+    <section id="map" aria-label="山車現在地マップ"></section>
+    <div id="mapLoading" class="map-loading" role="status">地図を読み込んでいます…</div>
   </main>
+
+  <aside id="trafficPanel" class="traffic-panel" aria-label="交通規制の日時選択" hidden>
+    <div class="panel-title-row">
+      <div>
+        <p class="eyebrow">交通規制</p>
+        <p id="trafficSummary" class="traffic-summary">現在時刻を確認しています…</p>
+      </div>
+      <button id="trafficClose" class="icon-close" type="button" aria-label="交通規制を閉じる">×</button>
+    </div>
+
+    <label class="field-label" for="trafficDay">日付</label>
+    <select id="trafficDay" class="select-control"></select>
+
+    <label class="field-label" for="trafficSlot">時間帯</label>
+    <select id="trafficSlot" class="select-control"></select>
+
+    <button id="trafficNow" class="secondary-button" type="button">現在時刻の表示に戻る</button>
+    <p id="trafficNotice" class="panel-note"></p>
+    <p class="traffic-legend"><span aria-hidden="true"></span>車両通行止め等の規制区域</p>
+  </aside>
+
+  <div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
+  <section id="dashiSheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="dashiSheetTitle" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-title-row">
+      <div>
+        <p class="eyebrow">山車</p>
+        <h1 id="dashiSheetTitle">町内を選択</h1>
+      </div>
+      <button id="dashiSheetClose" class="icon-close" type="button" aria-label="山車選択を閉じる">×</button>
+    </div>
+    <div id="dashiList" class="dashi-list"></div>
+  </section>
+
+  <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-title-row">
+        <div>
+          <p class="eyebrow">ヘルプ</p>
+          <h2 id="helpTitle">山車ナビの使い方</h2>
+        </div>
+        <button id="helpClose" class="icon-close" type="button" aria-label="ヘルプを閉じる">×</button>
+      </div>
+
+      <div class="help-section">
+        <h3>山車</h3>
+        <p>町内名を選ぶと、その山車の最新位置へ移動します。地図上の山車を押すと、「ここへ行く」「経路図」「公式HP」を選べます。</p>
+      </div>
+      <div class="help-section">
+        <h3>交通規制</h3>
+        <p>通常は現在時刻に合う規制図を自動表示します。別の日時を確認するときは、日付と時間帯を選んでください。</p>
+      </div>
+      <div class="help-section">
+        <h3>現在地</h3>
+        <p>端末の位置情報を許可すると、地図を現在地へ移動します。</p>
+      </div>
+      <div class="help-section">
+        <h3>地図上のマーク</h3>
+        <p>インフォメーション、トイレ、駐車場は常に表示されます。各マークを押すと詳細を確認できます。</p>
+      </div>
+      <p class="help-warning">山車の位置は移動します。交通規制や現地係員の案内を優先してください。</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <nav class="bottom-bar" aria-label="メインメニュー">
+    <button class="bottom-button" id="bDashi" type="button" aria-haspopup="dialog">
+      <img src="mark/sakura.png" alt="">
+      <span>山車</span>
+    </button>
+    <button class="bottom-button" id="bTraffic" type="button" aria-expanded="false">
+      <img src="mark/no_entry.png" alt="">
+      <span>交通規制</span>
+    </button>
+    <button class="bottom-button" id="bMyLoc" type="button">
+      <span class="current-location-icon" aria-hidden="true"></span>
+      <span>現在地</span>
+    </button>
+    <button class="bottom-button" id="bHelp" type="button" aria-haspopup="dialog">
+      <img src="mark/help.png" alt="">
+      <span>ヘルプ</span>
+    </button>
+  </nav>
+
+  <script src="traffic-schedule.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script>
+    window.DashiNaviApp.bootGoogleMaps();
+  </script>
 </body>
 </html>
