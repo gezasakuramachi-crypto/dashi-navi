@@ -59,6 +59,8 @@ button {
 #map {
   position: fixed;
   inset: var(--header-height) 0 calc(var(--footer-height) + env(safe-area-inset-bottom)) 0;
+  height: calc(100vh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
+  height: calc(100dvh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
   background: #d7d9dc;
 }
 
