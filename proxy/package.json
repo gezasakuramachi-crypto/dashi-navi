@@ -1,0 +1,12 @@
+{
+  "name": "dashi-navi-position-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test server.test.mjs"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}
