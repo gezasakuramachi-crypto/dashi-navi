@@ -27,9 +27,9 @@
 
 ## 本番公開前に設定する項目
 
-`config.js` で次を設定します。
+`config.js` などで次を設定します。
 
-1. `googleMapsApiKey`：利用元とAPIを制限したGoogle Maps APIキー
+1. GitHub Actions secret `GOOGLE_MAPS_API_KEY`：利用元とAPIを制限したGoogle Maps APIキー
 2. `positionApi.publicBearer`：令和8年用の位置情報取得トークン
 3. `dashis[].routeUrls`：日付別の経路図URL
 4. `trafficDays`：正式な規制日・時間・GeoJSON
@@ -43,6 +43,15 @@ Google Maps APIキーはブラウザへ配信されるため、Google Cloud Cons
 - アプリケーションの制限：HTTPリファラー
 - 許可するウェブサイト：`https://gezasakuramachi-crypto.github.io/dashi-navi/*`
 - APIの制限：Maps JavaScript API
+
+APIキー本体はリポジトリの `config.js` へ保存しません。`main` ブランチの
+公開時に `.github/workflows/deploy-pages.yml` が
+`tools/build-pages.mjs` を実行し、GitHub Actions secretの値を公開用
+`config.js` にだけ差し込みます。
+
+GitHub Pagesの公開元は、リポジトリの
+`Settings` → `Pages` → `Build and deployment` で
+`GitHub Actions` を選択します。
 
 ## 通常モードとテストモード
 
