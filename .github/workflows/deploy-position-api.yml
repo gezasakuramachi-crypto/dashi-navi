@@ -1,0 +1,22 @@
+name: Deploy Position API
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy position API
+        working-directory: proxy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl secrets set TRACCAR_TOKEN="${{ secrets.TRACCAR_TOKEN }}"
+          flyctl deploy --remote-only

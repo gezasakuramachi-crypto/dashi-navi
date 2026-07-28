@@ -1,0 +1,24 @@
+app = "kashima-dashi-position-api-2026"
+primary_region = "nrt"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ALLOWED_DEVICE_IDS = "1"
+  ALLOWED_ORIGIN = "https://gezasakuramachi-crypto.github.io"
+  TRACCAR_BASE_URL = "https://kashima-dashi-navi-2026.fly.dev"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/health"
