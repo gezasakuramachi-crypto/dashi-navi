@@ -9,8 +9,9 @@
 | GitHub Pages | 観客向け山車ナビの画面を公開 |
 | Google Maps JavaScript API | 地図、マーカー、交通規制図を表示 |
 | iPhone SE2のTraccar Client | 山車側端末のGPS位置を送信 |
-| Fly.io上のTraccar | GPS位置を受信・保存し、山車ナビへ提供 |
-| Traccar閲覧用トークン | 山車ナビが最新位置を取得する際の認証 |
+| Fly.io上のTraccar | GPS位置を受信・保存 |
+| Fly.io上の位置情報API | Traccarから現在地だけを安全に中継 |
+| Traccar閲覧用トークン | 位置情報APIだけがTraccarへ接続する認証 |
 
 昨年コードの接続先は `traccar-railway.fly.dev` です。名称に `railway` が含まれますが、GitHubコードではFly.io上のTraccarへ接続しています。
 
@@ -30,11 +31,12 @@
 `config.js` などで次を設定します。
 
 1. GitHub Actions secret `GOOGLE_MAPS_API_KEY`：利用元とAPIを制限したGoogle Maps APIキー
-2. `positionApi.publicBearer`：令和8年用の位置情報取得トークン
-3. `dashis[].routeUrls`：日付別の経路図URL
-4. `trafficDays`：正式な規制日・時間・GeoJSON
-5. `trafficDays[].published`：正式データ確認後に `true`
-6. 参加町内が増えた場合は `dashis` に町内設定を追加
+2. GitHub Actions secret `TRACCAR_TOKEN`：令和8年用の閲覧専用トークン
+3. GitHub Actions secret `FLY_API_TOKEN`：位置情報APIのFly.io公開用トークン
+4. `dashis[].routeUrls`：日付別の経路図URL
+5. `trafficDays`：正式な規制日・時間・GeoJSON
+6. `trafficDays[].published`：正式データ確認後に `true`
+7. 参加町内が増えた場合は `dashis` と位置情報APIの許可端末を追加
 
 交通規制が未確定の間は `published: false` とし、通常表示に昨年データが出ないようにしています。
 
