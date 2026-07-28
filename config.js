@@ -9,8 +9,7 @@ window.DASHI_NAVI_CONFIG = {
   mapViewportUrl: "data/map-viewport.geojson",
 
   positionApi: {
-    serverBase: "https://traccar-railway.fly.dev",
-    publicBearer: "",
+    serverBase: "https://kashima-dashi-position-api-2026.fly.dev",
     pollMs: 30000,
     staleAfterMs: 180000
   },
