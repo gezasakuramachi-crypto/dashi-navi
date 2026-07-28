@@ -171,16 +171,14 @@
 
   async function fetchLatestPosition(dashi) {
     const api = CONFIG.positionApi;
-    if (!api.serverBase || !api.publicBearer || !dashi.deviceId) return null;
+    if (!api.serverBase || !dashi.deviceId) return null;
 
     const url = `${api.serverBase}/api/positions?deviceId=${encodeURIComponent(dashi.deviceId)}&limit=1`;
     const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${api.publicBearer}` },
       cache: "no-store"
     });
     if (!response.ok) throw new Error(`位置取得失敗: HTTP ${response.status}`);
-    const positions = await response.json();
-    const latest = positions && positions[0];
+    const latest = await response.json();
     if (!latest) return null;
 
     const updatedAt = new Date(
