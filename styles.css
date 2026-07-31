@@ -1,6 +1,7 @@
 :root {
   --header-height: 54px;
   --footer-height: 66px;
+  --ad-height: 0px;
   --accent: #d91f63;
   --accent-dark: #a80f46;
   --ink: #202124;
@@ -58,7 +59,7 @@ button {
 
 main {
   position: fixed;
-  inset: var(--header-height) 0 calc(var(--footer-height) + env(safe-area-inset-bottom)) 0;
+  inset: var(--header-height) 0 calc(var(--footer-height) + var(--ad-height) + env(safe-area-inset-bottom)) 0;
 }
 
 #map {
@@ -102,14 +103,44 @@ main {
 
 .bottom-bar {
   position: fixed;
-  inset: auto 0 0;
+  inset: auto 0 calc(var(--ad-height) + env(safe-area-inset-bottom));
   z-index: 35;
-  height: calc(var(--footer-height) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: var(--footer-height);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   background: #090909;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sponsor-ad {
+  display: none;
+}
+
+.sponsor-ad-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-top: 1px solid #d7d7d7;
+  background: linear-gradient(135deg, #ffffff, #f1f3f5);
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.sponsor-ad-placeholder span {
+  padding: 2px 5px;
+  border: 1px solid #9ca3af;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sponsor-ad-placeholder strong {
+  font-size: 13px;
+  letter-spacing: 0.04em;
 }
 
 .bottom-button {
@@ -449,7 +480,7 @@ main {
   position: fixed;
   z-index: 70;
   left: 50%;
-  bottom: calc(var(--footer-height) + env(safe-area-inset-bottom) + 14px);
+  bottom: calc(var(--footer-height) + var(--ad-height) + env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100vw - 28px);
@@ -543,6 +574,24 @@ main {
 .poi-card p {
   margin: 6px 0 0;
   white-space: pre-wrap;
+}
+
+@media (max-width: 719px) {
+  :root {
+    /* 640×100pxの広告比率を端末幅に合わせる */
+    --ad-height: min(100px, 15.625vw);
+  }
+
+  .sponsor-ad {
+    position: fixed;
+    z-index: 36;
+    inset: auto 0 0;
+    height: calc(var(--ad-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    display: block;
+    overflow: hidden;
+    background: #ffffff;
+  }
 }
 
 @media (min-width: 720px) {
