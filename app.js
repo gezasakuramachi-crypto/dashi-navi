@@ -753,6 +753,18 @@
     window.addEventListener("online", refreshAfterResume);
   }
 
+  function startSponsorCarousel() {
+    const slides = [...document.querySelectorAll("[data-sponsor-slide]")];
+    if (slides.length < 2) return;
+
+    let activeIndex = 0;
+    window.setInterval(() => {
+      slides[activeIndex].classList.remove("active");
+      activeIndex = (activeIndex + 1) % slides.length;
+      slides[activeIndex].classList.add("active");
+    }, 5000);
+  }
+
   async function initMap() {
     await loadRuntimeConfig();
 
@@ -779,6 +791,8 @@
   }
 
   function bootGoogleMaps() {
+    startSponsorCarousel();
+
     if (!CONFIG.googleMapsApiKey) {
       $("mapLoading").textContent = "Google Maps APIキーが未設定です";
       return;

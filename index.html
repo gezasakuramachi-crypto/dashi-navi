@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111111">
   <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
   <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
-  <link rel="stylesheet" href="styles.css?v=20260731-mobile-ad">
+  <link rel="stylesheet" href="styles.css?v=20260731-ad-carousel">
 </head>
 <body>
   <header class="app-header">
@@ -106,10 +106,12 @@
     </button>
   </nav>
 
-  <aside class="sponsor-ad" aria-label="広告">
-    <div class="sponsor-ad-placeholder">
-      <span>広告</span>
-      <strong>広告掲載スペース</strong>
+  <aside class="sponsor-ad" aria-label="協賛広告">
+    <div id="sponsorCarousel" class="sponsor-carousel">
+      <img class="sponsor-slide active" src="ads/sanou-mobile-640x100.png" alt="株式会社三櫻" data-sponsor-slide>
+      <img class="sponsor-slide" src="ads/sanou-logo.jpg" alt="株式会社三櫻" data-sponsor-slide>
+      <img class="sponsor-slide" src="ads/toritsugi-hoken.jpg" alt="株式会社鳥次保険" data-sponsor-slide>
+      <img class="sponsor-slide" src="ads/daikyo-juchi.jpg" alt="大協住地株式会社" data-sponsor-slide>
     </div>
   </aside>
 
