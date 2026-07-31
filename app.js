@@ -169,6 +169,15 @@
     }).format(date);
   }
 
+  function resolvePositionTimestamp(position) {
+    return (
+      position.fixTime ||
+      position.serverTime ||
+      position.deviceTime ||
+      Date.now()
+    );
+  }
+
   async function fetchLatestPosition(dashi) {
     const api = CONFIG.positionApi;
     if (!api.serverBase || !dashi.deviceId) return null;
@@ -181,9 +190,7 @@
     const latest = await response.json();
     if (!latest) return null;
 
-    const updatedAt = new Date(
-      latest.deviceTime || latest.fixTime || latest.serverTime || Date.now()
-    );
+    const updatedAt = new Date(resolvePositionTimestamp(latest));
     return {
       lat: latest.latitude,
       lng: latest.longitude,
@@ -789,5 +796,5 @@
     document.head.appendChild(script);
   }
 
-  window.DashiNaviApp = { bootGoogleMaps };
+  window.DashiNaviApp = { bootGoogleMaps, resolvePositionTimestamp };
 })();
