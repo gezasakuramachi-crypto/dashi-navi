@@ -5,7 +5,7 @@ primary_region = "nrt"
   dockerfile = "Dockerfile"
 
 [env]
-  ALLOWED_DEVICE_IDS = "1"
+  ALLOWED_DEVICE_IDS = "1,2"
   ALLOWED_ORIGIN = "https://gezasakuramachi-crypto.github.io"
   TRACCAR_BASE_URL = "https://kashima-dashi-navi-2026.fly.dev"
 
