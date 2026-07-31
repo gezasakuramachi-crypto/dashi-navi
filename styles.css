@@ -521,6 +521,21 @@ main {
   font-size: 16px;
 }
 
+.map-figure-name {
+  margin: 3px 0 8px;
+  color: #a23b67;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashi-figure-name {
+  display: block;
+  margin-top: 2px;
+  color: #a23b67;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .map-card .map-status {
   margin: 3px 0 9px;
   color: var(--muted);
