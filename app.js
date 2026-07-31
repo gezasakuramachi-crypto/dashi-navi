@@ -727,6 +727,9 @@
     document.addEventListener("click", (event) => {
       if (!state.infoWindow) return;
       if (event.target.closest(".gm-style-iw-c")) return;
+      // Marker clicks also bubble through the map DOM. Closing here would
+      // immediately dismiss the InfoWindow that the marker just opened.
+      if ($("map").contains(event.target)) return;
       state.infoWindow.close();
     });
 
