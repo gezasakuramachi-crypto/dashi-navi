@@ -759,9 +759,19 @@
 
     let activeIndex = 0;
     window.setInterval(() => {
-      slides[activeIndex].classList.remove("active");
-      activeIndex = (activeIndex + 1) % slides.length;
-      slides[activeIndex].classList.add("active");
+      const currentSlide = slides[activeIndex];
+      const nextIndex = (activeIndex + 1) % slides.length;
+      const nextSlide = slides[nextIndex];
+
+      currentSlide.classList.remove("active");
+      currentSlide.classList.add("exiting");
+      nextSlide.classList.add("active");
+
+      window.setTimeout(() => {
+        currentSlide.classList.remove("exiting");
+      }, 500);
+
+      activeIndex = nextIndex;
     }, 5000);
   }
 
