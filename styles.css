@@ -131,12 +131,17 @@ main {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: 0;
-  transition: opacity 400ms ease;
+  transform: translateX(100%);
+  transition: transform 500ms ease-in-out;
+  will-change: transform;
 }
 
 .sponsor-slide.active {
-  opacity: 1;
+  transform: translateX(0);
+}
+
+.sponsor-slide.exiting {
+  transform: translateX(-100%);
 }
 
 .bottom-button {
