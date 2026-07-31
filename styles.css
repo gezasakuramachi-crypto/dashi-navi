@@ -132,7 +132,7 @@ main {
   height: 100%;
   object-fit: contain;
   transform: translateX(100%);
-  transition: transform 500ms ease-in-out;
+  transition: transform 1500ms ease-in-out;
   will-change: transform;
 }
 
