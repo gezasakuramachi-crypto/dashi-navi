@@ -40,11 +40,10 @@ window.DASHI_NAVI_CONFIG = {
   poi: {
     information: [
       {
-        title: "年番引継ぎ会場",
+        title: "新町山車集合場所　9/3 13時",
         lat: 35.9658889,
         lng: 140.6268333,
-        photo: "mark/nen-hiki.png",
-        description: "山車の運行を執り仕切る「山車年番」を、次年度の年番町内へ引き継ぐ会場です。"
+        description: "年番区新町を先頭に新町通りから役曳きをおこない、各町内へ向かいます。"
       },
       {
         title: "にぎわい広場",
@@ -53,17 +52,11 @@ window.DASHI_NAVI_CONFIG = {
         description: "飲食販売屋台、トイレ、休憩スペースがあります。"
       },
       {
-        title: "総踊り・のの字廻し会場",
+        title: "総踊り・のの字廻し会場　9/2 18時～",
         lat: 35.9679444,
         lng: 140.6300278,
         photo: "mark/souodori2.png",
         description: "町内の山車が勢ぞろいし、総踊りとのの字廻しが披露される会場です。"
-      },
-      {
-        title: "一斉踊り会場",
-        lat: 35.9670556,
-        lng: 140.6306944,
-        description: "五ヶ町が集まり、各町内の踊りや役曳きを行う会場です。"
       },
       {
         title: "大町通り山車集合",
@@ -72,22 +65,17 @@ window.DASHI_NAVI_CONFIG = {
         description: "五ヶ町の山車が大町通りに並ぶ場所です。"
       },
       {
+        title: "年番引継ぎ会場　9/3 18時～",
+        lat: 35.9679722,
+        lng: 140.6289444,
+        photo: "mark/nen-hiki.png",
+        description: "山車の運行を執り仕切る「山車年番」を、次年度の年番町内へ引き継ぐ会場です。"
+      },
+      {
         title: "宮内ビル駐車場",
         lat: 35.9613889,
         lng: 140.6362778,
         description: "山車の折り返し地点です。"
-      },
-      {
-        title: "ミドリヤさん裏",
-        lat: 35.9607778,
-        lng: 140.6315278,
-        description: "踊り・休憩場所です。"
-      },
-      {
-        title: "まちづくり鹿嶋（株）前",
-        lat: 35.9631389,
-        lng: 140.62975,
-        description: "踊り・休憩場所です。"
       },
       {
         title: "二十三夜尊",
