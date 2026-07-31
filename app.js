@@ -769,10 +769,10 @@
 
       window.setTimeout(() => {
         currentSlide.classList.remove("exiting");
-      }, 500);
+      }, 1500);
 
       activeIndex = nextIndex;
-    }, 5000);
+    }, 6500);
   }
 
   async function initMap() {
