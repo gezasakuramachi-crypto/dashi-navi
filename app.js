@@ -223,6 +223,7 @@
     return `
       <div class="map-card">
         <h2>${escapeHtml(dashi.townName)} 山車</h2>
+        ${dashi.figureName ? `<p class="map-figure-name">人形：${escapeHtml(dashi.figureName)}</p>` : ""}
         <p class="map-status">${escapeHtml(status.label)}</p>
         <div class="map-card-actions">
           <a class="map-link" href="${escapeHtml(directionsUrl)}" target="_blank" rel="noopener">ここへ行く</a>
@@ -249,11 +250,12 @@
       entry.marker = new google.maps.Marker({
         position: entry.position,
         map: state.map,
-        title: `${dashi.townName} 山車`,
+        title: `${dashi.townName} 山車${dashi.figureName ? `・${dashi.figureName}` : ""}`,
         zIndex: 5000,
         icon: {
           url: dashi.iconUrl,
-          scaledSize: new google.maps.Size(42, 42)
+          scaledSize: new google.maps.Size(58, 58),
+          anchor: new google.maps.Point(29, 52)
         }
       });
       entry.marker.addListener("click", () => {
@@ -316,6 +318,7 @@
         <img src="${escapeHtml(dashi.iconUrl)}" alt="">
         <span>
           <strong>${escapeHtml(dashi.townName)}</strong>
+          ${dashi.figureName ? `<span class="dashi-figure-name">${escapeHtml(dashi.figureName)}</span>` : ""}
           <small>${escapeHtml(status.label)}</small>
         </span>
         <span class="chevron" aria-hidden="true">›</span>
