@@ -724,11 +724,18 @@
       closeTrafficPanel();
     });
 
+    document.addEventListener("click", (event) => {
+      if (!state.infoWindow) return;
+      if (event.target.closest(".gm-style-iw-c")) return;
+      state.infoWindow.close();
+    });
+
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       closeTrafficPanel();
       closeDashiSheet();
       closeHelp();
+      if (state.infoWindow) state.infoWindow.close();
     });
   }
 
