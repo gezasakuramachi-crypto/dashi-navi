@@ -6,7 +6,7 @@ process.env.NODE_ENV = "test";
 process.env.TRACCAR_BASE_URL = "https://traccar.example";
 process.env.TRACCAR_TOKEN = "secret-token";
 process.env.ALLOWED_ORIGIN = "https://gezasakuramachi-crypto.github.io";
-process.env.ALLOWED_DEVICE_IDS = "1";
+process.env.ALLOWED_DEVICE_IDS = "1,2";
 
 const { createServer } = await import("./server.mjs");
 let server;
@@ -55,6 +55,12 @@ test("returns only the public position fields", async () => {
 test("rejects unapproved devices", async () => {
   const response = await fetch(`${baseUrl}/api/positions?deviceId=999`);
   assert.equal(response.status, 404);
+});
+
+test("allows the Sakuramachi iPhone SE2", async () => {
+  const response = await fetch(`${baseUrl}/api/positions?deviceId=2`);
+  assert.equal(response.status, 200);
+  assert.equal(upstreamRequest.url, "https://traccar.example/api/positions?deviceId=2");
 });
 
 test("rejects other browser origins", async () => {
