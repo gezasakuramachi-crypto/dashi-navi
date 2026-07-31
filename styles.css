@@ -499,6 +499,11 @@ main {
   padding: 8px !important;
 }
 
+/* Close by tapping outside the InfoWindow; no header or close button is needed. */
+.gm-style .gm-style-iw-chr {
+  display: none !important;
+}
+
 .gm-style .gm-style-iw-d {
   overflow: auto !important;
 }
@@ -512,7 +517,7 @@ main {
 
 .map-card h2 {
   margin: 0;
-  padding-right: 16px;
+  padding-right: 0;
   font-size: 16px;
 }
 
