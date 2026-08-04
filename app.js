@@ -25,6 +25,7 @@
     }
   };
   const AUTO_TRAFFIC_VALUE = "__auto__";
+  const MY_LOCATION_RADIUS_METERS = 15;
 
   const state = {
     map: null,
@@ -589,7 +590,6 @@
           lat: result.coords.latitude,
           lng: result.coords.longitude
         };
-        const accuracy = Math.max(5, result.coords.accuracy || 0);
         state.map.panTo(position);
         if ((state.map.getZoom() || 0) < 17) state.map.setZoom(17);
 
@@ -613,7 +613,7 @@
         state.myLocationCircle = new google.maps.Circle({
           map: state.map,
           center: position,
-          radius: accuracy,
+          radius: MY_LOCATION_RADIUS_METERS,
           zIndex: 5900,
           strokeColor: "#4285f4",
           strokeOpacity: 0.5,
