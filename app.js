@@ -24,6 +24,7 @@
       zIndex: 1800
     }
   };
+  const AUTO_TRAFFIC_VALUE = "__auto__";
 
   const state = {
     map: null,
@@ -433,19 +434,30 @@
     const notice = $("trafficNotice");
 
     if (match) {
-      summary.textContent =
-        `${match.day.label} ${match.slot.label}${isManual ? "（指定表示）" : ""}`;
-      notice.textContent = match.day.note && mode.mode === "test"
-        ? match.day.note
-        : "実際の規制は警察官・係員の指示を優先してください。";
+      const draftNotice = match.day.note && mode.mode === "test"
+        ? `${match.day.note}。`
+        : "";
+      if (isManual) {
+        summary.textContent = `${match.day.label} ${match.slot.label}（指定表示）`;
+        notice.textContent =
+          `${draftNotice}選択した時間帯を固定表示中です。現在時刻による自動変更は行いません。`;
+      } else {
+        summary.textContent = `自動変更：${match.day.label} ${match.slot.label}`;
+        notice.textContent =
+          `${draftNotice}現在時刻に合わせて自動変更中です。実際の規制は警察官・係員の指示を優先してください。`;
+      }
     } else {
       const days = trafficDaysForCurrentMode();
       summary.textContent = days.length
-        ? "現在実施中の交通規制はありません"
+        ? "自動変更：現在実施中の交通規制はありません"
         : "令和8年の交通規制図は準備中です";
-      notice.textContent = mode.mode === "test"
-        ? "テスト日時に該当する規制はありません。"
-        : "正式な交通規制図の公開後に自動表示します。";
+      if (mode.mode === "test") {
+        notice.textContent = "自動変更中です。テスト日時に該当する規制はありません。";
+      } else if (days.length) {
+        notice.textContent = "自動変更中です。規制時間外のため、規制図は表示していません。";
+      } else {
+        notice.textContent = "正式な交通規制図の公開後に自動表示します。";
+      }
     }
   }
 
@@ -476,8 +488,17 @@
 
   function populateSlotSelector(dayId, preferredSlotId) {
     const slotSelect = $("trafficSlot");
-    const day = trafficDaysForCurrentMode().find((item) => item.id === dayId);
+    const slotFields = $("trafficSlotFields");
+    slotFields.hidden = dayId === AUTO_TRAFFIC_VALUE;
     slotSelect.innerHTML = "";
+
+    if (dayId === AUTO_TRAFFIC_VALUE) {
+      slotSelect.add(new Option("現在時刻に合わせて自動変更", ""));
+      slotSelect.disabled = true;
+      return;
+    }
+
+    const day = trafficDaysForCurrentMode().find((item) => item.id === dayId);
 
     if (!day || !(day.slots || []).length) {
       slotSelect.add(new Option("時間帯なし", ""));
@@ -500,13 +521,7 @@
     const previousSlot = $("trafficSlot").value;
     const days = trafficDaysForCurrentMode();
     daySelect.innerHTML = "";
-
-    if (!days.length) {
-      daySelect.add(new Option("交通規制図は準備中", ""));
-      daySelect.disabled = true;
-      populateSlotSelector("", "");
-      return;
-    }
+    daySelect.add(new Option("自動変更（現在時刻）", AUTO_TRAFFIC_VALUE));
 
     for (const day of days) {
       const label = day.note && getEffectiveMode().mode === "test"
@@ -515,7 +530,13 @@
       daySelect.add(new Option(label, day.id));
     }
     daySelect.disabled = false;
-    if (days.some((day) => day.id === previousDay)) daySelect.value = previousDay;
+    if (state.trafficViewMode === "auto" || !days.length) {
+      daySelect.value = AUTO_TRAFFIC_VALUE;
+    } else if (days.some((day) => day.id === previousDay)) {
+      daySelect.value = previousDay;
+    } else {
+      daySelect.value = days[0].id;
+    }
     populateSlotSelector(daySelect.value, previousSlot);
   }
 
@@ -693,15 +714,17 @@
     $("bTraffic").addEventListener("click", toggleTrafficPanel);
     $("trafficClose").addEventListener("click", closeTrafficPanel);
     $("trafficDay").addEventListener("change", async (event) => {
+      if (event.target.value === AUTO_TRAFFIC_VALUE) {
+        state.trafficViewMode = "auto";
+        populateSlotSelector(AUTO_TRAFFIC_VALUE, "");
+        await refreshAutoTraffic(true);
+        return;
+      }
       populateSlotSelector(event.target.value, "");
       await showManualTraffic(event.target.value, $("trafficSlot").value);
     });
     $("trafficSlot").addEventListener("change", async (event) => {
       await showManualTraffic($("trafficDay").value, event.target.value);
-    });
-    $("trafficNow").addEventListener("click", async () => {
-      state.trafficViewMode = "auto";
-      await refreshAutoTraffic(true);
     });
 
     $("bMyLoc").addEventListener("click", showMyLocation);

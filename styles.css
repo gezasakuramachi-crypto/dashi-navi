@@ -261,6 +261,16 @@ button {
   color: #858c92;
 }
 
+.traffic-mode-guide {
+  margin: 11px 0 0;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: #f3f6f8;
+  color: #55606a;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 .secondary-button {
   width: 100%;
   min-height: 42px;

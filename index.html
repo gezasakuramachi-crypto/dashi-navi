@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111111">
   <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
   <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
-  <link rel="stylesheet" href="styles.css?v=20260728-1">
+  <link rel="stylesheet" href="styles.css?v=20260804-1">
 </head>
 <body>
   <header class="app-header">
@@ -31,13 +31,15 @@
       <button id="trafficClose" class="icon-close" type="button" aria-label="交通規制を閉じる">×</button>
     </div>
 
-    <label class="field-label" for="trafficDay">日付</label>
+    <label class="field-label" for="trafficDay">表示方法・日付</label>
     <select id="trafficDay" class="select-control"></select>
 
-    <label class="field-label" for="trafficSlot">時間帯</label>
-    <select id="trafficSlot" class="select-control"></select>
+    <div id="trafficSlotFields">
+      <label class="field-label" for="trafficSlot">時間帯</label>
+      <select id="trafficSlot" class="select-control"></select>
+    </div>
 
-    <button id="trafficNow" class="secondary-button" type="button">現在時刻の表示に戻る</button>
+    <p class="traffic-mode-guide">「自動変更」では、現在時刻に合わせて30秒ごとに規制図を切り替えます。日付を選ぶと、その時間帯を固定表示します。</p>
     <p id="trafficNotice" class="panel-note"></p>
     <p class="traffic-legend"><span aria-hidden="true"></span>車両通行止め等の規制区域</p>
   </aside>
@@ -71,7 +73,7 @@
       </div>
       <div class="help-section">
         <h3>交通規制</h3>
-        <p>通常は現在時刻に合う規制図を自動表示します。別の日時を確認するときは、日付と時間帯を選んでください。</p>
+        <p>「自動変更」を選ぶと、9月1日から3日までの現在日時に合う規制図を自動表示します。別の時間帯を確認するときは、日付と時間帯を選んでください。日付を選んだ表示は固定され、自動変更は行いません。</p>
       </div>
       <div class="help-section">
         <h3>現在地</h3>
@@ -106,9 +108,9 @@
     </button>
   </nav>
 
-  <script src="traffic-schedule.js"></script>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="traffic-schedule.js?v=20260804-1"></script>
+  <script src="config.js?v=20260804-1"></script>
+  <script src="app.js?v=20260804-1"></script>
   <script>
     window.DashiNaviApp.bootGoogleMaps();
   </script>
