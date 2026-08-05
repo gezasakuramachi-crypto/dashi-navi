@@ -15,6 +15,9 @@ vm.runInNewContext(configSource, sandbox);
 
 const information = sandbox.window.DASHI_NAVI_CONFIG.poi.information;
 const titles = information.map((point) => point.title);
+const sakuramachi = sandbox.window.DASHI_NAVI_CONFIG.dashis.find(
+  (dashi) => dashi.id === "sakuramachi"
+);
 
 assert.ok(titles.includes("新町山車集合場所　9/3 13時"));
 assert.ok(titles.includes("年番引継ぎ会場　9/3 18時～"));
@@ -28,6 +31,19 @@ const newTownMeeting = information.find(
 assert.ok(newTownMeeting);
 assert.equal(Object.hasOwn(newTownMeeting, "photo"), false);
 
+assert.ok(sakuramachi);
+assert.equal(sakuramachi.townName, "櫻町区");
+assert.equal(sakuramachi.deviceId, 2);
+assert.equal(
+  sakuramachi.iconUrl,
+  "mark/sakuramachi-konohanasakuya-icon.png"
+);
+assert.equal(
+  fs.existsSync(path.join(root, sakuramachi.iconUrl)),
+  true,
+  "木花咲耶姫の丸形アイコンが存在する"
+);
+
 const informationJson = JSON.stringify(information);
 for (const removedText of ["top.html", "御船祭保存会", "山車ナビ"]) {
   assert.equal(informationJson.includes(removedText), false);
@@ -40,11 +56,15 @@ assert.match(app, /event\.target\.closest\("\.gm-style-iw-c"\)/);
 assert.match(app, /if \(state\.infoWindow\) state\.infoWindow\.close\(\);/);
 assert.match(app, /PAGE_PARAMS\.get\("admin"\) === "1"/);
 assert.match(app, /"配信停止中"/);
+assert.match(app, /className: "dashi-marker-label"/);
+assert.match(app, /text: dashi\.townName/);
+assert.match(app, /labelOrigin: new google\.maps\.Point/);
 assert.match(css, /\.gm-style \.gm-style-iw-chr\s*\{\s*display: none !important;/);
+assert.match(css, /\.dashi-marker-label\s*\{/);
 assert.match(html, /id="streamStatus"/);
-assert.match(html, /styles\.css\?v=20260805-2/);
-assert.match(html, /runtime-schedule\.js\?v=20260805-2/);
-assert.match(html, /config\.js\?v=20260805-2/);
-assert.match(html, /app\.js\?v=20260805-2/);
+assert.match(html, /styles\.css\?v=20260805-3/);
+assert.match(html, /runtime-schedule\.js\?v=20260805-3/);
+assert.match(html, /config\.js\?v=20260805-3/);
+assert.match(html, /app\.js\?v=20260805-3/);
 
 console.log("info-window regression tests passed");

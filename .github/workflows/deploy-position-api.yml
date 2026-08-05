@@ -37,4 +37,4 @@ jobs:
           curl --fail --retry 5 --retry-all-errors --max-time 30 \
             https://kashima-dashi-position-api-2026.fly.dev/health
           curl --fail --retry 5 --retry-all-errors --max-time 30 \
-            "https://kashima-dashi-position-api-2026.fly.dev/api/positions?deviceId=1"
+            "https://kashima-dashi-position-api-2026.fly.dev/api/positions?deviceId=2"

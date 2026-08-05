@@ -6,7 +6,7 @@ process.env.NODE_ENV = "test";
 process.env.TRACCAR_BASE_URL = "https://traccar.example";
 process.env.TRACCAR_TOKEN = "secret-token";
 process.env.ALLOWED_ORIGIN = "https://gezasakuramachi-crypto.github.io";
-process.env.ALLOWED_DEVICE_IDS = "1";
+process.env.ALLOWED_DEVICE_IDS = "1,2";
 
 const { createServer } = await import("./server.mjs");
 let server;
@@ -67,6 +67,19 @@ test("shares one upstream response during the 30 second cache window", async () 
     headers: { Origin: process.env.ALLOWED_ORIGIN }
   });
   assert.equal(response.status, 200);
+  assert.equal(upstreamCallCount, 1);
+});
+
+test("allows the Sakuramachi iPhone SE2", async () => {
+  const response = await fetch(`${baseUrl}/api/positions?deviceId=2`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    latitude: 35.95,
+    longitude: 140.62,
+    deviceTime: "2026-07-28T07:59:30.000Z",
+    fixTime: null,
+    serverTime: null
+  });
   assert.equal(upstreamCallCount, 1);
 });
 

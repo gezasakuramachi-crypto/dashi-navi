@@ -64,8 +64,8 @@ window.DASHI_NAVI_CONFIG = {
       id: "sakuramachi",
       townName: "櫻町区",
       visible: true,
-      deviceId: 1,
-      iconUrl: "mark/sakura.png",
+      deviceId: 2,
+      iconUrl: "mark/sakuramachi-konohanasakuya-icon.png",
       officialUrl: "https://sites.google.com/view/sakuramachiku/",
       routeUrls: {},
       testPosition: { lat: 35.963918, lng: 140.631464 }

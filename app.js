@@ -291,14 +291,25 @@
     entry.source = position.source;
 
     if (!entry.marker) {
+      const markerSize = 56;
       entry.marker = new google.maps.Marker({
         position: entry.position,
         map: state.map,
         title: `${dashi.townName} 山車`,
         zIndex: 5000,
+        optimized: false,
         icon: {
           url: dashi.iconUrl,
-          scaledSize: new google.maps.Size(42, 42)
+          scaledSize: new google.maps.Size(markerSize, markerSize),
+          anchor: new google.maps.Point(markerSize / 2, markerSize / 2),
+          labelOrigin: new google.maps.Point(markerSize / 2, markerSize + 12)
+        },
+        label: {
+          text: dashi.townName,
+          className: "dashi-marker-label",
+          color: "#7c123d",
+          fontSize: "12px",
+          fontWeight: "800"
         }
       });
       entry.marker.addListener("click", () => {
