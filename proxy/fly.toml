@@ -7,7 +7,9 @@ primary_region = "nrt"
 [env]
   ALLOWED_DEVICE_IDS = "1"
   ALLOWED_ORIGIN = "https://gezasakuramachi-crypto.github.io"
+  POSITION_CACHE_TTL_MS = "30000"
   TRACCAR_BASE_URL = "https://kashima-dashi-navi-2026.fly.dev"
+  UPSTREAM_TIMEOUT_MS = "15000"
 
 [http_service]
   internal_port = 8080

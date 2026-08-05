@@ -28,6 +28,7 @@ const publicFiles = [
   "app.js",
   "config.js",
   "index.html",
+  "runtime-schedule.js",
   "styles.css",
   "traffic-schedule.js"
 ];

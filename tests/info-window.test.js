@@ -38,9 +38,13 @@ assert.match(app, /clickableIcons: false/);
 assert.match(app, /state\.map\.addListener\("click", \(\) => state\.infoWindow\.close\(\)\)/);
 assert.match(app, /event\.target\.closest\("\.gm-style-iw-c"\)/);
 assert.match(app, /if \(state\.infoWindow\) state\.infoWindow\.close\(\);/);
+assert.match(app, /PAGE_PARAMS\.get\("admin"\) === "1"/);
+assert.match(app, /"配信停止中"/);
 assert.match(css, /\.gm-style \.gm-style-iw-chr\s*\{\s*display: none !important;/);
-assert.match(html, /styles\.css\?v=20260805-1/);
-assert.match(html, /config\.js\?v=20260805-1/);
-assert.match(html, /app\.js\?v=20260805-1/);
+assert.match(html, /id="streamStatus"/);
+assert.match(html, /styles\.css\?v=20260805-2/);
+assert.match(html, /runtime-schedule\.js\?v=20260805-2/);
+assert.match(html, /config\.js\?v=20260805-2/);
+assert.match(html, /app\.js\?v=20260805-2/);
 
 console.log("info-window regression tests passed");

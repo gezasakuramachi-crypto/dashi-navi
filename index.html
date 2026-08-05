@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111111">
   <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
   <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
-  <link rel="stylesheet" href="styles.css?v=20260805-1">
+  <link rel="stylesheet" href="styles.css?v=20260805-2">
 </head>
 <body>
   <header class="app-header">
@@ -20,6 +20,10 @@
   <main>
     <section id="map" aria-label="山車現在地マップ"></section>
     <div id="mapLoading" class="map-loading" role="status">地図を読み込んでいます…</div>
+    <div id="streamStatus" class="stream-status" role="status" hidden>
+      <strong id="streamStatusTitle">配信停止中</strong>
+      <span id="streamStatusText">山車の現在地は運行時間中のみ表示します</span>
+    </div>
   </main>
 
   <aside id="trafficPanel" class="traffic-panel" aria-label="交通規制の日時選択" hidden>
@@ -69,7 +73,7 @@
 
       <div class="help-section">
         <h3>山車</h3>
-        <p>町内名を選ぶと、その山車の最新位置へ移動します。地図上の山車を押すと、「ここへ行く」「経路図」「公式HP」を選べます。</p>
+        <p>町内名を選ぶと、その山車の最新位置へ移動します。現在地の配信時間外は、地図上に「配信停止中」と表示します。地図上の山車を押すと、「ここへ行く」「経路図」「公式HP」を選べます。</p>
       </div>
       <div class="help-section">
         <h3>交通規制</h3>
@@ -108,9 +112,10 @@
     </button>
   </nav>
 
-  <script src="traffic-schedule.js?v=20260804-1"></script>
-  <script src="config.js?v=20260805-1"></script>
-  <script src="app.js?v=20260805-1"></script>
+  <script src="traffic-schedule.js?v=20260805-2"></script>
+  <script src="runtime-schedule.js?v=20260805-2"></script>
+  <script src="config.js?v=20260805-2"></script>
+  <script src="app.js?v=20260805-2"></script>
   <script>
     window.DashiNaviApp.bootGoogleMaps();
   </script>

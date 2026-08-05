@@ -55,6 +55,16 @@
     }).format(date);
   }
 
+  function mapJstTimeToDate(date, targetDateText) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDateText || "")) return null;
+    const p = getJstParts(date);
+    const mapped = new Date(
+      `${targetDateText}T${p.hour}:${p.minute}:${p.second}+09:00`
+    );
+    return Number.isNaN(mapped.getTime()) ? null : mapped;
+  }
+
   function eligibleDays(days, includeDraft) {
     return (days || []).filter((day) => includeDraft || day.published);
   }
@@ -83,6 +93,7 @@
     formatJstDateTime,
     getJstDateKey,
     getJstParts,
+    mapJstTimeToDate,
     parseJstDateTime,
     toJstEpoch,
     toJstInputValue

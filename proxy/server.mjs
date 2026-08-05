@@ -12,6 +12,14 @@ const ALLOWED_DEVICE_IDS = new Set(
     .map((value) => value.trim())
     .filter(Boolean)
 );
+const POSITION_CACHE_TTL_MS = Number.parseInt(
+  process.env.POSITION_CACHE_TTL_MS || "30000",
+  10
+);
+const UPSTREAM_TIMEOUT_MS = Number.parseInt(
+  process.env.UPSTREAM_TIMEOUT_MS || "15000",
+  10
+);
 
 const noStoreHeaders = {
   "Cache-Control": "no-store",
@@ -40,6 +48,54 @@ function positionPayload(position) {
 }
 
 export function createServer(fetchImpl = fetch) {
+  let cachedPositions = null;
+  let cacheUpdatedAt = 0;
+  let upstreamRequest = null;
+
+  async function loadCurrentPositions() {
+    const now = Date.now();
+    if (
+      cachedPositions &&
+      Number.isFinite(POSITION_CACHE_TTL_MS) &&
+      now - cacheUpdatedAt < POSITION_CACHE_TTL_MS
+    ) {
+      return cachedPositions;
+    }
+
+    if (upstreamRequest) return upstreamRequest;
+
+    upstreamRequest = (async () => {
+      /*
+       * Traccarは /api/positions を引数なしで呼ぶと、許可された端末の
+       * 最新位置を返します。deviceIdだけを付けると履歴検索扱いとなり、
+       * from/toが必要になるため、ここでは全端末の最新位置から絞り込みます。
+       */
+      const upstream = await fetchImpl(`${TRACCAR_BASE_URL}/api/positions`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${TRACCAR_TOKEN}`
+        },
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
+      });
+
+      if (!upstream.ok) {
+        console.error(`Traccar positions request failed: HTTP ${upstream.status}`);
+        throw new Error("Position service unavailable");
+      }
+
+      const positions = await upstream.json();
+      cachedPositions = Array.isArray(positions) ? positions : [];
+      cacheUpdatedAt = Date.now();
+      return cachedPositions;
+    })();
+
+    try {
+      return await upstreamRequest;
+    } finally {
+      upstreamRequest = null;
+    }
+  }
+
   return http.createServer(async (request, response) => {
     const origin = request.headers.origin || "";
     const url = new URL(request.url, "http://localhost");
@@ -71,23 +127,10 @@ export function createServer(fetchImpl = fetch) {
     }
 
     try {
-      const upstreamUrl =
-        `${TRACCAR_BASE_URL}/api/positions?deviceId=${encodeURIComponent(deviceId)}`;
-      const upstream = await fetchImpl(upstreamUrl, {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${TRACCAR_TOKEN}`
-        },
-        signal: AbortSignal.timeout(8000)
-      });
-
-      if (!upstream.ok) {
-        sendJson(response, 502, { error: "Position service unavailable" }, origin);
-        return;
-      }
-
-      const positions = await upstream.json();
-      const latest = Array.isArray(positions) ? positions.at(-1) : null;
+      const positions = await loadCurrentPositions();
+      const latest = positions
+        .filter((position) => String(position.deviceId) === deviceId)
+        .at(-1);
       if (!latest) {
         sendJson(response, 404, { error: "Position not available" }, origin);
         return;

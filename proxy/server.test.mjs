@@ -12,13 +12,22 @@ const { createServer } = await import("./server.mjs");
 let server;
 let baseUrl;
 let upstreamRequest;
+let upstreamCallCount = 0;
 
 before(async () => {
   server = createServer(async (url, options) => {
+    upstreamCallCount += 1;
     upstreamRequest = { url, options };
     return new Response(
       JSON.stringify([
         {
+          deviceId: 2,
+          latitude: 35.95,
+          longitude: 140.62,
+          deviceTime: "2026-07-28T07:59:30.000Z"
+        },
+        {
+          deviceId: 1,
           latitude: 35.96,
           longitude: 140.63,
           deviceTime: "2026-07-28T08:00:00.000Z",
@@ -49,7 +58,16 @@ test("returns only the public position fields", async () => {
     serverTime: null
   });
   assert.equal(upstreamRequest.options.headers.Authorization, "Bearer secret-token");
-  assert.equal(upstreamRequest.url, "https://traccar.example/api/positions?deviceId=1");
+  assert.equal(upstreamRequest.options.headers.Accept, "application/json");
+  assert.equal(upstreamRequest.url, "https://traccar.example/api/positions");
+});
+
+test("shares one upstream response during the 30 second cache window", async () => {
+  const response = await fetch(`${baseUrl}/api/positions?deviceId=1`, {
+    headers: { Origin: process.env.ALLOWED_ORIGIN }
+  });
+  assert.equal(response.status, 200);
+  assert.equal(upstreamCallCount, 1);
 });
 
 test("rejects unapproved devices", async () => {

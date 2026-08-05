@@ -1,6 +1,12 @@
 name: Deploy Position API
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "proxy/**"
+      - ".github/workflows/deploy-position-api.yml"
   workflow_dispatch:
 
 permissions:
@@ -12,6 +18,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test position API
+        working-directory: proxy
+        run: npm test
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy position API
         working-directory: proxy
@@ -20,3 +32,9 @@ jobs:
         run: |
           flyctl secrets set TRACCAR_TOKEN="${{ secrets.TRACCAR_TOKEN }}"
           flyctl deploy --remote-only
+      - name: Verify live position relay
+        run: |
+          curl --fail --retry 5 --retry-all-errors --max-time 30 \
+            https://kashima-dashi-position-api-2026.fly.dev/health
+          curl --fail --retry 5 --retry-all-errors --max-time 30 \
+            "https://kashima-dashi-position-api-2026.fly.dev/api/positions?deviceId=1"

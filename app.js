@@ -3,8 +3,9 @@
 
   const CONFIG = window.DASHI_NAVI_CONFIG;
   const Traffic = window.DashiNaviTraffic;
+  const Runtime = window.DashiNaviRuntime;
 
-  if (!CONFIG || !Traffic) {
+  if (!CONFIG || !Traffic || !Runtime) {
     throw new Error("山車ナビの設定ファイルを読み込めませんでした。");
   }
 
@@ -26,14 +27,17 @@
   };
   const AUTO_TRAFFIC_VALUE = "__auto__";
   const MY_LOCATION_RADIUS_METERS = 15;
+  const PAGE_PARAMS = new URLSearchParams(window.location.search);
 
   const state = {
     map: null,
     infoWindow: null,
-    runtime: { mode: "normal", testDateTime: null },
+    runtime: Runtime.normalMode(),
     preview: null,
     modeSignature: "",
+    adminView: PAGE_PARAMS.get("admin") === "1",
     dashi: new Map(),
+    positionApiFailed: false,
     trafficOverlays: [],
     trafficKey: null,
     trafficViewMode: "auto",
@@ -67,49 +71,45 @@
   }
 
   function readPreviewOverride() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("preview") !== "1") return null;
+    if (PAGE_PARAMS.get("preview") !== "1") return null;
     try {
       const raw = localStorage.getItem(CONFIG.adminPreviewStorageKey);
       if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed.mode === "test" && Traffic.parseJstDateTime(parsed.testDateTime)) {
-        return { mode: "test", testDateTime: parsed.testDateTime };
-      }
-      return { mode: "normal", testDateTime: null };
+      return Runtime.normalize(JSON.parse(raw));
     } catch (error) {
       console.warn("管理者プレビュー設定を読み込めませんでした。", error);
       return null;
     }
   }
 
-  function normalizeRuntimeConfig(value) {
-    if (value && value.mode === "test" && Traffic.parseJstDateTime(value.testDateTime)) {
-      return { mode: "test", testDateTime: value.testDateTime };
-    }
-    return { mode: "normal", testDateTime: null };
-  }
-
-  function getEffectiveMode() {
+  function getRawMode() {
     return state.preview || state.runtime;
   }
 
-  function getEffectiveNow() {
-    const mode = getEffectiveMode();
-    if (mode.mode === "test") {
-      return Traffic.parseJstDateTime(mode.testDateTime) || new Date();
-    }
-    return new Date();
+  function getEffectiveMode(actualNow) {
+    return Runtime.resolve(getRawMode(), actualNow || new Date());
+  }
+
+  function getEffectiveNow(actualNow) {
+    return Runtime.getEffectiveNow(getRawMode(), actualNow || new Date());
   }
 
   function updateModeBanner() {
-    const mode = getEffectiveMode();
+    const actualNow = new Date();
+    const mode = getEffectiveMode(actualNow);
     const banner = $("testBanner");
     if (mode.mode === "test") {
       const testDate = Traffic.parseJstDateTime(mode.testDateTime);
       $("testBannerTime").textContent = testDate
         ? Traffic.formatJstDateTime(testDate)
         : "日時未設定";
+      banner.hidden = false;
+    } else if (mode.mode === "day-test") {
+      const effectiveNow = getEffectiveNow(actualNow);
+      $("testBannerTime").textContent =
+        `${Number(mode.realDate.slice(5, 7))}/${Number(mode.realDate.slice(8, 10))}` +
+        `→${Number(mode.festivalDate.slice(5, 7))}/${Number(mode.festivalDate.slice(8, 10))}` +
+        `（${formatJstTime(effectiveNow)}）`;
       banner.hidden = false;
     } else {
       banner.hidden = true;
@@ -122,10 +122,10 @@
     try {
       const response = await fetch(CONFIG.runtimeConfigUrl, { cache: "no-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      state.runtime = normalizeRuntimeConfig(await response.json());
+      state.runtime = Runtime.normalize(await response.json());
     } catch (error) {
       if (!silent) console.warn("公開モード設定を取得できないため通常モードで動作します。", error);
-      state.runtime = { mode: "normal", testDateTime: null };
+      state.runtime = Runtime.normalMode();
     }
 
     state.preview = readPreviewOverride();
@@ -140,10 +140,60 @@
     }
   }
 
+  function activePublicPositionWindow() {
+    return Traffic.findActiveSlot(
+      CONFIG.publicPositionDays,
+      getEffectiveNow(),
+      { includeDraft: false }
+    );
+  }
+
+  function isPositionVisible() {
+    return state.adminView || Boolean(activePublicPositionWindow());
+  }
+
+  function hideDashiMarkers() {
+    for (const entry of state.dashi.values()) {
+      if (entry.marker) entry.marker.setMap(null);
+    }
+  }
+
+  function updateStreamStatus() {
+    const status = $("streamStatus");
+    if (!status) return;
+
+    if (!isPositionVisible()) {
+      $("streamStatusTitle").textContent = "配信停止中";
+      $("streamStatusText").textContent =
+        "山車の現在地は運行時間中のみ表示します";
+      status.classList.remove("error");
+      status.hidden = false;
+      return;
+    }
+
+    if (state.positionApiFailed) {
+      $("streamStatusTitle").textContent = "位置情報を確認できません";
+      $("streamStatusText").textContent =
+        "通信状態を確認しながら自動で再接続しています";
+      status.classList.add("error");
+      status.hidden = false;
+      return;
+    }
+
+    status.classList.remove("error");
+    status.hidden = true;
+  }
+
   function dashiStatus(dashiId) {
+    if (!isPositionVisible()) {
+      return { label: "配信停止中", stale: true };
+    }
     const entry = state.dashi.get(dashiId);
     if (!entry || !entry.position) {
-      return { label: "位置情報準備中", stale: true };
+      return {
+        label: state.positionApiFailed ? "位置情報を取得できません" : "位置情報準備中",
+        stale: true
+      };
     }
     if (entry.source === "test") {
       return { label: "テスト位置を表示中", stale: false };
@@ -264,8 +314,9 @@
   async function refreshOneDashi(dashi) {
     const mode = getEffectiveMode();
     let position = null;
+    let requestFailed = false;
 
-    if (mode.mode === "test" && dashi.testPosition) {
+    if (!state.adminView && mode.mode === "test" && dashi.testPosition) {
       position = {
         ...dashi.testPosition,
         updatedAt: getEffectiveNow(),
@@ -275,13 +326,14 @@
       try {
         position = await fetchLatestPosition(dashi);
       } catch (error) {
+        requestFailed = true;
         console.warn(`${dashi.townName}の位置を取得できませんでした。`, error);
       }
     }
 
     if (position) {
       ensureDashiMarker(dashi, position);
-      return;
+      return true;
     }
 
     const entry = state.dashi.get(dashi.id);
@@ -289,11 +341,22 @@
       if (entry.marker) entry.marker.setMap(null);
       state.dashi.delete(dashi.id);
     }
+    return !requestFailed;
   }
 
   async function refreshPositions() {
+    if (!isPositionVisible()) {
+      state.positionApiFailed = false;
+      hideDashiMarkers();
+      updateStreamStatus();
+      renderDashiList();
+      return;
+    }
+
     const dashis = CONFIG.dashis.filter((dashi) => dashi.visible);
-    await Promise.all(dashis.map(refreshOneDashi));
+    const results = await Promise.all(dashis.map(refreshOneDashi));
+    state.positionApiFailed = results.some((result) => result === false);
+    updateStreamStatus();
     renderDashiList();
   }
 

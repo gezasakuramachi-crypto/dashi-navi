@@ -99,5 +99,13 @@ assert.equal(
   "2026-09-03T07:30:00.000Z",
   "管理画面の日時を日本時間として解釈する"
 );
+assert.equal(
+  Traffic.mapJstTimeToDate(
+    new Date("2026-08-06T06:45:12+09:00"),
+    "2026-09-02"
+  ).toISOString(),
+  "2026-09-01T21:45:12.000Z",
+  "実時間の時分秒を保って祭礼日へ置換する"
+);
 
 console.log("traffic-schedule tests: ok");
