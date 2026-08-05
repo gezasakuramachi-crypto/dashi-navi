@@ -218,6 +218,17 @@ button {
     linear-gradient(90deg, #71a7ff, #71a7ff) 100% 50% / 6px 2px no-repeat;
 }
 
+.dashi-marker-label {
+  padding: 3px 7px !important;
+  border: 1px solid rgba(124, 18, 61, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28);
+  color: #7c123d !important;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 .traffic-panel {
   position: fixed;
   z-index: 24;
