@@ -13,7 +13,19 @@ vm.runInNewContext(
   sandbox,
   { filename: "config.js" }
 );
-const days = sandbox.window.DASHI_NAVI_CONFIG.publicPositionDays;
+const config = sandbox.window.DASHI_NAVI_CONFIG;
+const days = config.publicPositionDays;
+
+assert.equal(
+  config.dashis.find((dashi) => dashi.id === "sakuramachi").deviceId,
+  2,
+  "櫻町iPhone SE2はTraccar端末ID 2"
+);
+assert.match(
+  fs.readFileSync(path.resolve(__dirname, "../proxy/fly.toml"), "utf8"),
+  /ALLOWED_DEVICE_IDS\s*=\s*"1,2"/,
+  "位置中継APIは櫻町端末ID 2を許可"
+);
 
 function activeId(dateTime) {
   return Traffic.findActiveSlot(days, new Date(dateTime))?.slot.id || null;
