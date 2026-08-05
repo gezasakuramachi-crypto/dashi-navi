@@ -14,6 +14,41 @@ window.DASHI_NAVI_CONFIG = {
     staleAfterMs: 180000
   },
 
+  /*
+   * 一般公開ページで山車の現在地を表示する時間です。
+   * 管理用表示（index.html?admin=1）は、この時間外もライブ位置を確認できます。
+   */
+  publicPositionDays: [
+    {
+      id: "position-2026-09-01",
+      date: "2026-09-01",
+      label: "9月1日",
+      published: true,
+      slots: [
+        { id: "position-0901-1000-2200", start: "10:00", end: "22:00" }
+      ]
+    },
+    {
+      id: "position-2026-09-02",
+      date: "2026-09-02",
+      label: "9月2日",
+      published: true,
+      slots: [
+        { id: "position-0902-0600-0700", start: "06:00", end: "07:00" },
+        { id: "position-0902-1800-2200", start: "18:00", end: "22:00" }
+      ]
+    },
+    {
+      id: "position-2026-09-03",
+      date: "2026-09-03",
+      label: "9月3日",
+      published: true,
+      slots: [
+        { id: "position-0903-1130-2200", start: "11:30", end: "22:00" }
+      ]
+    }
+  ],
+
   runtimeConfigUrl: "data/runtime-config.json",
   runtimeConfigRefreshMs: 60000,
   adminPreviewStorageKey: "dashi-navi-admin-preview-v1",

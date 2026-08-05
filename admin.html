@@ -3,101 +3,176 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>山車ナビ 管理者テスト</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>山車ナビ 管理用ページ</title>
   <style>
-    :root { color-scheme: light; --accent:#d91f63; --ink:#202124; }
+    :root { color-scheme:light; --accent:#d91f63; --ink:#202124; --line:#dce1e6; }
     * { box-sizing:border-box; }
     body {
-      margin:0; padding:24px 16px; background:#f3f5f7; color:var(--ink);
+      margin:0; padding:20px 14px 40px; background:#eef1f4; color:var(--ink);
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,
         "Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
     }
-    main {
-      width:min(620px,100%); margin:0 auto; padding:22px;
-      border:1px solid #dde2e7; border-radius:18px; background:#fff;
-      box-shadow:0 12px 30px rgba(0,0,0,.09);
+    main { width:min(900px,100%); margin:0 auto; }
+    .card {
+      margin-bottom:16px; padding:20px; border:1px solid var(--line);
+      border-radius:18px; background:#fff; box-shadow:0 10px 26px rgba(0,0,0,.07);
     }
-    h1 { margin:0 0 8px; font-size:23px; }
-    h2 { margin:24px 0 8px; font-size:17px; }
-    p { line-height:1.7; }
+    h1 { margin:0 0 7px; font-size:23px; }
+    h2 { margin:0 0 8px; font-size:18px; }
+    p { margin:7px 0; line-height:1.65; }
     .notice {
       padding:10px 12px; border-radius:10px; background:#fff7ed;
       color:#7c3d12; font-size:13px;
     }
-    .mode {
-      display:flex; gap:10px; margin:10px 0 16px;
-    }
+    .mode { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0 16px; }
     .mode label {
-      flex:1; padding:12px; border:1px solid #ccd3da; border-radius:10px;
-      cursor:pointer;
+      padding:11px 9px; border:1px solid #ccd3da; border-radius:10px;
+      cursor:pointer; text-align:center; font-size:13px; font-weight:700;
     }
-    label.field { display:block; margin:12px 0 5px; font-weight:700; font-size:13px; }
-    input[type="datetime-local"], textarea {
-      width:100%; padding:10px; border:1px solid #cbd2d9; border-radius:9px;
-      font:inherit;
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    label.field { display:block; margin:10px 0 5px; font-weight:700; font-size:13px; }
+    input[type="datetime-local"], input[type="date"], textarea {
+      width:100%; min-height:43px; padding:9px 10px; border:1px solid #cbd2d9;
+      border-radius:9px; background:#fff; font:inherit;
     }
-    textarea { min-height:130px; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:12px; }
-    .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+    textarea {
+      min-height:160px; font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+      font-size:12px;
+    }
+    .actions { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-top:15px; }
     button, a.button {
-      min-height:44px; padding:10px 12px; border:1px solid var(--accent);
-      border-radius:10px; background:#fff; color:#a80f46; font:inherit;
-      font-weight:750; text-align:center; text-decoration:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; min-height:44px;
+      padding:9px 11px; border:1px solid var(--accent); border-radius:10px;
+      background:#fff; color:#a80f46; font:inherit; font-weight:750;
+      text-align:center; text-decoration:none; cursor:pointer;
     }
     button.primary { background:var(--accent); color:#fff; }
     #saved { min-height:1.4em; color:#166534; font-size:13px; }
-    @media (max-width:520px) { .actions { grid-template-columns:1fr; } }
+    .monitor-frame {
+      display:block; width:100%; height:min(70vh,680px); min-height:500px;
+      margin-top:12px; border:1px solid #bfc7ce; border-radius:13px; background:#111;
+    }
+    .small { color:#626a72; font-size:12px; }
+    [hidden] { display:none !important; }
+    @media (max-width:620px) {
+      .mode, .fields, .actions { grid-template-columns:1fr; }
+      .monitor-frame { height:620px; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>山車ナビ 管理者テスト</h1>
-    <p>通常モードと、指定日時で交通規制の切替を確認するテストモードを選べます。</p>
-    <p class="notice">この画面の保存内容は、この端末の確認用です。一般公開ページ全体のモードは <code>data/runtime-config.json</code> で管理します。</p>
+    <section class="card">
+      <h1>山車ナビ 管理用ページ</h1>
+      <p>山車のライブ位置を、一般公開の配信時間外でも確認できます。</p>
+      <p class="notice">一般向けページからはリンクしていませんが、ログイン認証はまだありません。このURLは関係者内だけで共有してください。</p>
+    </section>
 
-    <h2>この端末のプレビュー設定</h2>
-    <div class="mode">
-      <label><input type="radio" name="mode" value="normal"> 通常モード</label>
-      <label><input type="radio" name="mode" value="test"> テストモード</label>
-    </div>
+    <section class="card">
+      <h2>現在地・自動切替の確認</h2>
+      <p class="small">管理用表示では山車位置を常時取得します。保存したテスト日時は交通規制と公開時間の判定に反映されます。</p>
+      <iframe
+        id="monitorFrame"
+        class="monitor-frame"
+        src="index.html?admin=1&amp;preview=1"
+        title="山車ナビ管理用ライブ表示"
+      ></iframe>
+      <div class="actions">
+        <a class="button" href="index.html?admin=1&amp;preview=1" target="_blank" rel="noopener">管理用地図を別画面で開く</a>
+        <a class="button" href="index.html" target="_blank" rel="noopener">一般公開画面を開く</a>
+      </div>
+    </section>
 
-    <label class="field" for="testDateTime">テスト日時（日本時間）</label>
-    <input id="testDateTime" type="datetime-local" value="2026-09-01T16:30">
+    <section class="card">
+      <h2>この端末のテスト設定</h2>
+      <div class="mode">
+        <label><input type="radio" name="mode" value="normal"> 通常日時</label>
+        <label><input type="radio" name="mode" value="test"> 日時を固定</label>
+        <label><input type="radio" name="mode" value="day-test"> 一日連動テスト</label>
+      </div>
 
-    <div class="actions">
-      <button id="save" class="primary" type="button">設定を保存</button>
-      <a class="button" href="index.html?preview=1">プレビューを開く</a>
-      <a class="button" href="index.html">通常表示を開く</a>
-      <button id="reset" type="button">保存設定を消去</button>
-    </div>
-    <p id="saved" role="status"></p>
+      <div id="fixedFields">
+        <label class="field" for="testDateTime">固定する日時（日本時間）</label>
+        <input id="testDateTime" type="datetime-local" value="2026-09-02T18:00">
+      </div>
 
-    <h2>公開設定用JSON</h2>
-    <p>サイト全体を切り替える際に使用する設定内容です。</p>
-    <textarea id="publicJson" readonly></textarea>
-    <div class="actions">
-      <button id="copy" type="button">JSONをコピー</button>
-    </div>
+      <div id="dayTestFields" class="fields">
+        <div>
+          <label class="field" for="realDate">実際の日付</label>
+          <input id="realDate" type="date" value="2026-08-06">
+        </div>
+        <div>
+          <label class="field" for="festivalDate">祭礼日として扱う日付</label>
+          <input id="festivalDate" type="date" value="2026-09-02">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="tomorrowTest" type="button">8月6日 → 9月2日を設定</button>
+        <button id="save" class="primary" type="button">保存して地図へ反映</button>
+        <button id="reset" type="button">通常日時へ戻す</button>
+      </div>
+      <p id="saved" role="status"></p>
+
+      <h2>公開設定用JSON</h2>
+      <p class="small">一般公開ページ全体の設定内容です。今回の8月6日テストは公開側にも設定済みです。</p>
+      <textarea id="publicJson" readonly></textarea>
+      <div class="actions">
+        <button id="copy" type="button">JSONをコピー</button>
+      </div>
+    </section>
   </main>
 
-  <script src="traffic-schedule.js?v=20260804-1"></script>
-  <script src="config.js?v=20260804-1"></script>
+  <script src="traffic-schedule.js?v=20260805-2"></script>
+  <script src="runtime-schedule.js?v=20260805-2"></script>
+  <script src="config.js?v=20260805-2"></script>
   <script>
     (function () {
       const key = window.DASHI_NAVI_CONFIG.adminPreviewStorageKey;
+      const Runtime = window.DashiNaviRuntime;
       const modeInputs = Array.from(document.querySelectorAll('input[name="mode"]'));
       const dateInput = document.getElementById("testDateTime");
+      const realDateInput = document.getElementById("realDate");
+      const festivalDateInput = document.getElementById("festivalDate");
+      const fixedFields = document.getElementById("fixedFields");
+      const dayTestFields = document.getElementById("dayTestFields");
       const saved = document.getElementById("saved");
       const publicJson = document.getElementById("publicJson");
+      const monitorFrame = document.getElementById("monitorFrame");
 
       function selectedMode() {
         return modeInputs.find((input) => input.checked)?.value || "normal";
       }
 
+      function nextDate(dateText) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText || "")) return "";
+        const date = new Date(`${dateText}T00:00:00+09:00`);
+        if (Number.isNaN(date.getTime())) return "";
+        date.setTime(date.getTime() + 86400000);
+        return window.DashiNaviTraffic.getJstDateKey(date);
+      }
+
       function currentValue() {
-        return {
-          mode: selectedMode(),
-          testDateTime: selectedMode() === "test" ? dateInput.value : null
-        };
+        const mode = selectedMode();
+        if (mode === "test") {
+          return { mode, testDateTime: dateInput.value };
+        }
+        if (mode === "day-test") {
+          return {
+            mode,
+            realDate: realDateInput.value,
+            festivalDate: festivalDateInput.value,
+            startsAt: `${realDateInput.value}T00:00`,
+            endsAt: `${nextDate(realDateInput.value)}T00:00`
+          };
+        }
+        return { mode: "normal" };
+      }
+
+      function renderFields() {
+        fixedFields.hidden = selectedMode() !== "test";
+        dayTestFields.hidden = selectedMode() !== "day-test";
       }
 
       function renderJson() {
@@ -107,35 +182,55 @@
         }, null, 2);
       }
 
-      try {
-        const stored = JSON.parse(localStorage.getItem(key) || "null");
-        const mode = stored && stored.mode === "test" ? "test" : "normal";
-        modeInputs.find((input) => input.value === mode).checked = true;
-        if (stored && stored.testDateTime) dateInput.value = stored.testDateTime;
-      } catch (error) {
-        modeInputs[0].checked = true;
+      function refreshControls() {
+        renderFields();
+        renderJson();
       }
-      renderJson();
 
-      modeInputs.forEach((input) => input.addEventListener("change", renderJson));
-      dateInput.addEventListener("input", renderJson);
+      try {
+        const stored = Runtime.normalize(JSON.parse(localStorage.getItem(key) || "null"));
+        modeInputs.find((input) => input.value === stored.mode).checked = true;
+        if (stored.testDateTime) dateInput.value = stored.testDateTime;
+        if (stored.realDate) realDateInput.value = stored.realDate;
+        if (stored.festivalDate) festivalDateInput.value = stored.festivalDate;
+      } catch (error) {
+        modeInputs.find((input) => input.value === "normal").checked = true;
+      }
+      refreshControls();
+
+      modeInputs.forEach((input) => input.addEventListener("change", refreshControls));
+      [dateInput, realDateInput, festivalDateInput].forEach((input) =>
+        input.addEventListener("input", renderJson)
+      );
+
+      document.getElementById("tomorrowTest").addEventListener("click", () => {
+        modeInputs.find((input) => input.value === "day-test").checked = true;
+        realDateInput.value = "2026-08-06";
+        festivalDateInput.value = "2026-09-02";
+        refreshControls();
+        saved.textContent = "8月6日を9月2日として扱う設定を入力しました。保存すると反映します。";
+      });
 
       document.getElementById("save").addEventListener("click", () => {
         const value = currentValue();
-        if (value.mode === "test" && !window.DashiNaviTraffic.parseJstDateTime(value.testDateTime)) {
-          saved.textContent = "テスト日時を入力してください。";
+        const normalized = Runtime.normalize(value);
+        if (normalized.mode !== value.mode) {
+          saved.textContent = "テスト日時・日付を正しく入力してください。";
           return;
         }
-        localStorage.setItem(key, JSON.stringify(value));
-        saved.textContent = "この端末のプレビュー設定を保存しました。";
+        localStorage.setItem(key, JSON.stringify(normalized));
+        saved.textContent = "保存しました。管理用地図へ反映しました。";
         renderJson();
+        monitorFrame.contentWindow.location.reload();
       });
 
       document.getElementById("reset").addEventListener("click", () => {
-        localStorage.removeItem(key);
+        const value = { mode: "normal" };
+        localStorage.setItem(key, JSON.stringify(value));
         modeInputs.find((input) => input.value === "normal").checked = true;
-        saved.textContent = "保存設定を消去しました。";
-        renderJson();
+        refreshControls();
+        saved.textContent = "この端末を通常日時へ戻しました。";
+        monitorFrame.contentWindow.location.reload();
       });
 
       document.getElementById("copy").addEventListener("click", async () => {

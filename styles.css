@@ -97,6 +97,51 @@ button {
   white-space: nowrap;
 }
 
+.stream-status {
+  position: fixed;
+  z-index: 28;
+  top: calc(var(--header-height) + 50px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 10px 15px;
+  border: 1px solid rgba(48, 53, 59, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #363b40;
+  text-align: center;
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+}
+
+#testBanner[hidden] ~ main .stream-status {
+  top: calc(var(--header-height) + 14px);
+}
+
+.stream-status strong,
+.stream-status span {
+  display: block;
+}
+
+.stream-status strong {
+  font-size: 17px;
+  line-height: 1.3;
+}
+
+.stream-status span {
+  margin-top: 3px;
+  color: #666d74;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.stream-status.error {
+  border-color: #efb1b1;
+  background: rgba(255, 242, 242, 0.96);
+  color: #9f1f1f;
+}
+
 .bottom-bar {
   position: fixed;
   inset: auto 0 0;

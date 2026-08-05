@@ -1,5 +1,8 @@
 {
-  "mode": "normal",
-  "testDateTime": null,
-  "updatedAt": "2026-07-27T00:00:00+09:00"
+  "mode": "day-test",
+  "realDate": "2026-08-06",
+  "festivalDate": "2026-09-02",
+  "startsAt": "2026-08-06T00:00",
+  "endsAt": "2026-08-07T00:00",
+  "updatedAt": "2026-08-05T14:15:00+09:00"
 }
