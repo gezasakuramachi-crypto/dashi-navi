@@ -64,7 +64,7 @@ window.DASHI_NAVI_CONFIG = {
       id: "sakuramachi",
       townName: "櫻町区",
       visible: true,
-      deviceId: 2,
+      deviceId: 2, // 櫻町（iPhone SE2）
       iconUrl: "mark/sakuramachi-konohanasakuya-icon.png",
       officialUrl: "https://sites.google.com/view/sakuramachiku/",
       routeUrls: {},
