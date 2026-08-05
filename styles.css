@@ -474,6 +474,11 @@ button {
   padding: 8px !important;
 }
 
+/* Maps APIの世代差があっても、上部余白と閉じる「×」を表示しません。 */
+.gm-style .gm-style-iw-chr {
+  display: none !important;
+}
+
 .gm-style .gm-style-iw-d {
   overflow: auto !important;
 }
@@ -487,7 +492,7 @@ button {
 
 .map-card h2 {
   margin: 0;
-  padding-right: 16px;
+  padding-right: 0;
   font-size: 16px;
 }
 
