@@ -740,11 +740,22 @@
       closeTrafficPanel();
     });
 
+    document.addEventListener("click", (event) => {
+      if (!state.infoWindow || !(event.target instanceof Element)) return;
+      if (event.target.closest(".gm-style-iw-c")) return;
+
+      // 地図上は map の click イベントへ任せることで、マーカーを押して
+      // 開いた直後のインフォメーションが閉じることを防ぎます。
+      if ($("map").contains(event.target)) return;
+      state.infoWindow.close();
+    });
+
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       closeTrafficPanel();
       closeDashiSheet();
       closeHelp();
+      if (state.infoWindow) state.infoWindow.close();
     });
   }
 
@@ -778,10 +789,11 @@
       mapTypeControl: false,
       fullscreenControl: true,
       streetViewControl: false,
-      clickableIcons: true,
+      // Google Maps標準施設の吹き出しは表示せず、祭礼用マーカーだけを操作対象にします。
+      clickableIcons: false,
       gestureHandling: "greedy"
     });
-    state.infoWindow = new google.maps.InfoWindow();
+    state.infoWindow = new google.maps.InfoWindow({ headerDisabled: true });
     state.map.addListener("click", () => state.infoWindow.close());
 
     $("mapLoading").hidden = true;
