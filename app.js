@@ -252,14 +252,11 @@
 
   function buildDashiInfo(dashi, entry) {
     const status = dashiStatus(dashi.id);
-    const position = entry.position;
-    const directionsUrl =
-      `https://www.google.com/maps/dir/?api=1&destination=${position.lat},${position.lng}&travelmode=walking`;
     const routeUrl = resolveRouteUrl(dashi);
     const officialUrl = dashi.officialUrl || "";
 
     const routeButton = routeUrl
-      ? `<a class="map-link" href="${escapeHtml(routeUrl)}" target="_blank" rel="noopener">経路図</a>`
+      ? `<a class="map-link" href="${escapeHtml(routeUrl)}">経路図</a>`
       : '<span class="map-link-disabled">経路図（準備中）</span>';
     const officialButton = officialUrl
       ? `<a class="map-link" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener">公式HP</a>`
@@ -270,11 +267,10 @@
         <h2>${escapeHtml(dashi.townName)} 山車</h2>
         <p class="map-status">${escapeHtml(status.label)}</p>
         <div class="map-card-actions">
-          <a class="map-link" href="${escapeHtml(directionsUrl)}" target="_blank" rel="noopener">ここへ行く</a>
           ${routeButton}
           ${officialButton}
         </div>
-        <p class="map-card-note">目的地はボタンを押した時点の山車位置です。交通規制と係員の案内を優先してください。</p>
+        <p class="map-card-note">運行状況により予定が変わる場合があります。交通規制と係員の案内を優先してください。</p>
       </div>
     `;
   }
@@ -505,8 +501,13 @@
 
   function setTrafficSummary(match, isManual) {
     const summary = $("trafficSummary");
+    const statusText = $("trafficStatusText");
     const mode = getEffectiveMode();
     const notice = $("trafficNotice");
+
+    statusText.textContent = isManual && match
+      ? `${match.day.label} ${match.slot.label.replaceAll("〜", "–").replaceAll("～", "–")}`
+      : "自動更新";
 
     if (match) {
       const draftNotice = match.day.note && mode.mode === "test"
