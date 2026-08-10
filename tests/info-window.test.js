@@ -21,6 +21,8 @@ const sakuramachi = sandbox.window.DASHI_NAVI_CONFIG.dashis.find(
 
 assert.ok(titles.includes("新町山車集合場所　9/3 13時"));
 assert.ok(titles.includes("年番引継ぎ会場　9/3 18時～"));
+assert.ok(titles.includes("大町通り山車集合\n9/3　15時・17時"));
+assert.ok(!titles.includes("宮内ビル駐車場"));
 assert.ok(!titles.includes("一斉踊り会場"));
 assert.ok(!titles.includes("ミドリヤさん裏"));
 assert.ok(!titles.includes("まちづくり鹿嶋（株）前"));
@@ -34,6 +36,7 @@ assert.equal(Object.hasOwn(newTownMeeting, "photo"), false);
 assert.ok(sakuramachi);
 assert.equal(sakuramachi.townName, "櫻町区");
 assert.equal(sakuramachi.deviceId, 2);
+assert.equal(sakuramachi.routeUrls.default, "schedule/");
 assert.equal(
   sakuramachi.iconUrl,
   "mark/sakuramachi-konohanasakuya-icon.png"
@@ -59,12 +62,21 @@ assert.match(app, /"配信停止中"/);
 assert.match(app, /className: "dashi-marker-label"/);
 assert.match(app, /text: dashi\.townName/);
 assert.match(app, /labelOrigin: new google\.maps\.Point/);
+assert.doesNotMatch(app, /ここへ行く/);
+assert.doesNotMatch(app, /google\.com\/maps\/dir/);
+assert.match(app, /trafficStatusText/);
+assert.match(app, /"自動更新"/);
 assert.match(css, /\.gm-style \.gm-style-iw-chr\s*\{\s*display: none !important;/);
 assert.match(css, /\.dashi-marker-label\s*\{/);
+assert.match(css, /\.traffic-status-badge\s*\{/);
+assert.match(css, /\.schedule-link\s*\{/);
 assert.match(html, /id="streamStatus"/);
-assert.match(html, /styles\.css\?v=20260805-3/);
-assert.match(html, /runtime-schedule\.js\?v=20260805-3/);
-assert.match(html, /config\.js\?v=20260805-3/);
-assert.match(html, /app\.js\?v=20260805-3/);
+assert.match(html, /id="trafficStatusBadge"/);
+assert.match(html, /href="schedule\/"/);
+assert.doesNotMatch(html, /ここへ行く/);
+assert.match(html, /styles\.css\?v=20260810-1/);
+assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
+assert.match(html, /config\.js\?v=20260810-1/);
+assert.match(html, /app\.js\?v=20260810-1/);
 
 console.log("info-window regression tests passed");
