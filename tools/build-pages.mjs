@@ -32,7 +32,7 @@ const publicFiles = [
   "styles.css",
   "traffic-schedule.js"
 ];
-const publicDirectories = ["data", "mark"];
+const publicDirectories = ["data", "mark", "schedule"];
 
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
