@@ -67,7 +67,7 @@ window.DASHI_NAVI_CONFIG = {
       deviceId: 2, // 櫻町（iPhone SE2）
       iconUrl: "mark/sakuramachi-konohanasakuya-icon.png",
       officialUrl: "https://sites.google.com/view/sakuramachiku/",
-      routeUrls: {},
+      routeUrls: { default: "schedule/" },
       testPosition: { lat: 35.963918, lng: 140.631464 }
     }
   ],
@@ -94,7 +94,7 @@ window.DASHI_NAVI_CONFIG = {
         description: "町内の山車が勢ぞろいし、総踊りとのの字廻しが披露される会場です。"
       },
       {
-        title: "大町通り山車集合",
+        title: "大町通り山車集合\n9/3　15時・17時",
         lat: 35.9679722,
         lng: 140.6286944,
         description: "五ヶ町の山車が大町通りに並ぶ場所です。"
@@ -105,12 +105,6 @@ window.DASHI_NAVI_CONFIG = {
         lng: 140.6289444,
         photo: "mark/nen-hiki.png",
         description: "山車の運行を執り仕切る「山車年番」を、次年度の年番町内へ引き継ぐ会場です。"
-      },
-      {
-        title: "宮内ビル駐車場",
-        lat: 35.9613889,
-        lng: 140.6362778,
-        description: "山車の折り返し地点です。"
       },
       {
         title: "二十三夜尊",
