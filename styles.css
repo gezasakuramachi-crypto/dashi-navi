@@ -100,7 +100,7 @@ button {
 .stream-status {
   position: fixed;
   z-index: 28;
-  top: calc(var(--header-height) + 50px);
+  top: calc(var(--header-height) + 78px);
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
@@ -115,8 +115,8 @@ button {
   backdrop-filter: blur(10px);
 }
 
-#testBanner[hidden] ~ main .stream-status {
-  top: calc(var(--header-height) + 14px);
+#testBanner:not([hidden]) ~ main .stream-status {
+  top: calc(var(--header-height) + 120px);
 }
 
 .stream-status strong,
@@ -140,6 +140,46 @@ button {
   border-color: #efb1b1;
   background: rgba(255, 242, 242, 0.96);
   color: #9f1f1f;
+}
+
+.traffic-status-badge {
+  position: fixed;
+  z-index: 23;
+  top: calc(var(--header-height) + 10px);
+  right: 8px;
+  min-width: 108px;
+  max-width: min(190px, calc(100vw - 16px));
+  padding: 8px 10px;
+  border: 1px solid rgba(168, 15, 70, 0.3);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--accent-dark);
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+#testBanner:not([hidden]) ~ .traffic-status-badge {
+  top: calc(var(--header-height) + 52px);
+}
+
+.traffic-status-badge span,
+.traffic-status-badge strong {
+  display: block;
+}
+
+.traffic-status-badge span {
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.traffic-status-badge strong {
+  margin-top: 1px;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .bottom-bar {
@@ -187,6 +227,7 @@ button {
 .bottom-button:focus-visible,
 .icon-close:focus-visible,
 .secondary-button:focus-visible,
+.schedule-link:focus-visible,
 .dashi-card:focus-visible {
   outline: 3px solid #70a7ff;
   outline-offset: -3px;
@@ -417,6 +458,55 @@ button {
   margin-top: 14px;
 }
 
+.schedule-link {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 68px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 31, 99, 0.32);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff0f5, #ffffff);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.schedule-link-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.schedule-link strong,
+.schedule-link small {
+  display: block;
+}
+
+.schedule-link strong {
+  color: var(--accent-dark);
+  font-size: 15px;
+}
+
+.schedule-link small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.schedule-link-chevron {
+  color: var(--accent-dark);
+  font-size: 23px;
+}
+
 .dashi-card {
   width: 100%;
   min-height: 68px;
@@ -611,6 +701,10 @@ button {
 .poi-card p {
   margin: 6px 0 0;
   white-space: pre-wrap;
+}
+
+.poi-card h2 {
+  white-space: pre-line;
 }
 
 @media (min-width: 720px) {
