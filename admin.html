@@ -40,7 +40,7 @@
       min-height:160px; font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
       font-size:12px;
     }
-    .actions { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-top:15px; }
+    .actions { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:15px; }
     button, a.button {
       display:flex; align-items:center; justify-content:center; min-height:44px;
       padding:9px 11px; border:1px solid var(--accent); border-radius:10px;
@@ -65,12 +65,12 @@
   <main>
     <section class="card">
       <h1>山車ナビ 管理用ページ</h1>
-      <p>山車のライブ位置を、一般公開の配信時間外でも確認できます。</p>
+      <p>山車のライブ位置・交通規制・運行経路をまとめて確認できます。</p>
       <p class="notice">一般向けページからはリンクしていませんが、ログイン認証はまだありません。このURLは関係者内だけで共有してください。</p>
     </section>
 
     <section class="card">
-      <h2>現在地・自動切替の確認</h2>
+      <h2>現在地・交通規制の確認</h2>
       <p class="small">管理用表示では山車位置を常時取得します。保存したテスト日時は交通規制と公開時間の判定に反映されます。</p>
       <iframe
         id="monitorFrame"
@@ -81,6 +81,7 @@
       <div class="actions">
         <a class="button" href="index.html?admin=1&amp;preview=1" target="_blank" rel="noopener">管理用地図を別画面で開く</a>
         <a class="button" href="index.html" target="_blank" rel="noopener">一般公開画面を開く</a>
+        <a class="button" href="schedule/" target="_blank" rel="noopener">山車運行表・経路図を開く</a>
       </div>
     </section>
 
@@ -124,9 +125,9 @@
     </section>
   </main>
 
-  <script src="traffic-schedule.js?v=20260805-2"></script>
-  <script src="runtime-schedule.js?v=20260805-2"></script>
-  <script src="config.js?v=20260805-2"></script>
+  <script src="traffic-schedule.js?v=20260810-1"></script>
+  <script src="runtime-schedule.js?v=20260810-1"></script>
+  <script src="config.js?v=20260810-1"></script>
   <script>
     (function () {
       const key = window.DASHI_NAVI_CONFIG.adminPreviewStorageKey;

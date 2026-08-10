@@ -20,7 +20,9 @@
 - 下部メニューは「山車・交通規制・現在地・ヘルプ」
 - 山車メニューには公開中の町内を一覧表示
 - 町内を選ぶと対象山車の最新位置へ移動
-- 山車マーカーから「ここへ行く・経路図・公式HP」を表示
+- 山車メニューから3日分の山車運行表・経路図を表示
+- 山車マーカーから「経路図・公式HP」を表示
+- 交通規制の表示状態を地図右上へ常時表示
 - インフォメーション・トイレ・駐車場は常時表示
 - 「自動変更」では現在時刻に該当する交通規制を30秒ごとに再判定
 - 9月1日・2日・3日を選ぶと、各時間帯の規制図を固定表示
@@ -36,10 +38,9 @@
 1. GitHub Actions secret `GOOGLE_MAPS_API_KEY`：利用元とAPIを制限したGoogle Maps APIキー
 2. GitHub Actions secret `TRACCAR_TOKEN`：令和8年用の閲覧専用トークン
 3. GitHub Actions secret `FLY_API_TOKEN`：位置情報APIのFly.io公開用トークン
-4. `dashis[].routeUrls`：日付別の経路図URL
-5. `trafficDays`：正式な規制日・時間・GeoJSON
-6. `trafficDays[].published`：正式データ確認後に `true`
-7. 参加町内が増えた場合は `dashis` と位置情報APIの許可端末を追加
+4. `trafficDays`：正式な規制日・時間・GeoJSON
+5. `trafficDays[].published`：正式データ確認後に `true`
+6. 参加町内が増えた場合は `dashis` と位置情報APIの許可端末を追加
 
 交通規制が未確定の間は `published: false` とし、通常表示に未確認データが出ないようにします。
 

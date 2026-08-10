@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111111">
   <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
   <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
-  <link rel="stylesheet" href="styles.css?v=20260805-3">
+  <link rel="stylesheet" href="styles.css?v=20260810-1">
 </head>
 <body>
   <header class="app-header">
@@ -25,6 +25,11 @@
       <span id="streamStatusText">山車の現在地は運行時間中のみ表示します</span>
     </div>
   </main>
+
+  <div id="trafficStatusBadge" class="traffic-status-badge" role="status" aria-live="polite">
+    <span>交通規制</span>
+    <strong id="trafficStatusText">自動更新</strong>
+  </div>
 
   <aside id="trafficPanel" class="traffic-panel" aria-label="交通規制の日時選択" hidden>
     <div class="panel-title-row">
@@ -58,6 +63,14 @@
       </div>
       <button id="dashiSheetClose" class="icon-close" type="button" aria-label="山車選択を閉じる">×</button>
     </div>
+    <a class="schedule-link" href="schedule/">
+      <span class="schedule-link-icon" aria-hidden="true">経</span>
+      <span>
+        <strong>山車運行表を見る</strong>
+        <small>9月1日・2日・3日の経路図</small>
+      </span>
+      <span class="schedule-link-chevron" aria-hidden="true">›</span>
+    </a>
     <div id="dashiList" class="dashi-list"></div>
   </section>
 
@@ -73,7 +86,7 @@
 
       <div class="help-section">
         <h3>山車</h3>
-        <p>町内名を選ぶと、その山車の最新位置へ移動します。現在地の配信時間外は、地図上に「配信停止中」と表示します。地図上の山車を押すと、「ここへ行く」「経路図」「公式HP」を選べます。</p>
+        <p>町内名を選ぶと、その山車の最新位置へ移動します。現在地の配信時間外は、地図上に「配信停止中」と表示します。「山車運行表を見る」では3日分の経路図を確認できます。地図上の山車を押すと、「経路図」「公式HP」を選べます。</p>
       </div>
       <div class="help-section">
         <h3>交通規制</h3>
@@ -112,10 +125,10 @@
     </button>
   </nav>
 
-  <script src="traffic-schedule.js?v=20260805-3"></script>
-  <script src="runtime-schedule.js?v=20260805-3"></script>
-  <script src="config.js?v=20260805-3"></script>
-  <script src="app.js?v=20260805-3"></script>
+  <script src="traffic-schedule.js?v=20260810-1"></script>
+  <script src="runtime-schedule.js?v=20260810-1"></script>
+  <script src="config.js?v=20260810-1"></script>
+  <script src="app.js?v=20260810-1"></script>
   <script>
     window.DashiNaviApp.bootGoogleMaps();
   </script>
