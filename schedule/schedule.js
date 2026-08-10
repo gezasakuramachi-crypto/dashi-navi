@@ -109,7 +109,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"></path></svg>
         <span>山車ナビに戻る</span>
       </a>
-      <p>櫻町区 若連</p>
     </footer>`;
 
   const mapFrame = document.getElementById("routeMap");
