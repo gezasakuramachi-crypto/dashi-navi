@@ -1,0 +1,69 @@
+:root {
+  --ink: #271a1d;
+  --muted: #76666a;
+  --sakura: #c93c62;
+  --sakura-deep: #922443;
+  --sakura-pale: #fff0f4;
+  --paper: #fffaf7;
+  --line: #eadde0;
+}
+
+* { box-sizing: border-box; }
+html { background: #efe9e5; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(circle at 15% 4%, rgba(255,255,255,.92), transparent 24rem), linear-gradient(180deg, #f7efec 0, #eee7e3 100%);
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, a { -webkit-tap-highlight-color: transparent; }
+.site-shell { width: min(100%, 760px); min-height: 100vh; margin: 0 auto; background: var(--paper); box-shadow: 0 0 44px rgba(67,40,46,.12); }
+.festival-header { position: relative; overflow: hidden; color: #fff; background: radial-gradient(circle at 90% 12%, rgba(255,224,232,.23) 0 1px, transparent 2px), linear-gradient(135deg, #7f1935 0%, #b72f53 56%, #d95b7a 100%); background-size: 17px 17px, auto; }
+.festival-header::after { position: absolute; right: -42px; bottom: -66px; width: 190px; height: 190px; content: ""; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; box-shadow: 0 0 0 18px rgba(255,255,255,.035), 0 0 0 38px rgba(255,255,255,.025); }
+.header-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; padding: 19px 18px 18px; }
+.crest { display: grid; flex: 0 0 56px; width: 56px; height: 56px; place-items: center; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 4px rgba(255,255,255,.08); }
+.crest span { font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: 27px; line-height: 1; }
+.eyebrow { margin: 0 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .12em; opacity: .82; }
+.title-group h1 { margin: 0; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: clamp(22px, 6.2vw, 31px); font-weight: 700; letter-spacing: .05em; line-height: 1.25; }
+.day-tabs { position: sticky; z-index: 10; top: 0; display: grid; grid-template-columns: repeat(3,1fr); padding: 0 10px; border-bottom: 1px solid var(--line); background: rgba(255,250,247,.95); box-shadow: 0 5px 16px rgba(72,42,48,.06); backdrop-filter: blur(12px); }
+.day-tab { position: relative; display: flex; min-height: 58px; align-items: center; justify-content: center; color: #826f73; font-size: 13px; font-weight: 700; }
+.day-tab::after { position: absolute; right: 17%; bottom: -1px; left: 17%; height: 3px; content: ""; border-radius: 10px 10px 0 0; background: transparent; }
+.day-tab.active { color: var(--sakura-deep); background: linear-gradient(180deg, transparent, rgba(201,60,98,.035)); }
+.day-tab.active::after { background: var(--sakura); }
+.day-label { font-size: 15px; }
+.weekday { margin-left: 1px; font-size: 11px; }
+.content-card { padding: 22px 14px 16px; }
+.date-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 3px 16px; }
+.section-kicker { margin: 0 0 4px; color: var(--sakura); font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.date-heading h2 { margin: 0; font-size: clamp(19px, 5.4vw, 25px); letter-spacing: .02em; line-height: 1.35; }
+.route-badge { display: flex; flex: 0 0 auto; align-items: center; gap: 5px; padding: 7px 9px; color: var(--sakura-deep); border: 1px solid #f0c8d3; border-radius: 999px; background: var(--sakura-pale); font-size: 11px; font-weight: 800; }
+.route-badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+.time-section { padding: 14px 12px 13px; border: 1px solid var(--line); border-radius: 15px; background: #fff; box-shadow: 0 7px 20px rgba(74,43,50,.055); }
+.time-guide { margin: 0 0 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.time-buttons { display: flex; gap: 8px; overflow-x: auto; padding: 1px 1px 4px; scrollbar-width: thin; scrollbar-color: #dfc8ce transparent; }
+.time-button { flex: 0 0 auto; min-height: 42px; padding: 9px 14px; color: #5e5053; border: 1px solid #dfd4d6; border-radius: 10px; background: #fffdfc; font-family: inherit; font-size: 13px; font-weight: 750; white-space: nowrap; cursor: pointer; transition: transform 120ms ease, border-color 120ms ease, color 120ms ease, background 120ms ease; }
+.time-button:hover { border-color: #d88da1; }
+.time-button:active { transform: scale(.97); }
+.time-button.active { color: #fff; border-color: var(--sakura-deep); background: linear-gradient(135deg, var(--sakura-deep), var(--sakura)); box-shadow: 0 4px 10px rgba(146,36,67,.24); }
+.time-button:focus-visible, .day-tab:focus-visible, .back-button:focus-visible { outline: 3px solid rgba(32,119,173,.45); outline-offset: 2px; }
+.current-map-label { display: flex; align-items: center; gap: 8px; min-height: 42px; margin-top: 13px; padding: 9px 12px; color: #5f494f; border: 1px solid #f0d9df; border-bottom: 0; border-radius: 13px 13px 0 0; background: #fff4f7; font-size: 12px; font-weight: 800; }
+.pulse-dot { display: block; flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--sakura); box-shadow: 0 0 0 4px rgba(201,60,98,.13); }
+.map-frame { position: relative; width: 100%; height: clamp(430px,61vh,650px); overflow: hidden; border: 1px solid #e1d6d8; border-radius: 0 0 15px 15px; background: #eee7e3; box-shadow: 0 9px 24px rgba(64,39,44,.1); }
+.map-frame iframe { width: 100%; height: 100%; border: 0; }
+.notice { display: flex; gap: 4px; margin: 13px 3px 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
+.notice span { color: var(--sakura); font-weight: 800; }
+.page-footer { padding: 2px 17px calc(28px + env(safe-area-inset-bottom)); text-align: center; }
+.back-button { display: flex; min-height: 50px; align-items: center; justify-content: center; gap: 5px; color: #fff; border-radius: 14px; background: linear-gradient(135deg, #39292d, #5f4148); box-shadow: 0 8px 17px rgba(42,28,31,.2); font-size: 14px; font-weight: 800; }
+.back-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.page-footer p { margin: 16px 0 0; color: #9a898d; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: 11px; letter-spacing: .16em; }
+@media (min-width: 620px) {
+  .header-inner { padding: 23px 28px 22px; }
+  .content-card { padding: 28px 24px 18px; }
+  .time-buttons { flex-wrap: wrap; overflow: visible; }
+  .page-footer { padding-right: 27px; padding-left: 27px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
