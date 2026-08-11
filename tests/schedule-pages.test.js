@@ -8,8 +8,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 for (const page of ["schedule/index.html", "schedule/9-2.html", "schedule/9-3.html"]) {
   assert.equal(fs.existsSync(path.join(root, page)), true, `${page} が存在する`);
   const html = read(page);
-  assert.match(html, /schedule\.css\?v=20260811-4/);
-  assert.match(html, /schedule\.js\?v=20260811-3/);
+  assert.match(html, /schedule\.css\?v=20260811-5/);
+  assert.match(html, /schedule\.js\?v=20260811-4/);
   assert.match(html, /ad-rotator\.css\?v=20260811-2/);
   assert.match(html, /ad-rotator\.js\?v=20260811-1/);
 }
@@ -38,9 +38,18 @@ for (const mapId of [
 }
 
 assert.doesNotMatch(schedule, /櫻町区 若連/);
-assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*display:\s*grid;/);
-assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\);/);
-assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*overflow:\s*visible;/);
+assert.match(schedule, /const routeMaps = day\.slots\.map/);
+assert.match(schedule, /class="route-list">\$\{routeMaps\}<\/div>/);
+assert.match(schedule, /経路図は時間順に並んでいます/);
+assert.match(schedule, /別の日の経路図を見る/);
+assert.match(schedule, /class="bottom-day-tabs"[^>]*>\$\{dayTabs\}<\/nav>/);
+assert.match(schedule, /loading="\$\{index === 0 \? "eager" : "lazy"\}"/);
+assert.doesNotMatch(schedule, /time-button|showSlot|id="routeMap"/);
+assert.match(scheduleCss, /\.route-list\s*\{[^}]*display:\s*grid;/);
+assert.match(scheduleCss, /\.route-list\s*\{[^}]*gap:\s*24px;/);
+assert.match(scheduleCss, /\.route-panel-heading\s*\{[^}]*display:\s*flex;/);
+assert.match(scheduleCss, /\.bottom-day-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(3,1fr\)/);
+assert.doesNotMatch(scheduleCss, /\.time-buttons|\.time-button/);
 assert.doesNotMatch(scheduleCss, /overflow-x:\s*auto/);
 assert.match(scheduleCss, /\.page-footer\s*\{[^}]*var\(--advertisement-height\)/);
 assert.match(buildPages, /\["data", "mark", "schedule"\]/);

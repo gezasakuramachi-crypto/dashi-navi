@@ -56,10 +56,25 @@
       </a>`;
   }).join("");
 
-  const timeButtons = day.slots.map((slot, index) => `
-    <button class="time-button${index === 0 ? " active" : ""}" type="button" data-index="${index}" aria-pressed="${index === 0}">
-      ${slot[0]}
-    </button>`).join("");
+  const routeMaps = day.slots.map((slot, index) => `
+    <article class="route-panel" aria-labelledby="routeTime${index}">
+      <div class="route-panel-heading">
+        <span class="route-index" aria-hidden="true">${index + 1}</span>
+        <div>
+          <p class="route-caption">${day.label}の運行経路</p>
+          <h3 id="routeTime${index}">${slot[0]}</h3>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe
+          src="https://www.google.com/maps/d/embed?mid=${encodeURIComponent(slot[1])}"
+          title="${day.label} ${slot[0]} 山車経路図"
+          loading="${index === 0 ? "eager" : "lazy"}"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </article>`).join("");
 
   app.className = "site-shell";
   app.innerHTML = `
@@ -87,21 +102,15 @@
         </div>
       </div>
 
-      <div class="time-section">
-        <p class="time-guide">時間帯を選んでください</p>
-        <div class="time-buttons" role="group" aria-label="${day.label}の時間帯">${timeButtons}</div>
-      </div>
-
-      <div class="current-map-label" aria-live="polite">
-        <span class="pulse-dot" aria-hidden="true"></span>
-        <span id="currentMapText"></span>
-      </div>
-
-      <div class="map-frame">
-        <iframe id="routeMap" title="${day.label} 山車経路図" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-      </div>
+      <p class="route-guide">経路図は時間順に並んでいます。下へスクロールしてご覧ください。</p>
+      <div class="route-list">${routeMaps}</div>
 
       <p class="notice"><span aria-hidden="true">※</span>天候・運行状況などにより、経路や時間が変更になる場合があります。</p>
+
+      <div class="bottom-day-section">
+        <p class="bottom-day-guide">別の日の経路図を見る</p>
+        <nav class="bottom-day-tabs" aria-label="ページ下部の日付選択">${dayTabs}</nav>
+      </div>
     </section>
 
     <footer class="page-footer">
@@ -119,26 +128,4 @@
       </a>
     </aside>`;
 
-  const mapFrame = document.getElementById("routeMap");
-  const currentMapText = document.getElementById("currentMapText");
-  const buttons = Array.from(document.querySelectorAll(".time-button"));
-
-  function showSlot(index) {
-    const slot = day.slots[index];
-    mapFrame.src = `https://www.google.com/maps/d/embed?mid=${encodeURIComponent(slot[1])}`;
-    mapFrame.title = `${day.label} ${slot[0]} 山車経路図`;
-    currentMapText.textContent = `${day.label}　${slot[0]} の経路を表示中`;
-
-    buttons.forEach((button, buttonIndex) => {
-      const active = buttonIndex === index;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-  }
-
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => showSlot(Number(button.dataset.index)));
-  });
-
-  showSlot(0);
 })();
