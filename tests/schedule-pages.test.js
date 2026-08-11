@@ -8,9 +8,9 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 for (const page of ["schedule/index.html", "schedule/9-2.html", "schedule/9-3.html"]) {
   assert.equal(fs.existsSync(path.join(root, page)), true, `${page} が存在する`);
   const html = read(page);
-  assert.match(html, /schedule\.css\?v=20260811-3/);
-  assert.match(html, /schedule\.js\?v=20260811-2/);
-  assert.match(html, /ad-rotator\.css\?v=20260811-1/);
+  assert.match(html, /schedule\.css\?v=20260811-4/);
+  assert.match(html, /schedule\.js\?v=20260811-3/);
+  assert.match(html, /ad-rotator\.css\?v=20260811-2/);
   assert.match(html, /ad-rotator\.js\?v=20260811-1/);
 }
 
@@ -42,6 +42,7 @@ assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*display:\s*grid;/);
 assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\);/);
 assert.match(scheduleCss, /\.time-buttons\s*\{[^}]*overflow:\s*visible;/);
 assert.doesNotMatch(scheduleCss, /overflow-x:\s*auto/);
+assert.match(scheduleCss, /\.page-footer\s*\{[^}]*var\(--advertisement-height\)/);
 assert.match(buildPages, /\["data", "mark", "schedule"\]/);
 assert.match(admin, /山車ナビ 管理用ページ/);
 assert.match(admin, /href="schedule\/"/);

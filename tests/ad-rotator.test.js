@@ -38,9 +38,11 @@ for (const source of [mainHtml, scheduleSource]) {
 }
 
 assert.match(mainHtml, /ad-rotator--fixed/);
-assert.match(scheduleSource, /ad-rotator--inline/);
+assert.match(scheduleSource, /ad-rotator--fixed/);
+assert.doesNotMatch(scheduleSource, /ad-rotator--inline/);
 assert.match(adCss, /background:\s*#ffffff/);
-assert.match(adCss, /--advertisement-height:\s*clamp\(32px, 8\.84vw, 90px\)/);
+assert.match(adCss, /--advertisement-height:\s*clamp\(44px, 8\.84vw, 90px\)/);
+assert.match(adCss, /\.ad-rotator-slide:nth-child\(2\)[\s\S]*?scale\(1\.8\)/);
 assert.match(mainCss, /var\(--advertisement-height\)/);
 assert.match(buildPages, /\["data", "mark", "schedule"\]/);
 

@@ -54,7 +54,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .map-frame iframe { width: 100%; height: 100%; border: 0; }
 .notice { display: flex; gap: 4px; margin: 13px 3px 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
 .notice span { color: var(--sakura); font-weight: 800; }
-.page-footer { padding: 2px 17px calc(28px + env(safe-area-inset-bottom)); text-align: center; }
+.page-footer { padding: 2px 17px calc(28px + var(--advertisement-height) + env(safe-area-inset-bottom)); text-align: center; }
 .back-button { display: flex; min-height: 50px; align-items: center; justify-content: center; gap: 5px; color: #fff; border-radius: 14px; background: linear-gradient(135deg, #39292d, #5f4148); box-shadow: 0 8px 17px rgba(42,28,31,.2); font-size: 14px; font-weight: 800; }
 .back-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
 .page-footer p { margin: 16px 0 0; color: #9a898d; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: 11px; letter-spacing: .16em; }
