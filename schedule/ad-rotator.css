@@ -1,0 +1,63 @@
+:root {
+  --advertisement-height: clamp(32px, 8.84vw, 90px);
+}
+
+.ad-rotator {
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid #e3e3e3;
+  background: #ffffff;
+}
+
+.ad-rotator--fixed {
+  position: fixed;
+  z-index: 36;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(var(--advertisement-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.ad-rotator--inline {
+  position: relative;
+  height: clamp(32px, 8.84vw, 67px);
+  margin-top: 14px;
+  border: 1px solid #e3e3e3;
+  border-radius: 10px;
+}
+
+.ad-rotator-link {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+}
+
+.ad-rotator-slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.ad-rotator-slide.is-active {
+  opacity: 1;
+}
+
+.ad-rotator-link:focus-visible {
+  outline: 3px solid #2d75d4;
+  outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-rotator-slide {
+    transition: none;
+  }
+}

@@ -82,7 +82,9 @@ assert.doesNotMatch(html, /山車の現在地は運行時間中のみ表示し�
 assert.match(html, /id="trafficStatusBadge"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260811-2/);
+assert.match(html, /styles\.css\?v=20260811-3/);
+assert.match(html, /schedule\/ad-rotator\.css\?v=20260811-1/);
+assert.match(html, /schedule\/ad-rotator\.js\?v=20260811-1/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
 assert.match(html, /app\.js\?v=20260811-1/);
