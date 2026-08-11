@@ -42,8 +42,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .route-badge svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 .time-section { padding: 14px 12px 13px; border: 1px solid var(--line); border-radius: 15px; background: #fff; box-shadow: 0 7px 20px rgba(74,43,50,.055); }
 .time-guide { margin: 0 0 9px; color: var(--muted); font-size: 12px; font-weight: 700; }
-.time-buttons { display: flex; gap: 8px; overflow-x: auto; padding: 1px 1px 4px; scrollbar-width: thin; scrollbar-color: #dfc8ce transparent; }
-.time-button { flex: 0 0 auto; min-height: 42px; padding: 9px 14px; color: #5e5053; border: 1px solid #dfd4d6; border-radius: 10px; background: #fffdfc; font-family: inherit; font-size: 13px; font-weight: 750; white-space: nowrap; cursor: pointer; transition: transform 120ms ease, border-color 120ms ease, color 120ms ease, background 120ms ease; }
+.time-buttons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; overflow: visible; padding: 1px; }
+.time-button { width: 100%; min-width: 0; min-height: 42px; padding: 9px 6px; color: #5e5053; border: 1px solid #dfd4d6; border-radius: 10px; background: #fffdfc; font-family: inherit; font-size: clamp(11px,3.5vw,13px); font-weight: 750; white-space: nowrap; cursor: pointer; transition: transform 120ms ease, border-color 120ms ease, color 120ms ease, background 120ms ease; }
 .time-button:hover { border-color: #d88da1; }
 .time-button:active { transform: scale(.97); }
 .time-button.active { color: #fff; border-color: var(--sakura-deep); background: linear-gradient(135deg, var(--sakura-deep), var(--sakura)); box-shadow: 0 4px 10px rgba(146,36,67,.24); }
@@ -61,7 +61,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 620px) {
   .header-inner { padding: 23px 28px 22px; }
   .content-card { padding: 28px 24px 18px; }
-  .time-buttons { flex-wrap: wrap; overflow: visible; }
+  .time-buttons { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .page-footer { padding-right: 27px; padding-left: 27px; }
 }
 @media (prefers-reduced-motion: reduce) {
