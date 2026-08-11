@@ -160,12 +160,13 @@
 
   function updateStreamStatus() {
     const status = $("streamStatus");
+    const statusText = $("streamStatusText");
     if (!status) return;
 
     if (!isPositionVisible()) {
       $("streamStatusTitle").textContent = "配信停止中";
-      $("streamStatusText").textContent =
-        "山車の現在地は運行時間中のみ表示します";
+      statusText.textContent = "";
+      statusText.hidden = true;
       status.classList.remove("error");
       status.hidden = false;
       return;
@@ -173,8 +174,8 @@
 
     if (state.positionApiFailed) {
       $("streamStatusTitle").textContent = "位置情報を確認できません";
-      $("streamStatusText").textContent =
-        "通信状態を確認しながら自動で再接続しています";
+      statusText.textContent = "通信状態を確認しながら自動で再接続しています";
+      statusText.hidden = false;
       status.classList.add("error");
       status.hidden = false;
       return;

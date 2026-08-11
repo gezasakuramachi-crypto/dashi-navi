@@ -99,24 +99,23 @@ button {
 
 .stream-status {
   position: fixed;
-  z-index: 28;
-  top: calc(var(--header-height) + 78px);
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 22;
+  top: calc(var(--header-height) + 10px);
+  left: 8px;
   width: max-content;
-  max-width: calc(100vw - 24px);
-  padding: 10px 15px;
+  max-width: min(260px, calc(100vw - 16px));
+  padding: 8px 11px;
   border: 1px solid rgba(48, 53, 59, 0.2);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.95);
   color: #363b40;
-  text-align: center;
+  text-align: left;
   box-shadow: 0 7px 22px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(10px);
 }
 
 #testBanner:not([hidden]) ~ main .stream-status {
-  top: calc(var(--header-height) + 120px);
+  top: calc(var(--header-height) + 52px);
 }
 
 .stream-status strong,
@@ -125,7 +124,7 @@ button {
 }
 
 .stream-status strong {
-  font-size: 17px;
+  font-size: 14px;
   line-height: 1.3;
 }
 
