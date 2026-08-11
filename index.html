@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111111">
   <meta name="description" content="鹿島神宮神幸祭の山車現在地と交通規制を確認できる山車ナビです。">
   <title>令和8年 鹿島神宮神幸祭 山車ナビ</title>
-  <link rel="stylesheet" href="styles.css?v=20260811-3">
+  <link rel="stylesheet" href="styles.css?v=20260811-4">
   <link rel="stylesheet" href="schedule/ad-rotator.css?v=20260811-2">
 </head>
 <body>
@@ -27,10 +27,10 @@
     </div>
   </main>
 
-  <div id="trafficStatusBadge" class="traffic-status-badge" role="status" aria-live="polite">
+  <button id="trafficStatusBadge" class="traffic-status-badge" type="button" aria-controls="trafficPanel" aria-expanded="false">
     <span>交通規制</span>
-    <strong id="trafficStatusText">自動更新</strong>
-  </div>
+    <strong id="trafficStatusText" aria-live="polite">自動更新</strong>
+  </button>
 
   <aside id="trafficPanel" class="traffic-panel" aria-label="交通規制の日時選択" hidden>
     <div class="panel-title-row">
@@ -138,7 +138,7 @@
   <script src="traffic-schedule.js?v=20260810-1"></script>
   <script src="runtime-schedule.js?v=20260810-1"></script>
   <script src="config.js?v=20260810-1"></script>
-  <script src="app.js?v=20260811-1"></script>
+  <script src="app.js?v=20260811-2"></script>
   <script>
     window.DashiNaviApp.bootGoogleMaps();
   </script>

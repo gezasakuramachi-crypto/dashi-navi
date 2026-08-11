@@ -625,6 +625,8 @@
     $("trafficPanel").classList.add("open");
     $("bTraffic").classList.add("active");
     $("bTraffic").setAttribute("aria-expanded", "true");
+    $("trafficStatusBadge").classList.add("active");
+    $("trafficStatusBadge").setAttribute("aria-expanded", "true");
   }
 
   function closeTrafficPanel() {
@@ -633,6 +635,8 @@
     $("trafficPanel").hidden = true;
     $("bTraffic").classList.remove("active");
     $("bTraffic").setAttribute("aria-expanded", "false");
+    $("trafficStatusBadge").classList.remove("active");
+    $("trafficStatusBadge").setAttribute("aria-expanded", "false");
   }
 
   function toggleTrafficPanel() {
@@ -788,6 +792,7 @@
     $("sheetBackdrop").addEventListener("click", closeDashiSheet);
 
     $("bTraffic").addEventListener("click", toggleTrafficPanel);
+    $("trafficStatusBadge").addEventListener("click", toggleTrafficPanel);
     $("trafficClose").addEventListener("click", closeTrafficPanel);
     $("trafficDay").addEventListener("change", async (event) => {
       if (event.target.value === AUTO_TRAFFIC_VALUE) {
@@ -812,7 +817,11 @@
 
     document.addEventListener("click", (event) => {
       if (!state.trafficPanelOpen) return;
-      if ($("trafficPanel").contains(event.target) || $("bTraffic").contains(event.target)) return;
+      if (
+        $("trafficPanel").contains(event.target) ||
+        $("bTraffic").contains(event.target) ||
+        $("trafficStatusBadge").contains(event.target)
+      ) return;
       closeTrafficPanel();
     });
 
@@ -864,6 +873,9 @@
       zoom: CONFIG.mapZoom,
       mapTypeControl: false,
       fullscreenControl: true,
+      fullscreenControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM
+      },
       streetViewControl: false,
       // Google Maps標準施設の吹き出しは表示せず、祭礼用マーカーだけを操作対象にします。
       clickableIcons: false,

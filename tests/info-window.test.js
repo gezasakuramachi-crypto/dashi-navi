@@ -66,6 +66,14 @@ assert.doesNotMatch(app, /ここへ行く/);
 assert.doesNotMatch(app, /google\.com\/maps\/dir/);
 assert.match(app, /trafficStatusText/);
 assert.match(app, /"自動更新"/);
+assert.match(app, /\$\("trafficStatusBadge"\)\.addEventListener\("click", toggleTrafficPanel\)/);
+assert.match(app, /\$\("trafficStatusBadge"\)\.setAttribute\("aria-expanded", "true"\)/);
+assert.match(app, /\$\("trafficStatusBadge"\)\.setAttribute\("aria-expanded", "false"\)/);
+assert.match(app, /\$\("trafficStatusBadge"\)\.contains\(event\.target\)/);
+assert.match(
+  app,
+  /fullscreenControlOptions:\s*\{\s*position:\s*google\.maps\.ControlPosition\.RIGHT_BOTTOM\s*\}/
+);
 assert.match(css, /\.gm-style \.gm-style-iw-chr\s*\{\s*display: none !important;/);
 assert.match(css, /\.gm-style \.gm-style-iw-c\s*\{[\s\S]*?max-width:\s*calc\(100vw - 32px\) !important;/);
 assert.match(css, /\.gm-style \.gm-style-iw-d\s*\{[\s\S]*?overflow:\s*hidden !important;/);
@@ -73,20 +81,29 @@ assert.match(css, /\.map-card-actions\s*\{[\s\S]*?grid-template-columns:\s*repea
 assert.match(css, /\.map-link,\s*\n\.map-link-disabled\s*\{[\s\S]*?min-width:\s*0;/);
 assert.match(css, /\.dashi-marker-label\s*\{/);
 assert.match(css, /\.traffic-status-badge\s*\{/);
+assert.match(css, /\.traffic-status-badge\s*\{[\s\S]*?cursor:\s*pointer;/);
+assert.doesNotMatch(
+  css.match(/\.traffic-status-badge\s*\{[\s\S]*?\n\}/)?.[0] || "",
+  /pointer-events:\s*none/
+);
 assert.match(css, /\.stream-status\s*\{[\s\S]*?z-index:\s*22;/);
 assert.match(css, /\.stream-status\s*\{[\s\S]*?left:\s*8px;/);
 assert.match(css, /\.traffic-panel\s*\{[\s\S]*?z-index:\s*24;/);
 assert.match(css, /\.schedule-link\s*\{/);
 assert.match(html, /id="streamStatus"/);
 assert.doesNotMatch(html, /山車の現在地は運行時間中のみ表示します/);
-assert.match(html, /id="trafficStatusBadge"/);
+assert.match(
+  html,
+  /<button id="trafficStatusBadge"[^>]*aria-controls="trafficPanel"[^>]*aria-expanded="false"/
+);
+assert.match(html, /id="trafficStatusText" aria-live="polite"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260811-3/);
+assert.match(html, /styles\.css\?v=20260811-4/);
 assert.match(html, /schedule\/ad-rotator\.css\?v=20260811-2/);
 assert.match(html, /schedule\/ad-rotator\.js\?v=20260811-1/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
-assert.match(html, /app\.js\?v=20260811-1/);
+assert.match(html, /app\.js\?v=20260811-2/);
 
 console.log("info-window regression tests passed");

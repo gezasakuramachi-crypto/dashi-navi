@@ -156,7 +156,19 @@ button {
   text-align: left;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(10px);
-  pointer-events: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.traffic-status-badge:hover,
+.traffic-status-badge.active {
+  border-color: rgba(168, 15, 70, 0.62);
+  box-shadow: 0 7px 22px rgba(168, 15, 70, 0.22);
+}
+
+.traffic-status-badge:active {
+  transform: translateY(1px);
 }
 
 #testBanner:not([hidden]) ~ .traffic-status-badge {
@@ -223,6 +235,7 @@ button {
 }
 
 .bottom-button:focus-visible,
+.traffic-status-badge:focus-visible,
 .icon-close:focus-visible,
 .secondary-button:focus-visible,
 .schedule-link:focus-visible,
