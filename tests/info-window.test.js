@@ -99,11 +99,20 @@ assert.match(
 assert.match(html, /id="trafficStatusText" aria-live="polite"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260811-4/);
+assert.match(html, /styles\.css\?v=20260811-5/);
 assert.match(html, /schedule\/ad-rotator\.css\?v=20260811-2/);
 assert.match(html, /schedule\/ad-rotator\.js\?v=20260811-1/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
 assert.match(html, /app\.js\?v=20260811-2/);
+assert.match(html, /【企画・製作・運用】/);
+assert.match(html, /<p class="help-profile-name">MASUMI<\/p>/);
+assert.match(html, /令和7年から個人で「山車ナビ」の開発・運用を無償で行っています/);
+assert.match(html, /mailto:geza\.sakuramachi@gmail\.com/);
+assert.match(html, />geza\.sakuramachi@gmail\.com<\/a>/);
+assert.match(html, /※祭礼当日などは、すぐに返信できない場合があります。/);
+assert.doesNotMatch(html, /LINE\s*ID/i);
+assert.doesNotMatch(html, /masumi\.takayasu@gmail\.com/);
+assert.match(css, /\.help-contact-link\s*\{[\s\S]*?overflow-wrap:\s*anywhere;/);
 
 console.log("info-window regression tests passed");

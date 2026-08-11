@@ -609,6 +609,26 @@ button {
   color: #7c3d12;
 }
 
+.help-profile p + p {
+  margin-top: 10px;
+}
+
+.help-profile .help-profile-name {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.help-contact-link {
+  color: var(--accent-dark);
+  overflow-wrap: anywhere;
+  text-underline-offset: 2px;
+}
+
+.help-profile-note {
+  color: var(--muted);
+}
+
 .toast {
   position: fixed;
   z-index: 70;
