@@ -877,8 +877,8 @@
         position: google.maps.ControlPosition.RIGHT_BOTTOM
       },
       streetViewControl: false,
-      // Google Maps標準施設の吹き出しは表示せず、祭礼用マーカーだけを操作対象にします。
-      clickableIcons: false,
+      // Google Maps標準の店舗・施設もタップして詳細を確認できるようにします。
+      clickableIcons: true,
       gestureHandling: "greedy"
     });
     state.infoWindow = new google.maps.InfoWindow({ headerDisabled: true });

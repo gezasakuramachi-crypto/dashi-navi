@@ -53,7 +53,7 @@ for (const removedText of ["top.html", "御船祭保存会", "山車ナビ"]) {
 }
 
 assert.match(app, /new google\.maps\.InfoWindow\(\{ headerDisabled: true \}\)/);
-assert.match(app, /clickableIcons: false/);
+assert.match(app, /clickableIcons: true/);
 assert.match(app, /state\.map\.addListener\("click", \(\) => state\.infoWindow\.close\(\)\)/);
 assert.match(app, /event\.target\.closest\("\.gm-style-iw-c"\)/);
 assert.match(app, /if \(state\.infoWindow\) state\.infoWindow\.close\(\);/);
