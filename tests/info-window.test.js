@@ -99,9 +99,8 @@ assert.match(
 assert.match(html, /id="trafficStatusText" aria-live="polite"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260811-5/);
-assert.match(html, /schedule\/ad-rotator\.css\?v=20260811-2/);
-assert.match(html, /schedule\/ad-rotator\.js\?v=20260811-1/);
+assert.match(html, /styles\.css\?v=20260817-1/);
+assert.doesNotMatch(html, /ad-rotator/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
 assert.match(html, /app\.js\?v=20260811-2/);

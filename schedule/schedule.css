@@ -58,7 +58,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .bottom-day-tabs .day-tab { min-height: 54px; }
 .bottom-day-tabs .day-tab + .day-tab { border-left: 1px solid var(--line); }
 .bottom-day-tabs .day-tab::after { right: 14%; left: 14%; }
-.page-footer { padding: 2px 17px calc(28px + var(--advertisement-height) + env(safe-area-inset-bottom)); text-align: center; }
+.page-footer { padding: 2px 17px calc(28px + env(safe-area-inset-bottom)); text-align: center; }
 .back-button { display: flex; min-height: 50px; align-items: center; justify-content: center; gap: 5px; color: #fff; border-radius: 14px; background: linear-gradient(135deg, #39292d, #5f4148); box-shadow: 0 8px 17px rgba(42,28,31,.2); font-size: 14px; font-weight: 800; }
 .back-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
 .page-footer p { margin: 16px 0 0; color: #9a898d; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; font-size: 11px; letter-spacing: .16em; }

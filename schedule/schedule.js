@@ -118,14 +118,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"></path></svg>
         <span>山車ナビに戻る</span>
       </a>
-    </footer>
-
-    <aside class="ad-rotator ad-rotator--fixed" data-ad-rotator aria-label="広告">
-      <a class="ad-rotator-link" href="https://www.koken-realestate.com/" target="_blank" rel="noopener noreferrer" aria-label="株式会社コウケンのウェブサイトを開く（新しいタブ）">
-        <img class="ad-rotator-slide is-active" data-ad-slide src="../mark/ads/koken-01.png" alt="" decoding="async">
-        <img class="ad-rotator-slide" data-ad-slide src="../mark/ads/koken-02.png" alt="" decoding="async">
-        <img class="ad-rotator-slide" data-ad-slide src="../mark/ads/koken-03.png" alt="" decoding="async">
-      </a>
-    </aside>`;
+    </footer>`;
 
 })();
