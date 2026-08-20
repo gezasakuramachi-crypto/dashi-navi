@@ -99,7 +99,7 @@ assert.match(
 assert.match(html, /id="trafficStatusText" aria-live="polite"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260817-1/);
+assert.match(html, /styles\.css\?v=20260820-1/);
 assert.doesNotMatch(html, /ad-rotator/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
@@ -110,8 +110,16 @@ assert.match(html, /令和7年から個人で「山車ナビ」の開発・運�
 assert.match(html, /mailto:geza\.sakuramachi@gmail\.com/);
 assert.match(html, />geza\.sakuramachi@gmail\.com<\/a>/);
 assert.match(html, /※祭礼当日などは、すぐに返信できない場合があります。/);
+assert.match(html, /祭礼・観光関連リンク/);
+assert.match(html, /href="https:\/\/kashimajingu\.jp\/"/);
+assert.match(html, /href="http:\/\/www\.sopia\.or\.jp\/kashima-kanko\/"/);
+assert.match(html, />鹿島神宮<\/strong>/);
+assert.match(html, />鹿嶋市観光協会<\/strong>/);
+assert.match(html, /class="help-related-link"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/);
 assert.doesNotMatch(html, /LINE\s*ID/i);
 assert.doesNotMatch(html, /masumi\.takayasu@gmail\.com/);
 assert.match(css, /\.help-contact-link\s*\{[\s\S]*?overflow-wrap:\s*anywhere;/);
+assert.match(css, /\.help-related-list\s*\{/);
+assert.match(css, /\.help-related-link\s*\{[\s\S]*?grid-template-columns:\s*38px minmax\(0, 1fr\) auto;/);
 
 console.log("info-window regression tests passed");
