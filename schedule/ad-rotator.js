@@ -11,7 +11,10 @@
     function showSlide(index) {
       activeIndex = index;
       slides.forEach((slide, slideIndex) => {
-        slide.classList.toggle("is-active", slideIndex === activeIndex);
+        const isActive = slideIndex === activeIndex;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", String(!isActive));
+        slide.tabIndex = isActive ? 0 : -1;
       });
     }
 

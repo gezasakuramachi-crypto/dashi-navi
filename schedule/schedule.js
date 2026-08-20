@@ -118,6 +118,24 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 7-5 5 5 5"></path></svg>
         <span>山車ナビに戻る</span>
       </a>
-    </footer>`;
+    </footer>
+
+    <aside class="ad-rotator ad-rotator--fixed" aria-label="広告・協賛スポンサー" data-ad-rotator>
+      <a class="ad-rotator-slide is-active" href="../sponsor.html" aria-label="広告掲載・協賛スポンサー募集の詳細を見る" aria-hidden="false" data-ad-slide>
+        <img src="../mark/ads/sponsor-recruit-01-640x100.png" alt="広告・協賛スポンサー募集中。山車ナビでお店・会社をPR。1枠5,000円（税込）" width="640" height="100" decoding="async" fetchpriority="high">
+      </a>
+      <a class="ad-rotator-slide" href="https://www.koken-realestate.com/" target="_blank" rel="noopener noreferrer" aria-label="株式会社コウケンのウェブサイトを開く（新しいタブ）" aria-hidden="true" tabindex="-1" data-ad-slide>
+        <img src="../mark/ads/koken-640x100.png" alt="住まいと不動産のアドバイザー 株式会社コウケン" width="640" height="100" decoding="async">
+      </a>
+      <a class="ad-rotator-slide" href="../sponsor.html" aria-label="広告掲載・協賛スポンサー募集の詳細を見る" aria-hidden="true" tabindex="-1" data-ad-slide>
+        <img src="../mark/ads/sponsor-recruit-02-640x100.png" alt="地域の祭礼を応援しませんか。山車ナビ協賛スポンサー募集中。1枠5,000円" width="640" height="100" decoding="async">
+      </a>
+      <a class="ad-rotator-slide" href="https://www.koken-realestate.com/" target="_blank" rel="noopener noreferrer" aria-label="株式会社コウケンのウェブサイトを開く（新しいタブ）" aria-hidden="true" tabindex="-1" data-ad-slide>
+        <img src="../mark/ads/koken-640x100.png" alt="住まいと不動産のアドバイザー 株式会社コウケン" width="640" height="100" decoding="async">
+      </a>
+      <a class="ad-rotator-slide" href="../sponsor.html" aria-label="広告掲載・協賛スポンサー募集の詳細を見る" aria-hidden="true" tabindex="-1" data-ad-slide>
+        <img src="../mark/ads/sponsor-recruit-03-640x100.png" alt="山車ナビでお店・会社をPR。広告掲載企業・店舗を募集中" width="640" height="100" decoding="async">
+      </a>
+    </aside>`;
 
 })();

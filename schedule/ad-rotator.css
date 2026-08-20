@@ -1,5 +1,5 @@
 :root {
-  --advertisement-height: clamp(44px, 8.84vw, 90px);
+  --advertisement-height: clamp(50px, 15.625vw, 100px);
 }
 
 .ad-rotator {
@@ -20,43 +20,35 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.ad-rotator-link {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: #ffffff;
-}
-
 .ad-rotator-slide {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom);
+  left: 0;
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  background: #ffffff;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 180ms ease;
 }
 
 .ad-rotator-slide.is-active {
+  z-index: 1;
   opacity: 1;
+  pointer-events: auto;
 }
 
-/* 元画像の透明な余白だけを画面外へ逃がし、文字とロゴを読みやすくする。 */
-.ad-rotator-slide:nth-child(1) {
-  transform: scale(1.25);
+.ad-rotator-slide img {
+  display: block;
+  width: min(100%, 640px);
+  height: 100%;
+  margin: 0 auto;
+  object-fit: contain;
 }
 
-.ad-rotator-slide:nth-child(2) {
-  transform: scale(1.8);
-}
-
-.ad-rotator-slide:nth-child(3) {
-  transform: scale(1.55);
-}
-
-.ad-rotator-link:focus-visible {
+.ad-rotator-slide:focus-visible {
   outline: 3px solid #2d75d4;
   outline-offset: -3px;
 }

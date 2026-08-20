@@ -58,9 +58,9 @@ button {
 
 #map {
   position: fixed;
-  inset: var(--header-height) 0 calc(var(--footer-height) + env(safe-area-inset-bottom)) 0;
-  height: calc(100vh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
-  height: calc(100dvh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
+  inset: var(--header-height) 0 calc(var(--footer-height) + var(--advertisement-height) + env(safe-area-inset-bottom)) 0;
+  height: calc(100vh - var(--header-height) - var(--footer-height) - var(--advertisement-height) - env(safe-area-inset-bottom));
+  height: calc(100dvh - var(--header-height) - var(--footer-height) - var(--advertisement-height) - env(safe-area-inset-bottom));
   background: #d7d9dc;
 }
 
@@ -195,7 +195,7 @@ button {
 
 .bottom-bar {
   position: fixed;
-  inset: auto 0 env(safe-area-inset-bottom);
+  inset: auto 0 calc(var(--advertisement-height) + env(safe-area-inset-bottom));
   z-index: 35;
   height: var(--footer-height);
   display: grid;
@@ -693,7 +693,7 @@ button {
   position: fixed;
   z-index: 70;
   left: 50%;
-  bottom: calc(var(--footer-height) + env(safe-area-inset-bottom) + 14px);
+  bottom: calc(var(--footer-height) + var(--advertisement-height) + env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100vw - 28px);
