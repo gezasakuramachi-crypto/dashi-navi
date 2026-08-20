@@ -239,6 +239,7 @@ button {
 .icon-close:focus-visible,
 .secondary-button:focus-visible,
 .schedule-link:focus-visible,
+.help-related-link:focus-visible,
 .dashi-card:focus-visible {
   outline: 3px solid #70a7ff;
   outline-offset: -3px;
@@ -607,6 +608,65 @@ button {
   border-radius: 10px;
   background: #fff7ed;
   color: #7c3d12;
+}
+
+.help-related-guide {
+  color: var(--muted);
+}
+
+.help-related-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.help-related-link {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  min-height: 60px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid rgba(217, 31, 99, 0.25);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff3f7, #ffffff);
+  color: var(--ink);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.help-related-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.help-related-copy strong,
+.help-related-copy small {
+  display: block;
+}
+
+.help-related-copy strong {
+  color: var(--accent-dark);
+  font-size: 14px;
+}
+
+.help-related-copy small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.help-related-chevron {
+  color: var(--accent-dark);
+  font-size: 22px;
 }
 
 .help-profile p + p {
