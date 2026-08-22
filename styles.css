@@ -1,6 +1,7 @@
 :root {
   --header-height: 54px;
   --footer-height: 66px;
+  --counter-height: clamp(50px, 15.625vw, 72px);
   --accent: #d91f63;
   --accent-dark: #a80f46;
   --ink: #202124;
@@ -58,9 +59,9 @@ button {
 
 #map {
   position: fixed;
-  inset: var(--header-height) 0 calc(var(--footer-height) + env(safe-area-inset-bottom)) 0;
-  height: calc(100vh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
-  height: calc(100dvh - var(--header-height) - var(--footer-height) - env(safe-area-inset-bottom));
+  inset: var(--header-height) 0 calc(var(--footer-height) + var(--counter-height) + env(safe-area-inset-bottom)) 0;
+  height: calc(100vh - var(--header-height) - var(--footer-height) - var(--counter-height) - env(safe-area-inset-bottom));
+  height: calc(100dvh - var(--header-height) - var(--footer-height) - var(--counter-height) - env(safe-area-inset-bottom));
   background: #d7d9dc;
 }
 
@@ -195,13 +196,46 @@ button {
 
 .bottom-bar {
   position: fixed;
-  inset: auto 0 env(safe-area-inset-bottom);
+  inset: auto 0 calc(var(--counter-height) + env(safe-area-inset-bottom));
   z-index: 35;
   height: var(--footer-height);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   background: #090909;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.access-counter {
+  position: fixed;
+  z-index: 36;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(var(--counter-height) + env(safe-area-inset-bottom));
+  margin: 0;
+  padding: 0 8px env(safe-area-inset-bottom);
+  border-top: 1px solid #dfe3e7;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.access-counter > a {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.access-counter .f-counter {
+  max-width: 100%;
+}
+
+.access-counter > a:focus-visible {
+  outline: 3px solid #2d75d4;
+  outline-offset: 2px;
 }
 
 .bottom-button {
@@ -693,7 +727,7 @@ button {
   position: fixed;
   z-index: 70;
   left: 50%;
-  bottom: calc(var(--footer-height) + env(safe-area-inset-bottom) + 14px);
+  bottom: calc(var(--footer-height) + var(--counter-height) + env(safe-area-inset-bottom) + 14px);
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100vw - 28px);

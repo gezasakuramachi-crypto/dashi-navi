@@ -21,18 +21,33 @@ for (const source of [mainHtml, scheduleSource, ...schedulePages]) {
 
 assert.doesNotMatch(mainCss, /--advertisement-height/);
 assert.doesNotMatch(scheduleCss, /--advertisement-height/);
+assert.match(mainHtml, /<aside class="access-counter" aria-label="アクセスカウンター">/);
+assert.match(
+  mainHtml,
+  /<a href="https:\/\/www\.stylemap\.co\.jp\/" title="アクセスカウンター" aria-label="アクセスカウンター"><span class="f-counter" data-dir="67" data-id="1787371082"><\/span><\/a>/
+);
+assert.match(
+  mainHtml,
+  /<a href="https:\/\/www\.stylemap\.co\.jp\/"[^>]*><span class="f-counter"[^>]*><\/span><\/a>\s*<script src="https:\/\/www\.f-counter\.net\/js-counter\/counter\.js" async><\/script>/
+);
+assert.match(mainCss, /--counter-height:\s*clamp\(50px, 15\.625vw, 72px\);/);
 assert.match(
   mainCss,
-  /#map\s*\{[\s\S]*?inset:\s*var\(--header-height\) 0 calc\(var\(--footer-height\) \+ env\(safe-area-inset-bottom\)\) 0;/
+  /#map\s*\{[\s\S]*?inset:\s*var\(--header-height\) 0 calc\(var\(--footer-height\) \+ var\(--counter-height\) \+ env\(safe-area-inset-bottom\)\) 0;/
 );
 assert.match(
   mainCss,
-  /\.bottom-bar\s*\{[\s\S]*?inset:\s*auto 0 env\(safe-area-inset-bottom\);/
+  /\.bottom-bar\s*\{[\s\S]*?inset:\s*auto 0 calc\(var\(--counter-height\) \+ env\(safe-area-inset-bottom\)\);/
 );
+assert.match(mainCss, /\.access-counter\s*\{[\s\S]*?position:\s*fixed;/);
 assert.match(
   scheduleCss,
   /\.page-footer\s*\{[^}]*calc\(28px \+ env\(safe-area-inset-bottom\)\)/
 );
+
+for (const page of schedulePages) {
+  assert.doesNotMatch(page, /f-counter|access-counter/);
+}
 
 for (const asset of [
   "koken-640x100.png",
@@ -48,4 +63,4 @@ for (const asset of [
 assert.equal(fs.existsSync(path.join(root, "sponsor.html")), true);
 assert.match(read("sponsor.html"), /docs\.google\.com\/forms/);
 
-console.log("advertisement removal tests passed");
+console.log("access counter and advertisement tests passed");
