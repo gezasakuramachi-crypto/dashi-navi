@@ -152,9 +152,21 @@
     return state.adminView || Boolean(activePublicPositionWindow());
   }
 
-  function hideDashiMarkers() {
-    for (const entry of state.dashi.values()) {
-      if (entry.marker) entry.marker.setMap(null);
+  function showStandbyDashiMarkers() {
+    const updatedAt = getEffectiveNow();
+
+    for (const dashi of CONFIG.dashis) {
+      const entry = state.dashi.get(dashi.id);
+      if (!dashi.visible || !dashi.standbyPosition) {
+        if (entry && entry.marker) entry.marker.setMap(null);
+        continue;
+      }
+
+      ensureDashiMarker(dashi, {
+        ...dashi.standbyPosition,
+        updatedAt,
+        source: "standby"
+      });
     }
   }
 
@@ -345,7 +357,7 @@
     }
 
     const entry = state.dashi.get(dashi.id);
-    if (entry && entry.source === "test") {
+    if (entry && (entry.source === "test" || entry.source === "standby")) {
       if (entry.marker) entry.marker.setMap(null);
       state.dashi.delete(dashi.id);
     }
@@ -355,7 +367,7 @@
   async function refreshPositions() {
     if (!isPositionVisible()) {
       state.positionApiFailed = false;
-      hideDashiMarkers();
+      showStandbyDashiMarkers();
       updateStreamStatus();
       renderDashiList();
       return;

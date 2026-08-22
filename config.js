@@ -25,7 +25,7 @@ window.DASHI_NAVI_CONFIG = {
       label: "9月1日",
       published: true,
       slots: [
-        { id: "position-0901-1000-2200", start: "10:00", end: "22:00" }
+        { id: "position-0901-1000-2000", start: "10:00", end: "20:00" }
       ]
     },
     {
@@ -34,8 +34,7 @@ window.DASHI_NAVI_CONFIG = {
       label: "9月2日",
       published: true,
       slots: [
-        { id: "position-0902-0600-0700", start: "06:00", end: "07:00" },
-        { id: "position-0902-1800-2200", start: "18:00", end: "22:00" }
+        { id: "position-0902-0600-2200", start: "06:00", end: "22:00" }
       ]
     },
     {
@@ -44,7 +43,7 @@ window.DASHI_NAVI_CONFIG = {
       label: "9月3日",
       published: true,
       slots: [
-        { id: "position-0903-1130-2200", start: "11:30", end: "22:00" }
+        { id: "position-0903-1100-2200", start: "11:00", end: "22:00" }
       ]
     }
   ],
@@ -68,6 +67,7 @@ window.DASHI_NAVI_CONFIG = {
       iconUrl: "mark/sakuramachi-konohanasakuya-icon.png",
       officialUrl: "https://sites.google.com/view/sakuramachiku/",
       routeUrls: { default: "schedule/" },
+      standbyPosition: { lat: 35.963917794648374, lng: 140.63146447396596 },
       testPosition: { lat: 35.963918, lng: 140.631464 }
     }
   ],
@@ -105,6 +105,11 @@ window.DASHI_NAVI_CONFIG = {
         lng: 140.6289444,
         photo: "mark/nen-hiki.png",
         description: "山車の運行を執り仕切る「山車年番」を、次年度の年番町内へ引き継ぐ会場です。"
+      },
+      {
+        title: "櫻町若衆引継ぎ式\n9/3　20時頃",
+        lat: 35.9662,
+        lng: 140.630518
       },
       {
         title: "二十三夜尊",

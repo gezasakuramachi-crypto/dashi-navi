@@ -35,7 +35,7 @@
       fullDate: "令和8年9月3日（木）",
       href: "9-3.html",
       slots: [
-        ["11:30–12:50", "198vNazs-OGaw2szb1b6RJ0paOr2oauw"],
+        ["11:00–12:50", "198vNazs-OGaw2szb1b6RJ0paOr2oauw"],
         ["13:40–15:00", "1aVRi7Ed9P5YZxNEJSLOg2nV695fUNl4"],
         ["15:20–17:00", "1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA"],
         ["18:00–19:00", "11a7L6DMlUi5GDAASMdAoOJJOiR6sGzs"],

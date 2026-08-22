@@ -9,7 +9,7 @@ for (const page of ["schedule/index.html", "schedule/9-2.html", "schedule/9-3.ht
   assert.equal(fs.existsSync(path.join(root, page)), true, `${page} が存在する`);
   const html = read(page);
   assert.match(html, /schedule\.css\?v=20260821-1/);
-  assert.match(html, /schedule\.js\?v=20260821-1/);
+  assert.match(html, /schedule\.js\?v=20260822-1/);
   assert.doesNotMatch(html, /ad-rotator/);
 }
 
@@ -37,6 +37,8 @@ for (const mapId of [
 }
 
 assert.doesNotMatch(schedule, /櫻町区 若連/);
+assert.match(schedule, /\["11:00–12:50", "198vNazs-OGaw2szb1b6RJ0paOr2oauw"\]/);
+assert.doesNotMatch(schedule, /11:30–12:50/);
 assert.match(schedule, /const routeMaps = day\.slots\.map/);
 assert.match(schedule, /class="route-list">\$\{routeMaps\}<\/div>/);
 assert.match(schedule, /経路図は時間順に並んでいます/);
