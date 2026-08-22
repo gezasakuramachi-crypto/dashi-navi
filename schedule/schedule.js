@@ -1,6 +1,17 @@
 (function () {
   "use strict";
 
+  /*
+   * 9/3 15:20–17:00は、暑さなどで運行を短縮する場合に備えて
+   * 通常ルートとショートカットルートを登録しています。
+   * 現場から切替指示があるまでは standard を公開します。
+   */
+  const september3AfternoonRoutes = {
+    active: "standard",
+    standard: "1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA",
+    shortcut: "16IWs5jEWnULAdROjkelBjx0-G0FdSok"
+  };
+
   const scheduleDays = [
     {
       id: "9-1",
@@ -37,7 +48,10 @@
       slots: [
         ["11:00–12:50", "198vNazs-OGaw2szb1b6RJ0paOr2oauw"],
         ["13:40–15:00", "1aVRi7Ed9P5YZxNEJSLOg2nV695fUNl4"],
-        ["15:20–17:00", "1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA"],
+        [
+          "15:20–17:00",
+          september3AfternoonRoutes[september3AfternoonRoutes.active]
+        ],
         ["18:00–19:00", "11a7L6DMlUi5GDAASMdAoOJJOiR6sGzs"],
         ["19:00–22:00", "1pOcI3vWw05sHGBjk1cWZd54631HdIxM"]
       ]

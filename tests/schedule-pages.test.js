@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -9,7 +10,7 @@ for (const page of ["schedule/index.html", "schedule/9-2.html", "schedule/9-3.ht
   assert.equal(fs.existsSync(path.join(root, page)), true, `${page} が存在する`);
   const html = read(page);
   assert.match(html, /schedule\.css\?v=20260821-1/);
-  assert.match(html, /schedule\.js\?v=20260822-1/);
+  assert.match(html, /schedule\.js\?v=20260822-2/);
   assert.doesNotMatch(html, /ad-rotator/);
 }
 
@@ -30,6 +31,7 @@ for (const mapId of [
   "198vNazs-OGaw2szb1b6RJ0paOr2oauw",
   "1aVRi7Ed9P5YZxNEJSLOg2nV695fUNl4",
   "1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA",
+  "16IWs5jEWnULAdROjkelBjx0-G0FdSok",
   "11a7L6DMlUi5GDAASMdAoOJJOiR6sGzs",
   "1pOcI3vWw05sHGBjk1cWZd54631HdIxM"
 ]) {
@@ -39,6 +41,33 @@ for (const mapId of [
 assert.doesNotMatch(schedule, /櫻町区 若連/);
 assert.match(schedule, /\["11:00–12:50", "198vNazs-OGaw2szb1b6RJ0paOr2oauw"\]/);
 assert.doesNotMatch(schedule, /11:30–12:50/);
+assert.match(schedule, /const september3AfternoonRoutes = \{/);
+assert.match(schedule, /active: "standard"/);
+assert.match(schedule, /standard: "1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA"/);
+assert.match(schedule, /shortcut: "16IWs5jEWnULAdROjkelBjx0-G0FdSok"/);
+assert.match(
+  schedule,
+  /september3AfternoonRoutes\[september3AfternoonRoutes\.active\]/
+);
+
+const scheduleApp = { className: "", innerHTML: "" };
+vm.runInNewContext(schedule, {
+  document: {
+    body: { dataset: { day: "9-3" } },
+    getElementById: (id) => (id === "scheduleApp" ? scheduleApp : null)
+  },
+  encodeURIComponent
+});
+assert.match(
+  scheduleApp.innerHTML,
+  /mid=1Q4RNYVSgucO-mLRKspDzCGe5ECwm-YA/,
+  "切替指示前は通常ルートを表示する"
+);
+assert.doesNotMatch(
+  scheduleApp.innerHTML,
+  /mid=16IWs5jEWnULAdROjkelBjx0-G0FdSok/,
+  "ショートカットルートは予備登録に留める"
+);
 assert.match(schedule, /const routeMaps = day\.slots\.map/);
 assert.match(schedule, /class="route-list">\$\{routeMaps\}<\/div>/);
 assert.match(schedule, /経路図は時間順に並んでいます/);
