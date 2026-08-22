@@ -222,18 +222,18 @@ button {
   overflow: hidden;
 }
 
-.access-counter > table {
+.access-counter > a {
+  display: flex;
   max-width: 100%;
-  line-height: 0;
+  align-items: center;
+  justify-content: center;
 }
 
-.access-counter img {
+.access-counter .f-counter {
   max-width: 100%;
-  height: auto;
-  vertical-align: middle;
 }
 
-.access-counter a:focus-visible {
+.access-counter > a:focus-visible {
   outline: 3px solid #2d75d4;
   outline-offset: 2px;
 }

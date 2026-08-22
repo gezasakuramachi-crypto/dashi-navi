@@ -22,16 +22,14 @@ for (const source of [mainHtml, scheduleSource, ...schedulePages]) {
 assert.doesNotMatch(mainCss, /--advertisement-height/);
 assert.doesNotMatch(scheduleCss, /--advertisement-height/);
 assert.match(mainHtml, /<aside class="access-counter" aria-label="アクセスカウンター">/);
-const counterTag = mainHtml.match(/<!--カウンタータグここから-->([\s\S]*?)<!--カウンタータグここまで-->/)?.[1];
-assert.ok(counterTag, "イージーカウンターのタグを確認できる");
-assert.doesNotMatch(counterTag, /http:\/\//);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/images\/today\.gif/);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/tday-d37-f5-167\/6a8926a173660\//);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/images\/yesterday\.gif/);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/yday-d37-f5-167\/6a8926a173660\//);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/images\/total\.gif/);
-assert.match(counterTag, /https:\/\/www\.ezcounter\.net\/total-d37-f6-167\/6a8926a173660\//);
-assert.doesNotMatch(mainHtml, /f-counter|1787371082|stylemap\.co\.jp/);
+assert.match(
+  mainHtml,
+  /<a href="https:\/\/www\.stylemap\.co\.jp\/" title="アクセスカウンター" aria-label="アクセスカウンター"><span class="f-counter" data-dir="67" data-id="1787371082"><\/span><\/a>/
+);
+assert.match(
+  mainHtml,
+  /<a href="https:\/\/www\.stylemap\.co\.jp\/"[^>]*><span class="f-counter"[^>]*><\/span><\/a>\s*<script src="https:\/\/www\.f-counter\.net\/js-counter\/counter\.js" async><\/script>/
+);
 assert.match(mainCss, /--counter-height:\s*clamp\(50px, 15\.625vw, 72px\);/);
 assert.match(
   mainCss,
@@ -48,7 +46,7 @@ assert.match(
 );
 
 for (const page of schedulePages) {
-  assert.doesNotMatch(page, /ezcounter|access-counter/);
+  assert.doesNotMatch(page, /f-counter|access-counter/);
 }
 
 for (const asset of [
