@@ -99,7 +99,7 @@ assert.match(
 assert.match(html, /id="trafficStatusText" aria-live="polite"/);
 assert.match(html, /href="schedule\/"/);
 assert.doesNotMatch(html, /ここへ行く/);
-assert.match(html, /styles\.css\?v=20260822-1/);
+assert.match(html, /styles\.css\?v=20260822-2/);
 assert.doesNotMatch(html, /ad-rotator/);
 assert.match(html, /runtime-schedule\.js\?v=20260810-1/);
 assert.match(html, /config\.js\?v=20260810-1/);
